@@ -91,9 +91,14 @@ router.post("/signin", (req, res) => __awaiter(void 0, void 0, void 0, function*
     const body = req.body;
     const result = index_1.signinInput.safeParse(body);
     if (!result.success) {
+        console.log("result.error.errors:", result.error.errors);
+        const mappedErrors = {};
+        result.error.errors.forEach((err) => {
+            mappedErrors[err.path[0]] = err.message;
+        });
         return res.status(400).json({
             // message: "Incorrect inputs",
-            errors: result.error.errors,
+            errors: mappedErrors,
         });
     }
     try {

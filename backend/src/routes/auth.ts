@@ -84,9 +84,14 @@ router.post("/signin", async (req: Request, res: Response): Promise<any> => {
   const body = req.body;
   const result = signinInput.safeParse(body);
   if (!result.success) {
+    console.log("result.error.errors:", result.error.errors);
+    const mappedErrors:{[key:string]:string}={};
+    result.error.errors.forEach((err: any) => {
+      mappedErrors[err.path[0]] = err.message;
+    });
     return res.status(400).json({
       // message: "Incorrect inputs",
-      errors: result.error.errors,
+      errors: mappedErrors,
     });
   }
   try {
