@@ -7,9 +7,22 @@ require("dotenv").config();
 const JWT_SECRET = process.env.JWT_SECRET;
 import { sendEmail } from "./email-service";
 import bcrypt from "bcrypt";
+import { forgotPasswordInput } from "../../../schema/dist";
 
-router.post("/auth/forgot-password", async (req: Request, res: Response) => {
-  const { email } = req.body;
+router.post("/auth/forgot-password", async (req: Request, res: Response):Promise<any> => {
+  const email = req.body;
+  const result=forgotPasswordInput.safeParse(email);
+
+  if(!result.success){   
+    console.log("Result error in forgot password",result.error.errors);
+    const mappedErrors :{[key:string]:string}={};
+    result.error.errors.forEach((err:any) =>{
+      mappedErrors["email"]=result.error.errors[0].message; 
+    })
+    return res.status(400).json({
+      errors:mappedErrors,
+    });
+  }
 
   try {
     const user = await prisma.user.findUnique({
@@ -20,10 +33,9 @@ router.post("/auth/forgot-password", async (req: Request, res: Response) => {
       },
     });
     if (!user) {
-      res.status(400).json({
-        message: "user not found with this email",
+      return res.status(400).json({
+        message: "User not found with this email",
       });
-      return;
     }
 
     if (!JWT_SECRET) {
@@ -50,8 +62,20 @@ router.post("/auth/forgot-password", async (req: Request, res: Response) => {
     });
     res.status(200).json("Password reset email send");
   } catch (error) {
-    console.error("Error", error);
-
+    console.error("Error during forgot password", error);
+    if(error instanceof Error){
+      res.status(500).json({
+        message:"Forgot password request failde due to intenal server error.",
+        errorCode:"INTERNAL_SERVER_ERROR",
+        details:error.message,
+      })
+    }else{
+      res.status(500).json({
+        message:"Forgot password request failde due to intenal server error.",
+        errorCode:"INTERNAL_SERVER_ERROR",
+        details:"An unknown error occurred",
+      })
+    }
     res.status(500).json("Error sending email");
   }
 });

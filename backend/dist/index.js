@@ -9,6 +9,7 @@ const ForgotPassword_1 = __importDefault(require("./routes/ForgotPassword"));
 const app = (0, express_1.default)();
 const cors = require('cors');
 app.use(express_1.default.json());
+app.use(express_1.default.text());
 app.use(cors());
 app.use("/auth", auth_1.default);
 app.use("", ForgotPassword_1.default);

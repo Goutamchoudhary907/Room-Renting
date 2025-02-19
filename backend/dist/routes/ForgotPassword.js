@@ -21,8 +21,20 @@ require("dotenv").config();
 const JWT_SECRET = process.env.JWT_SECRET;
 const email_service_1 = require("./email-service");
 const bcrypt_1 = __importDefault(require("bcrypt"));
+const dist_1 = require("../../../schema/dist");
 router.post("/auth/forgot-password", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email } = req.body;
+    const email = req.body;
+    const result = dist_1.forgotPasswordInput.safeParse(email);
+    if (!result.success) {
+        console.log("Result error in forgot password", result.error.errors);
+        const mappedErrors = {};
+        result.error.errors.forEach((err) => {
+            mappedErrors["email"] = result.error.errors[0].message;
+        });
+        return res.status(400).json({
+            errors: mappedErrors,
+        });
+    }
     try {
         const user = yield prisma.user.findUnique({
             where: { email },
@@ -32,10 +44,9 @@ router.post("/auth/forgot-password", (req, res) => __awaiter(void 0, void 0, voi
             },
         });
         if (!user) {
-            res.status(400).json({
-                message: "user not found with this email",
+            return res.status(400).json({
+                message: "User not found with this email",
             });
-            return;
         }
         if (!JWT_SECRET) {
             throw new Error("JWT_SECRET is not defined in the env");
@@ -57,11 +68,25 @@ router.post("/auth/forgot-password", (req, res) => __awaiter(void 0, void 0, voi
         <a href="${resetLink}">${resetLink}</a>
         `,
         });
-        res.status(200).send("Password reset email send");
+        res.status(200).json("Password reset email send");
     }
     catch (error) {
-        console.error("Error", error);
-        res.status(500).send("Error sending email");
+        console.error("Error during forgot password", error);
+        if (error instanceof Error) {
+            res.status(500).json({
+                message: "Forgot password request failde due to intenal server error.",
+                errorCode: "INTERNAL_SERVER_ERROR",
+                details: error.message,
+            });
+        }
+        else {
+            res.status(500).json({
+                message: "Forgot password request failde due to intenal server error.",
+                errorCode: "INTERNAL_SERVER_ERROR",
+                details: "An unknown error occurred",
+            });
+        }
+        res.status(500).json("Error sending email");
     }
 }));
 router.post("/auth/reset-password", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
