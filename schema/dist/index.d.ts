@@ -25,5 +25,24 @@ export declare const signinInput: z.ZodObject<{
     email: string;
     password: string;
 }>;
+export declare const forgotPasswordInput: z.ZodString;
+export declare const resetPasswordInput: z.ZodEffects<z.ZodObject<{
+    password: z.ZodString;
+    confirmPassword: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    password: string;
+    confirmPassword: string;
+}, {
+    password: string;
+    confirmPassword: string;
+}>, {
+    password: string;
+    confirmPassword: string;
+}, {
+    password: string;
+    confirmPassword: string;
+}>;
 export type SignupInput = z.infer<typeof signupInput>;
 export type SigninInput = z.infer<typeof signinInput>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordInput>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordInput>;
