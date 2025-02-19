@@ -65,7 +65,7 @@ export const Signup =() =>{
        <div className="w-[350px] mx-auto mt-10"> 
         <div className=' flex justify-center items-center text-[12px] text-[#101011] w-full ml-35'>
            <div> Already have an account ?</div>
-           <button className='text-red-400'>Log in</button>
+           <button onClick={ () => navigate("/auth/signin")} className='text-red-400 cursor-pointer'>Log in</button>
         </div>
         <div className="flex flex-col ">
           <div className="text-[25px] text-[#636AE8] font-bold">
