@@ -1,11 +1,12 @@
 import { ChangeEvent, useState } from "react"
 import { ResetPasswordInput } from "../../../schema/dist";
-import { resetPasswordInput } from "../../../schema/dist"; 
 import axios from "axios";
 import { BACKEND_URL } from "../config";
 import { useLocation, useNavigate } from "react-router-dom";
 import {z} from 'zod'
 export const ResetPassword =()=>{
+    console.log("ResetPassword component is rendering"); // Add this line!
+
   
  const navigate=useNavigate();
  const location=useLocation();
@@ -33,7 +34,6 @@ async function sendRequest(){
             setErrors({general:"Invalid or missing token."})
             return;
         }
-        resetPasswordInput.parse(resetPasswordInputs);
 
         const response=await axios.post(`${BACKEND_URL}/auth/reset-password`,{
             ... resetPasswordInputs,
@@ -43,6 +43,8 @@ async function sendRequest(){
         if(response.status >=200 && response.status <300){
             alert("Password reset successful!");
             navigate("/login");
+        }else if(response.status===400 && response.data.errors){
+         setErrors(response.data.errors);
         }else{
             setErrors({general:`request failed with status: ${response.status}`})
         }
