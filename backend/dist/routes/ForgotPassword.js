@@ -58,7 +58,7 @@ router.post("/auth/forgot-password", (req, res) => __awaiter(void 0, void 0, voi
             where: { id: user.id },
             data: { reset: resetToken },
         });
-        const resetLink = `http://localhost:3000/reset-password?token=${resetToken}`;
+        const resetLink = `http://localhost:3000/auth/reset-password?token=${resetToken}`;
         yield (0, email_service_1.sendEmail)({
             to: email,
             subject: "Reset password requested",
@@ -89,9 +89,18 @@ router.post("/auth/forgot-password", (req, res) => __awaiter(void 0, void 0, voi
         res.status(500).json("Error sending email");
     }
 }));
-router.post("/auth/reset-password", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { token, password } = req.body;
+router.post("/reset-password", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { token, password, confirmPassword } = req.body;
     try {
+        const result = dist_1.resetPasswordInput.safeParse({ password, confirmPassword });
+        if (!result.success) {
+            const mappedErrors = {};
+            result.error.errors.forEach((err) => {
+                mappedErrors[err.path[0]] = err.message;
+            });
+            res.status(400).json({ errors: mappedErrors });
+            return;
+        }
         if (!JWT_SECRET) {
             res.status(500).json({ message: "Internal server error" });
             return;
@@ -139,6 +148,7 @@ router.post("/auth/reset-password", (req, res) => __awaiter(void 0, void 0, void
     catch (error) {
         console.error("Error", error);
         if (error instanceof jsonwebtoken_1.default.JsonWebTokenError) {
+            console.error("JWT Error Details:", error.message);
             res.status(401).json({ message: "Invalid token" });
             return;
         }
@@ -151,4 +161,14 @@ router.post("/auth/reset-password", (req, res) => __awaiter(void 0, void 0, void
         res.status(500).json({ message: "Internal server error" });
     }
 }));
+router.get("/reset-password", (req, res) => {
+    const token = req.query.token;
+    if (!token) {
+        res.status(400).send("Missing token");
+        return;
+    }
+    const redirectURL = `http://localhost:5173/reset-password?token=${token}`;
+    console.log("Redirecting to:", redirectURL); // Log this!
+    res.redirect(redirectURL);
+});
 exports.default = router;

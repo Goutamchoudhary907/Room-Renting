@@ -7,7 +7,7 @@ require("dotenv").config();
 const JWT_SECRET = process.env.JWT_SECRET;
 import { sendEmail } from "./email-service";
 import bcrypt from "bcrypt";
-import { forgotPasswordInput } from "../../../schema/dist";
+import { forgotPasswordInput, resetPasswordInput } from "../../../schema/dist";
 
 router.post("/auth/forgot-password", async (req: Request, res: Response):Promise<any> => {
   const email = req.body;
@@ -50,7 +50,7 @@ router.post("/auth/forgot-password", async (req: Request, res: Response):Promise
       data: { reset: resetToken },
     });
 
-    const resetLink = `http://localhost:3000/reset-password?token=${resetToken}`;
+    const resetLink = `http://localhost:3000/auth/reset-password?token=${resetToken}`;
     await sendEmail({
       to: email,
       subject: "Reset password requested",
@@ -80,10 +80,21 @@ router.post("/auth/forgot-password", async (req: Request, res: Response):Promise
   }
 });
 
-router.post("/auth/reset-password", async (req: Request, res: Response) => {
-  const { token, password } = req.body;
+router.post("/reset-password", async (req: Request, res: Response) => {
+  const { token, password, confirmPassword } = req.body;
 
   try {
+     const result=resetPasswordInput.safeParse({password,confirmPassword});
+
+     if(!result.success){
+      const mappedErrors: { [key: string]: string } = {};
+         result.error.errors.forEach((err) => {
+                mappedErrors[err.path[0]] = err.message;
+            });
+             res.status(400).json({ errors: mappedErrors });
+             return
+      
+     }
     if (!JWT_SECRET) {
       res.status(500).json({ message: "Internal server error" });
       return;
@@ -134,6 +145,7 @@ router.post("/auth/reset-password", async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("Error", error);
     if (error instanceof jwt.JsonWebTokenError) {
+      console.error("JWT Error Details:", error.message);
        res.status(401).json({ message: "Invalid token" });
        return
     }
@@ -148,4 +160,18 @@ router.post("/auth/reset-password", async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+router.get("/reset-password", (req:Request, res:Response) =>{
+  const token=req.query.token;
+
+  if(!token){
+    res.status(400).send("Missing token");
+    return;
+  }
+
+ const redirectURL= `http://localhost:5173/reset-password?token=${token}`;
+ console.log("Redirecting to:", redirectURL); // Log this!
+res.redirect(redirectURL);
+
+})
 export default router;
