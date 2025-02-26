@@ -20,10 +20,10 @@ const msg={
 }
 
   try {
-    const response = await sgMail.send(msg); // Capture the response (optional)
+    const response = await sgMail.send(msg);
         console.log('Email sent successfully to ', emailData.to);
         if (response && response[0]) {
-            console.log("SendGrid Response:", response[0].statusCode); // Log status code
+            console.log("SendGrid Response:", response[0].statusCode);
         }
   } catch (error:any) {
     console.error("Error sending email: ", error);

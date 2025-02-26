@@ -26,10 +26,10 @@ function sendEmail(emailData) {
             html: emailData.html,
         };
         try {
-            const response = yield mail_1.default.send(msg); // Capture the response (optional)
+            const response = yield mail_1.default.send(msg);
             console.log('Email sent successfully to ', emailData.to);
             if (response && response[0]) {
-                console.log("SendGrid Response:", response[0].statusCode); // Log status code
+                console.log("SendGrid Response:", response[0].statusCode);
             }
         }
         catch (error) {

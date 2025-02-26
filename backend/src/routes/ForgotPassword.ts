@@ -17,7 +17,9 @@ router.post("/auth/forgot-password", async (req: Request, res: Response):Promise
     console.log("Result error in forgot password",result.error.errors);
     const mappedErrors :{[key:string]:string}={};
     result.error.errors.forEach((err:any) =>{
-      mappedErrors["email"]=result.error.errors[0].message; 
+      if (err.path && err.path[0]) {
+        mappedErrors[err.path[0]] = err.message; 
+    } 
     })
     return res.status(400).json({
       errors:mappedErrors,
@@ -50,7 +52,7 @@ router.post("/auth/forgot-password", async (req: Request, res: Response):Promise
       data: { reset: resetToken },
     });
 
-    const resetLink = `http://localhost:3000/auth/reset-password?token=${resetToken}`;
+    const resetLink = `http://localhost:5173/auth/reset-password?token=${resetToken}`;
     await sendEmail({
       to: email,
       subject: "Reset password requested",
@@ -65,13 +67,13 @@ router.post("/auth/forgot-password", async (req: Request, res: Response):Promise
     console.error("Error during forgot password", error);
     if(error instanceof Error){
       res.status(500).json({
-        message:"Forgot password request failde due to intenal server error.",
+        message:"Forgot password request failed due to intenal server error.",
         errorCode:"INTERNAL_SERVER_ERROR",
         details:error.message,
       })
     }else{
       res.status(500).json({
-        message:"Forgot password request failde due to intenal server error.",
+        message:"Forgot password request failed due to intenal server error.",
         errorCode:"INTERNAL_SERVER_ERROR",
         details:"An unknown error occurred",
       })
@@ -88,12 +90,19 @@ router.post("/reset-password", async (req: Request, res: Response) => {
 
      if(!result.success){
       const mappedErrors: { [key: string]: string } = {};
-         result.error.errors.forEach((err) => {
-                mappedErrors[err.path[0]] = err.message;
-            });
-             res.status(400).json({ errors: mappedErrors });
-             return
-      
+
+      // First, check for password length errors
+      const passwordError=result.error.errors.find(err => err.path[0]==='password');
+      if(passwordError){
+        res.status(400).json({errors:{password:passwordError.message}})
+        return
+      }
+     // Then, check for password mismatch error
+       const confirmPasswordError = result.error.errors.find(err => err.path[0] === "confirmPassword");
+       if (confirmPasswordError) {
+           res.status(400).json({ errors: { confirmPassword: confirmPasswordError.message } });
+          return
+       }
      }
     if (!JWT_SECRET) {
       res.status(500).json({ message: "Internal server error" });
@@ -101,8 +110,17 @@ router.post("/reset-password", async (req: Request, res: Response) => {
     }
 
     //  verify token
-    const decoded = jwt.verify(token, JWT_SECRET) as { user: string };
-    const userEmail = decoded.user;
+    let decoded;
+    try {
+        decoded = jwt.verify(token, JWT_SECRET) as { user: string };
+    } catch (error: any) {
+        if (error instanceof jwt.TokenExpiredError) {
+             res.status(401).json({ message: "Reset token has expired. Please request a new one." });
+             return
+        }
+         res.status(401).json({ message: "Invalid token" });
+         return
+    } const userEmail = decoded.user;
 
     //  find user
     const user = await prisma.user.findUnique({
@@ -161,17 +179,47 @@ router.post("/reset-password", async (req: Request, res: Response) => {
   }
 });
 
-router.get("/reset-password", (req:Request, res:Response) =>{
-  const token=req.query.token;
+router.get("/auth/reset-password", async (req: Request, res: Response) => {
+  console.log("Backend hit: /auth/reset-password");
 
-  if(!token){
-    res.status(400).send("Missing token");
-    return;
+  const token = req.query.token as string;
+
+  if (!token) {
+     res.status(400).send("Missing token");
+     return
   }
 
- const redirectURL= `http://localhost:5173/reset-password?token=${token}`;
- console.log("Redirecting to:", redirectURL); // Log this!
-res.redirect(redirectURL);
+  if (!JWT_SECRET) {
+    res.status(500).send("JWT_SECRET is not defined in the env");
+     return
+  }
 
-})
+  try {
+    // Verify token
+    const decoded = jwt.verify(token, JWT_SECRET) as { user: string };
+    const userEmail = decoded.user;
+
+    // Find user
+    const user = await prisma.user.findUnique({
+      where: { email: userEmail },
+      select: { id: true, reset: true },
+    });
+
+    if (!user || user.reset !== token) {
+      res.status(401).send("Invalid or expired token");
+      return
+    }
+
+    // If token is valid, redirect to frontend with the token
+    const redirectURL = `http://localhost:5173/auth/reset-password?token=${token}`;
+    console.log("Redirecting to:", redirectURL);
+    res.redirect(redirectURL);
+    return
+  } catch (error) {
+    console.error("Error verifying token:", error);
+     res.status(401).send("Invalid or expired token");
+     return
+  }
+});
+
 export default router;

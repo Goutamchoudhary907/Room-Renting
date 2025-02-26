@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const auth_1 = __importDefault(require("./routes/auth"));
 const ForgotPassword_1 = __importDefault(require("./routes/ForgotPassword"));
+const propertyRoutes_1 = __importDefault(require("./routes/properties/propertyRoutes"));
 const app = (0, express_1.default)();
 const cors = require('cors');
 app.use(express_1.default.json());
@@ -13,6 +14,7 @@ app.use(express_1.default.text());
 app.use(cors());
 app.use("/auth", auth_1.default);
 app.use("", ForgotPassword_1.default);
+app.use("/property", propertyRoutes_1.default);
 app.listen(3000, () => {
     console.log('Server running on http://localhost:3000');
 });
