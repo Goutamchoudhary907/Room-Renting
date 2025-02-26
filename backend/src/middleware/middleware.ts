@@ -8,8 +8,6 @@ import jwt,{JwtPayload} from 'jsonwebtoken'
   }
 
 export async function authMiddleware(req:AuthenticatedRequest,res:Response, next:NextFunction):Promise<void>{
-    console.log('Auth Middleware Called'); // Log middleware entry
-    console.log('JWT_SECRET (Middleware):', JWT_SECRET); // Log JWT_SECRET
 
 const authHeader=req.headers['authorization'];
 console.log('authHeader:', authHeader);
@@ -17,7 +15,6 @@ const token=authHeader && authHeader.split(' ')[1];
 console.log('token:', token);
 
 if(token == null){
-    console.log('Token is null'); // Log null token
     res.status(401).json({
         message:'Unauthorized: Missing token'
     })
@@ -25,7 +22,6 @@ if(token == null){
 }
 
  if(!JWT_SECRET){
-    console.log('JWT_SECRET not configured'); // Log missing JWT_SECRET
      res.status(500).json({ message: 'Internal Server Error: JWT_SECRET not configured' });
      return
     }
@@ -37,7 +33,7 @@ if(token == null){
         req.user = decoded;
         next();
       } catch (err: any) {
-        console.error('JWT Verification Error:', err); // Log full error object
+        console.error('JWT Verification Error:', err);       // Log full error object
         if (err.name === 'TokenExpiredError') {
           res.status(403).json({ message: 'Forbidden: Token expired' });
         } else if (err.name === 'JsonWebTokenError') {

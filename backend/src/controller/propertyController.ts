@@ -80,19 +80,16 @@ const errors: MappedErrors = {};
       ...rest,
     };
 
-    console.log('req.body:', req.body); // Log req.body
+    console.log('req.body:', req.body);
     console.log('parsedBody:', parsedBody)
     let validatedData:PropertySchema;
     try {
         validatedData=propertySchema.parse(parsedBody);
-    } catch (zodError:any) {
-      console.log("Zod Error Caught:", zodError); // Add this line
-  
+    } catch (zodError:any) {  
         if (zodError instanceof ZodError) {
             zodError.issues.forEach((issue:ZodIssue) => {
               errors[issue.path[0] as keyof MappedErrors] = issue.message;
             });
-            console.log("Sending Zod Error Response:", { errors }); // Add this line
         
               res.status(400).json({errors})
               return
@@ -153,16 +150,45 @@ const errors: MappedErrors = {};
 }
 
 export async function getProperties(req:Request, res:Response):Promise<void>{
-  try {
-    const properties=prisma.property.findMany({
-      include:{
-        images:true,
-      },
-    })
-  } catch (error) {
-    console.error("Error getting properties:", error);
-    res.status(500).json({ message: "Internal server error" });
+ try {
+  const {rentalType,bedrooms,minPrice, maxPrice, address,amenities,availability} = req.query;
+
+  const where: any={};
+
+  if(rentalType){
+    where.rentalType=rentalType
   }
+  if(bedrooms){
+    where.bedrooms=bedrooms;
+  }
+
+  if(minPrice && maxPrice){
+    where.OR=[
+      {pricePerMonth:{gte:minPrice, lte:maxPrice}},
+      {pricePerNight:{gte:minPrice, lte:maxPrice}}
+    ];
+  }else if (minPrice){
+    where.OR=[
+      {pricePerMonth:{gte:minPrice}},
+      {pricePerNight:{gte:minPrice}},
+    ];
+  }else if(maxPrice){
+    where.OR=[
+      {pricePerMonth:{gte:maxPrice}},
+      {pricePerNight:{gte:maxPrice}},
+    ];
+  }
+
+  if(address){
+    where.address= {contains:address, mode:'insesitive'};
+  }
+
+  if(amenities){
+    
+  }
+ } catch (error) {
+  
+ }
 }
 
 export {upload};
