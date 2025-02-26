@@ -12,7 +12,7 @@ const [routeKey, setRouteKey] = useState(location.pathname); // Initialize with 
 
 useEffect(() => {
     setRouteKey(location.pathname); // Update routeKey whenever location changes
-}, [location]); // Run this effect when location changes
+}, [location]);                     // Run this effect when location changes
 
   return (
     <>
@@ -20,7 +20,7 @@ useEffect(() => {
       <Route path="/auth/signup" element={<Signup/>}/>
       <Route path="/auth/signin" element={<Signin/>}/>
       <Route path="/auth/forgot-password" element={<ForgotPassword/>}/>
-      <Route path="/reset-password" element={<ResetPassword/>}/>
+      <Route path="/auth/reset-password" element={<ResetPassword/>}/>
      </Routes>
     </>
   )

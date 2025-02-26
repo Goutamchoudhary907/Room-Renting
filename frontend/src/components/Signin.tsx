@@ -114,7 +114,7 @@ export const Signin =()=>{
               </div>
 
               <div className='flex-1 ml-30'>
-                <button className='text-[13px] text-[#636AE8] cursor-pointer'>Forgot Password ?</button>
+                <button onClick={ () => navigate("/auth/forgot-password")} className='text-[13px] text-[#636AE8] cursor-pointer'>Forgot Password ?</button>
               </div>
             </div>
     

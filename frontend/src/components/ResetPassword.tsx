@@ -35,9 +35,10 @@ async function sendRequest(){
             return;
         }
 
-        const response=await axios.post(`${BACKEND_URL}/auth/reset-password`,{
-            ... resetPasswordInputs,
-            token:token ,
+        const response=await axios.post(`${BACKEND_URL}/reset-password`,{
+            password: resetPasswordInputs.password,
+            confirmPassword: resetPasswordInputs.confirmPassword,
+            token: token,
         });
 
         if(response.status >=200 && response.status <300){
