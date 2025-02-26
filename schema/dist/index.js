@@ -17,8 +17,8 @@ exports.signinInput = zod_1.default.object({
 });
 exports.forgotPasswordInput = zod_1.default.string().trim().email({ message: "Please enter a valid email address." });
 exports.resetPasswordInput = zod_1.default.object({
-    password: zod_1.default.string().trim().min(8, { message: "Password must be at least 8 characters." }),
-    confirmPassword: zod_1.default.string().trim().min(8),
+    password: zod_1.default.string().trim().min(8, { message: "New password must be at least 8 characters." }),
+    confirmPassword: zod_1.default.string().trim().min(8, { message: "Confirm password must be at least 8 characters." }),
 })
     .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",

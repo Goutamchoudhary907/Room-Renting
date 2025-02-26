@@ -16,8 +16,8 @@ export const signinInput=z.object({
 export const forgotPasswordInput=z.string().trim().email({ message: "Please enter a valid email address." })
 
 export const resetPasswordInput=z.object({
-    password:z.string().trim().min(8,{ message: "Password must be at least 8 characters." }) ,
-    confirmPassword:z.string().trim().min(8),
+    password:z.string().trim().min(8,{ message: "New password must be at least 8 characters." }) ,
+    confirmPassword:z.string().trim().min(8,{ message: "Confirm password must be at least 8 characters." }),
 }) 
 .refine((data) => data.password===data.confirmPassword , {
     message:"Passwords don't match" ,
