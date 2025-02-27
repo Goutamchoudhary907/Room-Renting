@@ -149,46 +149,86 @@ const errors: MappedErrors = {};
   }   
 }
 
-export async function getProperties(req:Request, res:Response):Promise<void>{
+export async function getFilteredProperties(req:Request, res:Response):Promise<void>{
  try {
   const {rentalType,bedrooms,minPrice, maxPrice, address,amenities,availability} = req.query;
 
   const where: any={};
 
   if(rentalType){
-    where.rentalType=rentalType
+    where.rentalType=rentalType as string
   }
   if(bedrooms){
-    where.bedrooms=bedrooms;
+    where.bedrooms=Number(bedrooms);
   }
 
   if(minPrice && maxPrice){
     where.OR=[
-      {pricePerMonth:{gte:minPrice, lte:maxPrice}},
-      {pricePerNight:{gte:minPrice, lte:maxPrice}}
+      {pricePerMonth:{gte:Number(minPrice), lte:Number(maxPrice)}},
+      {pricePerNight:{gte:Number(minPrice), lte:Number(maxPrice)}}
     ];
   }else if (minPrice){
     where.OR=[
-      {pricePerMonth:{gte:minPrice}},
-      {pricePerNight:{gte:minPrice}},
+      {pricePerMonth:{gte:Number(minPrice)}},
+      {pricePerNight:{gte:Number(minPrice)}},
     ];
   }else if(maxPrice){
     where.OR=[
-      {pricePerMonth:{gte:maxPrice}},
-      {pricePerNight:{gte:maxPrice}},
+      {pricePerMonth:{gte:Number(maxPrice)}},
+      {pricePerNight:{gte:Number(maxPrice)}},
     ];
   }
 
   if(address){
-    where.address= {contains:address, mode:'insesitive'};
+    where.address= {contains:address as string, mode:'insesitive'};
   }
 
   if(amenities){
-    
+    // assuming amenities are stored as comma-seperated in query
+    const amenityList= (amenities as string).split(',');
+    where.amenities={hasEvery:amenityList}
   }
- } catch (error) {
-  
+  if(availability){
+    where.availability=new Date(availability as string);
+  }
+   const properties=await prisma.property.findMany({
+    where:where,
+    include:{
+      images:true,
+    },
+   })
+   res.status(200).json(properties);
+
+ } catch (error:any) {
+  console.error("Error getting propertis: ", error);
+  if(error instanceof ZodError){
+     res.status(400).json({errors:error.errors});
+     return
+  }else if(error.code==='P2001'){
+    res.status(400).json({message:"No properties found matching the filter."});
+    return
+  }else{
+    res.status(500).json({
+      message:"Internal server error" 
+    }) 
+    return
+  }
  }
+}
+
+
+export async function getAllProperties(req:Request, res:Response):Promise<void>{
+  try {
+    const properties=await prisma.property.findMany({
+      include:{
+        images:true,
+      }
+    })
+    res.status(200).json(properties);
+  } catch (error) {
+    console.error("Error getting all properties:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 }
 
 export {upload};
