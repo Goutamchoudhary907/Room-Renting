@@ -20,17 +20,31 @@ export const propertySchema=z.object({
     if(data.rentalType==='short-term' && data.pricePerNight===undefined){
       return false;
     }
-    if(data.rentalType==='long-term' && data.pricePerMonth===undefined){
-      return false;
-    }
-    if(data.rentalType==='both' && data.pricePerNight===undefined || data.pricePerMonth===undefined){
-      return false;
-    }
     return true;
   },{
-    message:"Price is required" ,
-    path:['price']
-  }
-)
+    message:"Price per night is required",
+    path:['pricePerNight']
+  }).refine(
+    (data)=>{
+      if(data.rentalType==='long-term' && data.pricePerMonth===undefined){
+        return false;
+      }
+      return true;
+    },{
+      message:"Price per month is required" ,
+      path:['pricePerMonth']
+    }).refine(
+      (data) => {
+          if (data.rentalType === 'both' && (data.pricePerNight === undefined || data.pricePerMonth === undefined)) {
+              return false;
+          }
+          return true;
+      },
+      {
+          message: "Both price per night and price per month are required for 'both' rentals",
+          path: ['price'], 
+      }
+  );
+  
 
 export type PropertySchema=z.infer<typeof propertySchema>
