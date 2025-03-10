@@ -20,9 +20,9 @@ export const Signin =()=>{
     async function sendRequest(){
         try {
             const response=await axios.post(`${BACKEND_URL}/auth/signin`, signinInputs);
-            const jwt=response.data;
+            const jwt=response.data.token;
             localStorage.setItem("token",jwt);
-             navigate("home");
+             navigate("/property/create");
         } catch (error) {
             if (axios.isAxiosError(error)) {
               if (error.response) {
