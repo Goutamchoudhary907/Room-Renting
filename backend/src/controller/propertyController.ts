@@ -107,7 +107,8 @@ const errors: MappedErrors = {};
     const imageURLs=(req.files as Express.Multer.File[]).map(
       (file:any) => file.path
     );
-
+    console.log("validatedData:", validatedData);
+    console.log("imageURLs:", imageURLs);
     const newProperty= await prisma.property.create({
         data:{
           ...validatedData ,
@@ -120,7 +121,9 @@ const errors: MappedErrors = {};
           images:true,
         },
     });
+    console.log("newProperty created:", newProperty);
     res.status(201).json(newProperty);
+    console.log("Response sent");
     return
   } catch (error:any) {
     console.error("Error creating property: ", error)
