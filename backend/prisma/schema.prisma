@@ -36,7 +36,7 @@ model Property{
   longitude       Decimal?
   amenities       String[]
   availability    Json?
-  maxGuests       Int
+  maxGuests       Int?
   hostId          Int
   host            User            @relation(fields: [hostId], references: [id])
   createdAt       DateTime        @default(now())

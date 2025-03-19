@@ -3,11 +3,12 @@ const router = express.Router();
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 import jwt from "jsonwebtoken";
-require("dotenv").config();
+import dotenv from "dotenv";
+dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET;
-import { sendEmail } from "./email-service";
+import { sendEmail } from "./email-service.js";
 import bcrypt from "bcrypt";
-import { forgotPasswordInput, resetPasswordInput } from "../../../schema/dist";
+import { forgotPasswordInput, resetPasswordInput } from "../../../schema/dist/index.js";
 
 router.post("/auth/forgot-password", async (req: Request, res: Response):Promise<any> => {
   const email = req.body;
