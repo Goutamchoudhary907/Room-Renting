@@ -1,6 +1,7 @@
 import React, { ChangeEvent, useRef, useState } from "react";
 import HomeIcon from "../../assets/Home_icon.png";
 import axios from "axios";
+import {propertySchema} from "../../../../schema/dist/propertySchema.js" 
 import ImageIcon from "../../assets/ImageIconListRoom.png";
 
 import ApartmentIcon from "../../assets/ApartmentIcon.png"
@@ -60,41 +61,39 @@ const AddressSection = ({ children }: ChildrenProps) => (
 interface FormData {
   title: string;
   description: string;
-  bedrooms: string;
-  bathrooms: string;
+  bedrooms: number;
+  bathrooms: number;
   kitchen: string;
   livingRoom: string;
   propertyType: string;
   rentalType: string;
-  pricePerNight: string;
-  pricePerMonth: string;
+  pricePerNight: number | undefined;
+  pricePerMonth: number | undefined;
   address: string;
   amenities: string[];
 }
 export const ListRoom = () => {
 
-   const [formData,setFormData] =useState<FormData>({
+  const initialFormData: FormData = {
     title:"",
     description:"",
-    bedrooms:"1" ,
-    bathrooms:"1",
-    kitchen:"Full Kitchen" ,
-    livingRoom: "Separate Living Room",
+    bedrooms:1 as number,
+    bathrooms:1 as number,
+    kitchen:"Full Kitchen" as string,
+    livingRoom: "Separate Living Room" as string,
     propertyType: "apartment",
-    rentalType: "short-term",
-    pricePerNight: "",
-    pricePerMonth: "",
+    rentalType: "long-term",
+    pricePerNight: undefined,
+    pricePerMonth: undefined,
     address: "",
     amenities: [],
-   })
-
+   }
+   const [formData, setFormData] = useState<FormData>(initialFormData);
 const [images,setImages]=useState<FileList| null>(null);   
 const fileInputRef=useRef<HTMLInputElement>(null);
 
 const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
   const { name, value, type } = e.target;
-  console.log("handleChange: Name:", name, "Value:", value, "Type:", type); 
- 
   if (type === "checkbox") {
       const target = e.target as HTMLInputElement;
       setFormData((prevData: FormData) => ({
@@ -104,13 +103,14 @@ const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HT
               : prevData.amenities.filter((item) => item !== value),
       }));
   } else {
-    setFormData((prevData: FormData) => {
-      console.log("handleChange: Previous Data:", prevData);
-      const newData = { ...prevData, [name]: value };
-      console.log("handleChange: New Data:", newData); 
-      return newData;
-    });
+    setFormData((prevData: FormData) => ({
+      ...prevData,
+      [name]: ["pricePerNight", "pricePerMonth", "depositAmount", "maxGuests"].includes(name)
+        ? value === "" ? undefined : Number(value)
+        : value,
+    }));
   }
+  
 };
 const handleImageChange=(e:ChangeEvent<HTMLInputElement>)=>{
 if(e.target.files){
@@ -122,29 +122,61 @@ const handlePropertyTypeChnage=(value: string) =>{
   setFormData({...formData, propertyType:value});
 }
 
+
+const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+const [generalErrors, setGeneralErrors] = useState<string[]>([]);
+
 const handleSubmit=async () =>{
+  console.log("handleSubmit called!");
+  setFieldErrors({});
+  setGeneralErrors([]);
+
+  if (formData.amenities.length === 0) {
+    setFieldErrors((prevErrors) => ({
+        ...prevErrors,
+        amenities: ["Select at least one amenity"],
+    }));
+    console.log("fieldErrors.amenities:", fieldErrors.amenities); // Debugging
+       
+    return; 
+}
+  let dataToValidate = { ...formData };
+
+  if (formData.pricePerNight === 0 && (formData.rentalType === "short-term" || formData.rentalType === "both")){
+    dataToValidate = { ...dataToValidate, pricePerNight: undefined};
+}
+if (formData.pricePerMonth === 0 && (formData.rentalType === "long-term" || formData.rentalType === "both")){
+    dataToValidate = { ...dataToValidate, pricePerMonth: undefined};
+}
+
+const result = propertySchema.safeParse(dataToValidate); // Use the modified copy
+
+  console.log("Validation Result:", result);
+  if (!result.success) {
+const errors=result.error.formErrors.fieldErrors;
+    setFieldErrors(errors); 
+    console.log("Field Errors:", errors);
+    return;
+  }
   const formDataToSend=new FormData();
-  Object.entries(formData).forEach(([key, value]) =>{
-    if(Array.isArray(value)){
-      value.forEach((item) => formDataToSend.append(key,item));
-    }else{
-      formDataToSend.append(key,value);
+ 
+  Object.entries(formData).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((item) => {
+        formDataToSend.append(key, item);
+      });
+    } else {
+      formDataToSend.append(key, value);
     }
   });
-  console.log("Images:", images);
   if(images){
     Array.from(images).forEach((file)=>{
       formDataToSend.append("images", file)
     })
   }
   const token=localStorage.getItem("token");
-  console.log("Token", token , "Type:" , typeof token);
-  if (typeof token !== "string") {
-    console.error("Token is not a string!");
-    return; 
-  }
+
   try{
-   
     const response=await axios.post(`${BACKEND_URL}/property/create`, formDataToSend, {
   headers:{
     "Content-Type":"multipart/form-data",
@@ -152,27 +184,44 @@ const handleSubmit=async () =>{
   },
     })
     console.log("Propery created", response.data);
-  }catch(error){
-    console.error("Error creating property:", error);
+    setFormData(initialFormData);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+  }
+  setImages(null);
+  }catch(error:any){
+    console.log("Error while creating propery ", error);
+    if (axios.isAxiosError(error) && error.response) {
+      if (error.response.data.errors) {
+        const { general, ...fieldErrors } = error.response.data.errors; 
+        setFieldErrors(fieldErrors);  
+        setGeneralErrors(general || []);
+      } else {
+        setGeneralErrors([error.response.data.message || "Something went wrong."]);
+      }
+    } else {
+      setGeneralErrors(["An unexpected error occurred. Please try again."]);
+      console.error("Non-Axios error:", error);
+    }
   }
 }
   const bathroomOptions=[
-    {value:"1", label:"1"},
-    {value:"1.5", label:"1.5"},
-    {value:"2", label:"2"},
-    {value:"2.5", label:"2.5"},
-    {value:"3", label:"3"},
-    {value:"3.5", label:"3.5"},
-    {value:"4", label:"4"},
-    {value:"4+", label:"4+"},
+    {value:1, label:"1"},
+    {value:1.5, label:"1.5"},
+    {value:2, label:"2"},
+    {value:2.5, label:"2.5"},
+    {value:3, label:"3"},
+    {value:3.5, label:"3.5"},
+    {value:4, label:"4"},
+    {value:4.5, label:"4.5"},         
   ];
 
   const bedroomOptions=[
-    {value:"1" , label:"1"},
-    {value:"2" , label:"2"},
-    {value:"3" , label:"3"},
-    {value:"4" , label:"4"},
-    {value:"4+" , label:"4+"},
+    {value:1 , label:"1"},
+    {value:2 , label:"2"},
+    {value:3 , label:"3"},
+    {value:4 , label:"4"},
+    {value:5 , label:"5"},      
   ]
 
   const kitchenOptions=[
@@ -215,7 +264,7 @@ const handleSubmit=async () =>{
   ]
   
 
-  const [isChecked,setIsChecked]=useState<string | null>(null);
+  const [isChecked,setIsChecked]=useState<string>("long-term");
   const handleCheckBoxChange =(type:string) =>{
     setIsChecked(type);
     setFormData({...formData,rentalType:type});
@@ -252,9 +301,12 @@ const handleSubmit=async () =>{
               placeholder="Enter an attractive title for your room"
               type="text"
               id="title"
+              name="title"
+              value={formData.title}
               className="mt-2 h-12 rounded-2xl p-3 text-long "
               onChange={handleChange}
             />
+            {fieldErrors.title && <p className="text-red-500"> {fieldErrors.title[0]}</p>}
           </div>
 
           <div className="mt-4">
@@ -262,10 +314,14 @@ const handleSubmit=async () =>{
               label="Description"
               placeholder="Describe your room in detail"
               type="textarea"
-              id="title"
+              id="description"
+              name="description"
+              value={formData.description}
               className="mt-2 rounded-2xl p-3 text-long"
               onChange={handleChange}
             />
+             {fieldErrors.description && <p className="text-red-500"> {fieldErrors.description[0]}</p>}
+       
           </div>
 
           <div className="flex flex-col mt-4">
@@ -281,9 +337,22 @@ const handleSubmit=async () =>{
                 type="file"
                 accept="image/*"
                 id="images"
+                name="images"
                 onChange={handleImageChange}
+                multiple
+                ref={fileInputRef}
                 className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
               />
+             {images && (
+              <div>
+                  <p>Uploaded files:</p>
+                <ul>
+                  {Array.from(images).map((file, index) =>(
+                    <li key={index}>{file.name}</li>
+                  ))}
+                </ul>
+              </div>
+              )} 
               <div className="pb-4">
                 <img className=" w-8 h-8 " src={ImageIcon} alt="Image" />
               </div>
@@ -297,6 +366,7 @@ const handleSubmit=async () =>{
                 Browse Files
               </button>
             </div>
+            {fieldErrors.images && <p className="text-red-500">{fieldErrors.images[0]}</p>}
             </div>
           </RoomDetailsSection>
 
@@ -344,6 +414,7 @@ const handleSubmit=async () =>{
               value={formData.propertyType}
               onChange={handlePropertyTypeChnage}
               />
+              {fieldErrors.rentalType && <p className="text-red-500">{fieldErrors.rentalType[0]}</p>}
              </div>
              </RentalAndPropertySection>
 
@@ -361,11 +432,13 @@ const handleSubmit=async () =>{
               <div className="w-1/2">
               <SelectInput label="Number of Bedrooms" id="bedroom" name="bedrooms" options={bedroomOptions}
                value={formData.bedrooms} onChange={handleChange} />
+                {fieldErrors.bedrooms && <p className="text-red-500">{fieldErrors.bedrooms[0]}</p>}
               </div>
 
                <div className="w-1/2">
                <SelectInput label="Number of Bathrooms" id="bathroom" name="bathrooms" options={bathroomOptions}
                value={formData.bathrooms} onChange={handleChange} />
+                {fieldErrors.bathrooms && <p className="text-red-500">{fieldErrors.bathrooms[0]}</p>}
                </div>
              
             </div>
@@ -374,11 +447,13 @@ const handleSubmit=async () =>{
               <div className="w-1/2">
               <SelectInput label="Kitchen" name="kitchen" id="kitchen" options={kitchenOptions}
                value={formData.kitchen} onChange={handleChange} />
+                {fieldErrors.kitchen && <p className="text-red-500">{fieldErrors.kitchen[0]}</p>}
               </div>
 
                <div className="w-1/2">
                <SelectInput label="Living Room" name="livingRoom" id="livingRoom" options={LivingRoomOptions}
                value={formData.livingRoom} onChange={handleChange} />
+                {fieldErrors.livingRoom && <p className="text-red-500">{fieldErrors.livingRoom[0]}</p>}
                </div>
              
             </div>
@@ -405,6 +480,9 @@ const handleSubmit=async () =>{
               }))
             }}
             />
+            {fieldErrors.amenities && (
+               <div className="text-red-500">{fieldErrors.amenities[0]}</div>
+           )}
             </div>
             </AmenitiesSection>
           
@@ -429,9 +507,11 @@ const handleSubmit=async () =>{
               id="pricePerNight"
               name="pricePerNight"
               aria-label="Price Per Night (INR)" 
-              value={formData.pricePerNight}
+              value={formData.pricePerNight === undefined ? '' : formData.pricePerNight}
               onChange={handleChange}
               />
+              {fieldErrors.pricePerNight && <p className="text-red-500">{fieldErrors.pricePerNight[0]}</p>}
+     
               </div>
               )}  
               {(formData.rentalType==="long-term" || formData.rentalType==="both") && (
@@ -444,9 +524,10 @@ const handleSubmit=async () =>{
               id="pricePerMonth"
               name="pricePerMonth"
               aria-label="Price Per Month (INR)" 
-              value={formData.pricePerMonth}
-              onChange={handleChange}
+              value={formData.pricePerMonth === undefined ? '' : formData.pricePerMonth}
+             onChange={handleChange}
               />
+              {fieldErrors.pricePerMonth && <p className="text-red-500">{fieldErrors.pricePerMonth[0]}</p>}
               </div>
               )}
               </div>
@@ -472,12 +553,23 @@ const handleSubmit=async () =>{
                 onChange={handleChange}
                 name="address"
                 />
+                  {fieldErrors.address && <p className="text-red-500">{fieldErrors.address[0]}</p>}
                </div>
             </div>
 
           </AddressSection>
+
+          {generalErrors.length > 0 && (
+          <div className="text-red-500 font-semibold">
+            {generalErrors.map((error, index) => (
+              <p key={index}>{error}</p>
+            ))}
+          </div>
+        )}
+
            <button 
             onClick={handleSubmit}
+            type="button"
             className="mt-4 px-4 py-2 text-white bg-[#2563EB] rounded-lg text-sm font-medium">
            Submit
            </button>
@@ -492,6 +584,8 @@ interface InputFieldType {
   type: string;
   placeholder: string;
   id: string;
+  name:string;
+  value:string;
   onChange:(e:ChangeEvent<HTMLInputElement| HTMLTextAreaElement>)=> void;
   className?: string;
 }
@@ -502,6 +596,8 @@ function InputField({
   placeholder,
   id,
   className,
+  name,
+  value,
   onChange
 }: InputFieldType) {
   return (
@@ -513,15 +609,19 @@ function InputField({
         <textarea
           id={id}
           onChange={onChange}
+          name={name}
           placeholder={placeholder}
+          value={value}
           className={` border border-[#ccced3] placeholder-black placeholder-opacity-100 h-24  ${className}`}
         />
       ) : (
         <input
           type={type}
           onChange={onChange}
+          name={name}
           id={id}
           placeholder={placeholder}
+          value={value}
           className={` border-1 border-[#ccced3] placeholder-black placeholder-opacity-100 ${className}`}
         />
       )}
@@ -533,8 +633,8 @@ interface SelectInputType {
     label: string;
     id: string;
     name:string;
-    options: { value: string; label: string }[];
-    value: string;
+    options: { value: number | string; label: string }[];
+    value: number | string;
     onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
   }
 
@@ -610,7 +710,7 @@ interface AmenitiesInputType{
   onChange: (values: string[]) => void;
 }
 
-function AmenitiesInput({id,value,options,onChange}:AmenitiesInputType){
+function AmenitiesInput({value,options,onChange}:AmenitiesInputType){
   const handleCheckBoxChange=(optionValue:string) =>{
     if(value.includes(optionValue)){
       onChange(value.filter((item) => item !== optionValue));
@@ -643,5 +743,5 @@ function AmenitiesInput({id,value,options,onChange}:AmenitiesInputType){
     </div>
     </div>
 
-  )
+  ) 
 }
