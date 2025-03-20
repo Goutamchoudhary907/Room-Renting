@@ -88,8 +88,7 @@ export const ListRoom = () => {
     address: "",
     amenities: [],
    }
-   const [formData, setFormData] = useState<FormData>(initialFormData);
-const [images,setImages]=useState<FileList| null>(null);   
+   const [formData, setFormData] = useState<FormData>(initialFormData);  
 const fileInputRef=useRef<HTMLInputElement>(null);
 
 const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -112,12 +111,32 @@ const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HT
   }
   
 };
-const handleImageChange=(e:ChangeEvent<HTMLInputElement>)=>{
-if(e.target.files){
-  setImages(e.target.files);
+
+const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+const [images, setImages] = useState<File[]>([]); 
+const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+  if (e.target.files) { 
+    setImages((prevImages) => {
+        const newImages = Array.from(e.target.files!); 
+        return [...prevImages, ...newImages];
+    });
+    setImagePreviews((prevPreviews) => {
+        const newPreviews = Array.from(e.target.files!).map((file) => URL.createObjectURL(file)); // Use non-null assertion
+        return [...prevPreviews, ...newPreviews];
+    });
+} else {
+    setImages([]);
+    setImagePreviews([]);
 }
 };
 
+// const clearImages = () => {
+//   setImages([]);
+//   setImagePreviews([]);
+//   if (fileInputRef.current) {
+//       fileInputRef.current.value = "";
+//   }
+// };
 const handlePropertyTypeChnage=(value: string) =>{
   setFormData({...formData, propertyType:value});
 }
@@ -188,7 +207,8 @@ const errors=result.error.formErrors.fieldErrors;
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
   }
-  setImages(null);
+  setImages([]);
+  setImagePreviews([]);
   }catch(error:any){
     console.log("Error while creating propery ", error);
     if (axios.isAxiosError(error) && error.response) {
@@ -343,17 +363,20 @@ const errors=result.error.formErrors.fieldErrors;
                 ref={fileInputRef}
                 className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
               />
-             {images && (
-              <div>
-                  <p>Uploaded files:</p>
-                <ul>
-                  {Array.from(images).map((file, index) =>(
-                    <li key={index}>{file.name}</li>
-                  ))}
-                </ul>
-              </div>
-              )} 
-              <div className="pb-4">
+             {imagePreviews.length > 0 ? (
+        <div className="flex flex-wrap justify-center">
+            {imagePreviews.map((preview, index) => (
+                <img
+                    key={index}
+                    src={preview}
+                    alt={`Preview ${index}`}
+                    className="w-32 h-32 object-cover m-2 rounded-lg"
+                />
+            ))}
+            
+        </div>
+    ) : (
+      <>              <div className="pb-4">
                 <img className=" w-8 h-8 " src={ImageIcon} alt="Image" />
               </div>
               <p className=" text-gray-500 text-sm text-center">
@@ -365,6 +388,8 @@ const errors=result.error.formErrors.fieldErrors;
               >
                 Browse Files
               </button>
+              </>
+              )}
             </div>
             {fieldErrors.images && <p className="text-red-500">{fieldErrors.images[0]}</p>}
             </div>
@@ -570,7 +595,7 @@ const errors=result.error.formErrors.fieldErrors;
            <button 
             onClick={handleSubmit}
             type="button"
-            className="mt-4 px-4 py-2 text-white bg-[#2563EB] rounded-lg text-sm font-medium">
+            className="mt-4 px-4 py-2 text-white bg-[#2563EB] rounded-lg text-sm font-medium cursor-pointer">
            Submit
            </button>
         </div>
