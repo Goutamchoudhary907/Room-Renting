@@ -85,9 +85,7 @@ export async function createProperty(req:AuthenticatedRequest, res:Response):Pro
       amenities:Array.isArray(amenities) ? amenities:[amenities],
       ...rest,
     };
-
-    // console.log('req.body:', req.body);
-    // console.log('parsedBody:', parsedBody)
+    
     let validatedData:PropertySchema;
     try {
         validatedData=propertySchema.parse(parsedBody);
@@ -105,16 +103,17 @@ export async function createProperty(req:AuthenticatedRequest, res:Response):Pro
         throw zodError;
         
     }
- 
+    interface CloudinaryFile {
+      path: string;
+  }
+  console.log("req.files:", req.files);
      if(!req.files || (req.files as Express.Multer.File[]).length===0){
       errors.images = ["At least one image is required."]; 
         res.status(400).json({errors});
         return
      }
 
-    const imageURLs=(req.files as Express.Multer.File[]).map(
-      (file:any) => file.path
-    );
+     const imageURLs = (req.files as any as CloudinaryFile[]).map((file) => file.path);
     console.log("validatedData:", validatedData);
     console.log("imageURLs:", imageURLs);
 
