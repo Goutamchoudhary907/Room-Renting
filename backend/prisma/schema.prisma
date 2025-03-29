@@ -41,6 +41,7 @@ model Property{
   host            User            @relation(fields: [hostId], references: [id])
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
+  bookingStatus  BookingStatusEnum @default(AVAILABLE)
 
   @@map("properties")
 }
@@ -49,6 +50,12 @@ model Image{
   id              Int  @id @default(autoincrement())
   url             String
   propertyId      Int
-  property   Property @relation("PropertyImages", fields: [propertyId], references: [id])
+  property   Property @relation("PropertyImages", fields: [propertyId], references: [id], onDelete: Cascade)
   @@map("images")
+}
+
+enum BookingStatusEnum{
+  AVAILABLE
+  BOOKED
+  UNAVAILABLE
 }

@@ -4,14 +4,11 @@ import { PrismaClient } from "@prisma/client";
 import {propertySchema, PropertySchema} from '../../../schema/dist/propertySchema.js'
 const prisma = new PrismaClient();
 import { ZodError, ZodIssue } from 'zod'; 
-import multer from 'multer';
-import { v2 as cloudinary } from 'cloudinary';
-import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import multer, { MulterError } from 'multer';
 import dotenv from "dotenv";
-dotenv.config();
-const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
-const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
-const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET;
+import jwt from "jsonwebtoken"
+import { deleteFromCloudinary, upload } from '../utils/cloudinary.js';
 
 interface MappedErrors{
   title?:string;
@@ -32,24 +29,9 @@ interface MappedErrors{
   general?: string;
 }
 
-cloudinary.config({
-  cloud_name:CLOUDINARY_CLOUD_NAME ,
-  api_key:CLOUDINARY_API_KEY ,
-  api_secret:CLOUDINARY_API_SECRET
-})
-
-const storage=new CloudinaryStorage({
-  cloudinary:cloudinary,
-  params:{
-   folder:'property-images' ,
-    allowed_formats:['jpg', 'jpeg' , 'png'] ,
-    transfromation:[{width:500, height:500, crop:'limit'}]
-  } as any ,   // Type assertion here
-})
-
-const upload=multer({storage:storage})
 
 export async function createProperty(req:AuthenticatedRequest, res:Response):Promise<void>{
+  console.log("req.body:", req.body);
   const errors: Record<string, string[]> = {};
   try {
     const userId=req.user?.userId;
@@ -67,25 +49,47 @@ export async function createProperty(req:AuthenticatedRequest, res:Response):Pro
       depositAmount,
       maxGuests,
       amenities,
+      rentalType,
       ...rest
     } = req.body;
-    const parseNumber = (value: string | undefined): number | undefined => {
-      if (value === undefined || value === "") {
-          return undefined;
+
+    function parseNumber(
+      value: string | undefined | null,
+      fieldName: string,
+      isRequired: boolean = true
+    ): number | undefined {
+      // Explicitly handle 'undefined' string
+      if (value === 'undefined') value = undefined;
+      
+      if (value === undefined || value === null || value === '') {
+        if (isRequired) {
+          throw new Error(`Invalid value for ${fieldName}`);
+        }
+        return undefined;
       }
-      const num = Number(value);
-      return isNaN(num) ? undefined : num;
-  };
-    const parsedBody = {
-      bedrooms: Number(bedrooms),
-      bathrooms: Number(bathrooms),
-      pricePerMonth: parseNumber(pricePerMonth),
-      pricePerNight: parseNumber(pricePerNight),
-      depositAmount: parseNumber(depositAmount),maxGuests: maxGuests !== undefined ? Number(maxGuests) : 1,
-      amenities:Array.isArray(amenities) ? amenities:[amenities],
-      ...rest,
-    };
-    
+      
+      const number = Number(value);
+      if (isNaN(number)) {
+        throw new Error(`Invalid value for ${fieldName}`);
+      }
+      return number;
+    }
+      const parsedBody = {
+          bedrooms: parseNumber(bedrooms, 'bedrooms') ?? 1,
+          bathrooms: parseNumber(bathrooms, 'bathrooms') ?? 1,
+          rentalType: req.body.rentalType,
+          pricePerMonth: rentalType === 'short-term' 
+          ? undefined 
+          : parseNumber(pricePerMonth, 'pricePerMonth', true),
+          pricePerNight: rentalType === 'long-term' 
+          ? undefined 
+          : parseNumber(pricePerNight, 'pricePerNight', true),
+          depositAmount: parseNumber(depositAmount, 'depositAmount', false) ?? undefined,
+          maxGuests: parseNumber(maxGuests, 'maxGuests', false) ?? 1,
+          amenities: Array.isArray(amenities) ? amenities : amenities ? [amenities] : [],
+          ...rest,
+      };
+
     let validatedData:PropertySchema;
     try {
         validatedData=propertySchema.parse(parsedBody);
@@ -103,19 +107,15 @@ export async function createProperty(req:AuthenticatedRequest, res:Response):Pro
         throw zodError;
         
     }
-    interface CloudinaryFile {
-      path: string;
-  }
-  console.log("req.files:", req.files);
-     if(!req.files || (req.files as Express.Multer.File[]).length===0){
-      errors.images = ["At least one image is required."]; 
-        res.status(400).json({errors});
-        return
-     }
-
-     const imageURLs = (req.files as any as CloudinaryFile[]).map((file) => file.path);
-    console.log("validatedData:", validatedData);
-    console.log("imageURLs:", imageURLs);
+  // console.log("req.files:", req.files);
+  if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+     res.status(400).json({
+        errors: {
+            images: ["At least one image is required"]
+        }
+    });
+    return
+}
 
     const newProperty= await prisma.property.create({
         data:{
@@ -123,7 +123,9 @@ export async function createProperty(req:AuthenticatedRequest, res:Response):Pro
           maxGuests: validatedData.maxGuests ?? 1,
           host: { connect: { id: userId } },
           images:{
-            create:imageURLs.map((url) =>({url}))
+            create: req.files.map(file => ({
+              url: file.path 
+            }))
           },
         } ,
         include:{
@@ -131,47 +133,55 @@ export async function createProperty(req:AuthenticatedRequest, res:Response):Pro
         },
     });
 
-    console.log("newProperty created:", newProperty);
+    // console.log("newProperty created:", newProperty);
     res.status(201).json(newProperty);
-    console.log("Response sent");
+    // console.log("Response sent");
     return
   } catch (error:any) {
     console.error("Error creating property: ", error)
 
-    if(error instanceof multer.MulterError){
-      errors.images=[error.message];
-       res.status(400).json({errors})
-       return
-    }
-    if(error instanceof ZodError){
-      const validationErrors: Record<string, string[]> = {};
+   const errorResponse={
+    fieldErrors:{} as Record<string, string[]>,
+    generalErrors:[] as string[]
+   };
 
-      error.issues.forEach((issue: ZodIssue) => {
-        const field = issue.path[0] as string;
-      if (!validationErrors[field]) validationErrors[field] = [];
-      validationErrors[field].push(issue.message);
-      });
-      console.log("Validation Errors:", validationErrors);
-      res.status(400).json({ errors: validationErrors });
-      return;
+
+    if(error instanceof multer.MulterError){
+      if(error.code=== "LIMIT_FILE_SIZE"){
+        errorResponse.fieldErrors.images=["File size is too loarge (max 5MB)"]
+      }else{
+        errorResponse.fieldErrors.images=[error.message];
+      }
     }
+    else if(error instanceof ZodError){
+     error.issues.forEach((issue:ZodIssue) =>{
+      const field=issue.path[0] as string;
+      if(!errorResponse.fieldErrors[field]){
+        errorResponse.fieldErrors[field]=[];
+      }
+      errorResponse.fieldErrors[field].push(issue.message);
+     });
+    }
+
  // Handle foreign key constraint failure
-    if (error.code === 'P2003' && error.meta?.field_name?.includes('hostId')) {
-      errors.general = ['User does not exist.'];
-       res.status(400).json({ errors });
-       return
+    else if (error.code === 'P2003') {
+      errorResponse.generalErrors.push('User does not exist.');
     }
 
      // Handle Prisma operation failure
-    if (error.code === 'P2016') {
-      errors.general = ['Database operation failed, try again.'];
-       res.status(500).json({ errors });
-       return
+    else if (error.code === 'P2016') {
+      errorResponse.generalErrors.push('Database operation failed.');
     }
+ else{
+  errorResponse.generalErrors.push(error.message || 'An unexpected error occurred');
+ }
 
-    errors.general = ['Failed to create property. Please try again.'];
-     res.status(500).json({ errors });
-     return
+ res.status(error instanceof ZodError || error instanceof multer.MulterError ? 400 : 500).json({
+  errors: {
+      ...errorResponse.fieldErrors,
+      general: errorResponse.generalErrors
+  }
+});
   }   
 }
 
@@ -255,6 +265,279 @@ export async function getAllProperties(req:Request, res:Response):Promise<void>{
     console.error("Error getting all properties:", error);
     res.status(500).json({ message: "Internal server error" });
   }
+}
+
+
+export async function getUserProperties(req:Request, res:Response):Promise<void>{
+  try {
+    // extract token 
+    const token=req.headers.authorization?.split(" ")[1];
+
+    if(!token){
+      res.status(401).json({message:"Unauthorized"});
+      return;
+    }
+
+    // verfit and decode token
+    const decodedToken=jwt.verify(token, JWT_SECRET as string) as {userId:number};
+    const userId=decodedToken.userId;
+
+    // fetch properties 
+    const properties=await prisma.property.findMany({
+      where:{
+        hostId:userId ,
+      },
+      include:{
+        images:true ,
+      }
+    })
+
+    res.status(200).json(properties);
+  } catch (error) {
+    console.error("Error getting user properties:", error);
+        res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+export async function deleteProperty(req:Request, res:Response):Promise<void>{
+  try {
+    const token=req.headers.authorization?.split(" ")[1];
+    if(!token){
+      res.status(401).json({message:"Unauthorized"})
+      return;
+    }
+
+    const decodedToken=jwt.verify(token, JWT_SECRET as string) as {userId:number};
+    const userId=decodedToken.userId;
+
+    const propertyId=parseInt(req.params.id);
+
+    const property=await prisma.property.delete({
+      where:{
+        id:propertyId ,
+      },
+      include:{
+        images:true ,
+      } 
+    })
+    res.status(200).json({property, message: "Property deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting property:", error);
+    res.status(500).json({ message: "Error deleting property" });
+  }
+}
+
+interface AuthenticatedReq extends Request {
+  user?: {
+    userId: number;
+  };
+}
+export async function updateProperty(req:AuthenticatedReq, res:Response):Promise<void>{
+  const errors: Record<string, string[]> = {};
+  try {
+  const propertyId = parseInt(req.params.id);
+  const userId = req.user?.userId;
+
+  if(!userId){
+    res.status(401).json({message:"Unauthorized: User ID not found in token"})
+    return;
+  }
+
+  const existingProperty=await prisma.property.findUnique({
+    where:{
+      id:propertyId
+    },include:{
+      images:true,
+      host:true
+    }
+  });
+
+  if(!existingProperty){
+    res.status(404).json({message:"Property not found"});
+    return;
+  }
+
+  if (existingProperty.hostId !== userId) {
+    res.status(403).json({ message: 'Unauthorized: You do not own this property' });
+    return;
+  }
+  const {
+    bedrooms,
+    bathrooms,
+    pricePerMonth,
+    pricePerNight,
+    amenities,
+    rentalType,
+    imagesToDelete,   // Array of image IDs to delete
+    ...rest
+  } = req.body;
+
+  function parseNumber(
+    value: any,
+    fieldName: string,
+    isRequired: boolean = true
+  ): number | undefined {
+    if (value === 'undefined') value = undefined;
+    
+    if (value === undefined || value === null || value === '') {
+      if (isRequired) {
+        throw new Error(`Invalid value for ${fieldName}`);
+      }
+      return undefined;
+    }
+    const number = Number(value);
+    if (isNaN(number)) {
+      throw new Error(`Invalid value for ${fieldName}`);
+    }
+    return number;
+  }
+  const parsedBody={
+    bedrooms: bedrooms !== undefined ? Number(bedrooms) : existingProperty.bedrooms,  bathrooms: parseNumber(bathrooms, 'bathrooms') ?? existingProperty.bathrooms,
+    rentalType: rentalType ?? existingProperty.rentalType,
+    pricePerMonth: rentalType === 'short-term' ? undefined: parseNumber(pricePerMonth, 'pricePerMonth', false) ?? existingProperty.pricePerMonth,
+    pricePerNight: rentalType === 'long-term'  ? undefined: parseNumber(pricePerNight, 'pricePerNight', false) ?? existingProperty.pricePerNight,
+    amenities: amenities 
+    ? (Array.isArray(amenities) ? amenities : [amenities]) 
+    : existingProperty.amenities,
+  ...rest,
+};
+
+let validatedData: PropertySchema;
+try {
+  validatedData = propertySchema.parse(parsedBody);
+} catch (zodError: any) {  
+  if (zodError instanceof ZodError) {
+    zodError.issues.forEach((issue: ZodIssue) => {
+      const field = issue.path[0] as string;
+      if (!errors[field]) errors[field] = [];
+      errors[field].push(issue.message);
+    });
+    res.status(400).json({ errors });
+    return;
+  }
+  throw zodError;
+}
+ // Handle image deletions
+ if(imagesToDelete){
+  const deleteIds=JSON.parse(imagesToDelete)as number[];
+
+  // Find images to delete
+  const imagesToRemove = existingProperty.images
+  .filter(img => deleteIds.includes(img.id));
+
+// Delete from Cloudinary first
+  await deleteFromCloudinary(
+    imagesToRemove.map(img => img.url)
+  )
+
+  // Delete from database
+  await prisma.image.deleteMany({
+    where: {
+      id: { in: deleteIds },
+      propertyId: propertyId
+    }
+  });
+  }
+
+  // Handle new image uploads
+  let newImages: { url: string }[] = [];
+  if (req.files && Array.isArray(req.files)) {
+    newImages = req.files.map(file => ({
+      url: file.path 
+    }));
+  }
+
+  const updatedProperty = await prisma.property.update({
+    where: { id: propertyId },
+    data: {
+      ...validatedData,
+      images: newImages.length > 0 ? {
+        create: newImages
+      } : undefined,
+      updatedAt: new Date()
+    },
+    include: {
+      images: true,
+      host: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true
+        }
+      }
+    }
+  });
+    res.status(200).json(updatedProperty);
+    return
+  }
+ catch (error:any) {
+  console.error("Error updating property:", error);
+
+  const errorResponse = {
+    fieldErrors: {} as Record<string, string[]>,
+    generalErrors: [] as string[]
+  };
+  if (error instanceof multer.MulterError) {
+    errorResponse.fieldErrors.images = [
+      error.code === "LIMIT_FILE_SIZE" 
+        ? "File size is too large (max 5MB)" 
+        : error.message
+    ];
+  } 
+  else if (error instanceof ZodError) {
+    error.issues.forEach((issue: ZodIssue) => {
+      const field = issue.path[0] as string;
+      if (!errorResponse.fieldErrors[field]) {
+        errorResponse.fieldErrors[field] = [];
+      }
+      errorResponse.fieldErrors[field].push(issue.message);
+    });
+  }
+  else if (error.code === 'P2003') {
+    errorResponse.generalErrors.push('Invalid reference data.');
+  }
+  else if (error.code === 'P2025') {
+    errorResponse.generalErrors.push('Property not found.');
+  }
+  else {
+    errorResponse.generalErrors.push(error.message || 'An unexpected error occurred');
+  }
+
+  // Send appropriate status code
+  const statusCode = error instanceof ZodError || error instanceof multer.MulterError 
+    ? 400 
+    : 500;
+   res.status(statusCode).json({
+    errors: {
+      ...errorResponse.fieldErrors,
+      general: errorResponse.generalErrors
+    },
+  });
+  return
+}
+}
+
+export const getPropertyById=async (req:Request,res:Response):Promise<void> =>{
+try {
+  const property=await prisma.property.findUnique({
+    where:{
+      id:parseInt(req.params.id)
+    },
+    include:{
+      images:true
+    }
+  })
+  if (!property)  {
+    res.status(404).json({ error: "Property not found" });
+  return
+  }
+    res.json(property);
+  return
+
+} catch (error) {
+  res.status(500).json({ error: "Error finding property" });
+}
 }
 
 export {upload};
