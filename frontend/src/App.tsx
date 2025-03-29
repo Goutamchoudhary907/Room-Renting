@@ -5,7 +5,9 @@ import { Signin } from './components/Signin'
 import { ForgotPassword } from './components/ForgotPassword'
 import { ResetPassword } from './components/ResetPassword'
 import { useEffect, useState } from 'react'
-import { ListRoom } from './components/Property/ListRoom'
+import { ListRoom } from './components/Property/ListRoom/ListRoom'
+import { MyProperties } from './components/Property/MyProperties'
+import { EditRoom } from './components/Property/EditRoom/EditRoom'
 
 function App() {
 const location=useLocation();
@@ -22,7 +24,10 @@ useEffect(() => {
       <Route path="/auth/signin" element={<Signin/>}/>
       <Route path="/auth/forgot-password" element={<ForgotPassword/>}/>
       <Route path="/auth/reset-password" element={<ResetPassword/>}/>
+      
       <Route path="/property/create" element={<ListRoom/>}/>
+      <Route path="/property/edit/:id" element={<EditRoom/>}/>
+      <Route path="/property/my/properties" element={<MyProperties/>}/>
      </Routes>
     </>
   )
