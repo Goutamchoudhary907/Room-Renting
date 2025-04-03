@@ -26,7 +26,7 @@ export const RentalTypeInput: React.FC<PropertyTypeInputProps> = ({
             className={`cursor-pointer pl-5 pt-4 border rounded-lg h-28 transition-colors duration-200 ${
               value === option.value
                 ? "bg-gray-200 border-none shadow-sm"
-                : "border-gray-300"
+                : "border-gray-300 hover:bg-gray-100"
             }`}
           >
             <div className="items-center">

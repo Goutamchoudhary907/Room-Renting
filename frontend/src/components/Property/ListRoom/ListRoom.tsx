@@ -2,7 +2,6 @@ import { ChangeEvent, useRef, useState } from "react";
 import HomeIcon from "../../../assets/Home_icon.png";
 import axios from "axios";
 import { propertySchema } from "../../../../../schema/dist/propertySchema.js";
-
 import LocationIcon from "../../../assets/LocationIcon.png";
 import RoomIcon from "../../../assets/RoomSpecificationIcon.png";
 import AmenitiesIcon from "../../../assets/AmenitiesIcon.png";
@@ -29,6 +28,8 @@ interface ListRoomProps{
   initialFormData?:RoomFormData;
   existingImages?:string[];
   onSubmit?:(formData:RoomFormData, images:File[]) => Promise<void>;
+  error?: string | null;
+  validationErrors?: Record<string, string>;
 }
 
 
@@ -68,12 +69,12 @@ const AddressSection = ({ children }: ChildrenProps) => (
   </div>
 );
 
-export const ListRoom = ({ 
-  isEditMode = false, 
-  initialFormData: propInitialFormData, 
-  existingImages = [], 
-  onSubmit 
-}: ListRoomProps = {}) => {
+export const ListRoom: React.FC<ListRoomProps> = ({
+  isEditMode = false,
+  initialFormData: propInitialFormData = null,
+  existingImages = [],
+  onSubmit,
+}) => {
   const initialRoomFormData: RoomFormData = propInitialFormData || {
     title: "",
     description: "",
@@ -123,82 +124,31 @@ export const ListRoom = ({
         ].includes(name)
           ? value === ""
             ? undefined
-            : Number(value)
+            : Math.round(parseFloat(value))
           : value,
       }));
     }
   };
 
-  // const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-  //   setFieldErrors((prev) => ({ ...prev, images: [] }));
-
-  //   if (e.target.files && e.target.files.length > 0) {
-  //     const files = Array.from(e.target.files).filter(file => {
-  //       if (!file) return false;
-  //       if (typeof file.size === 'undefined') return false; 
-  //       if (file.size <= 0) return false; // Remove empty files
-  //       return true; // Keep valid files
-  //     });
-
-
-  //     // Check file count (max 10)
-  //     if (files.length + images.length > 10) {
-  //       setFieldErrors((prev) => ({
-  //         ...prev,
-  //         images: ["Maximum 10 images allowed"],
-  //       }));
-  //       return;
-  //     }
-  //     // Validate each file
-  //     const validFiles = files.filter((file) => {
-  //       const isValidType = ["image/jpeg", "image/png"].includes(file.type);
-  //       const isValidSize = file.size <= 5 * 1024 * 1024;
-
-  //       if (!isValidType) {
-  //         setFieldErrors((prev) => ({
-  //           ...prev,
-  //           images: ["Only JPG/PNG images are allowed"],
-  //         }));
-  //       } else if (!isValidSize) {
-  //         setFieldErrors((prev) => ({
-  //           ...prev,
-  //           images: ["Maximum file size is 5MB"],
-  //         }));
-  //       }
-  //       return isValidType && isValidSize;
-  //     });
-
-  //     setImages((prev) => [...prev, ...validFiles]);
-  //     setImagePreviews((prev) => [
-  //       ...prev,
-  //       ...validFiles.map((file) => URL.createObjectURL(file)),
-  //     ]);
-  //   }
-  // };
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Clear previous errors
     setFieldErrors((prev) => ({ ...prev, images: [] }));
   
-    // Early return if no files selected
     if (!e.target.files || e.target.files.length === 0) {
       return;
     }
   
-    // Convert FileList to array and filter out invalid entries
     const files = Array.from(e.target.files).filter((file): file is File => {
-      // Type guard to ensure this is a valid File object
       if (!file || typeof file !== 'object') {
         console.warn('Invalid file detected in selection');
         return false;
       }
   
-      // Check for required File properties
       if (typeof file.size === 'undefined' || typeof file.type === 'undefined') {
         console.warn('File missing required properties:', file.name);
         return false;
       }
   
-      // Validate file has content
       if (file.size <= 0) {
         console.warn('Empty file detected:', file.name);
         return false;
@@ -207,7 +157,6 @@ export const ListRoom = ({
       return true;
     });
   
-    // Check if we have any valid files after filtering
     if (files.length === 0) {
       setFieldErrors((prev) => ({
         ...prev,
@@ -216,7 +165,6 @@ export const ListRoom = ({
       return;
     }
   
-    // Validate against maximum allowed images (10)
     if (files.length + images.length > 10) {
       setFieldErrors((prev) => ({
         ...prev,
@@ -225,12 +173,10 @@ export const ListRoom = ({
       return;
     }
   
-    // Validate each file's type and size
     const validFiles = files.filter((file) => {
       const validTypes = ["image/jpeg", "image/png", "image/webp"];
       const maxSize = 5 * 1024 * 1024; // 5MB
   
-      // Check file type
       if (!validTypes.includes(file.type)) {
         setFieldErrors((prev) => ({
           ...prev,
@@ -239,7 +185,6 @@ export const ListRoom = ({
         return false;
       }
   
-      // Check file size
       if (file.size > maxSize) {
         setFieldErrors((prev) => ({
           ...prev,
@@ -251,14 +196,11 @@ export const ListRoom = ({
       return true;
     });
   
-    // Create previews for valid files
-    const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
+   const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
   
-    // Update state
     setImages((prev) => [...prev, ...validFiles]);
     setImagePreviews((prev) => [...prev, ...newPreviews]);
   
-    // Cleanup function for when component unmounts or files change
     return () => {
       newPreviews.forEach((preview) => URL.revokeObjectURL(preview));
     };
@@ -287,6 +229,20 @@ export const ListRoom = ({
       }));
       return;
     }
+    const formDataToSend = new FormData();
+
+    // Append all properties including numbers and arrays
+    Object.entries(RoomFormData).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        if (Array.isArray(value)) {
+          value.forEach(item => formDataToSend.append(`${key}[]`, item));
+        } else {
+          formDataToSend.append(key, String(value));
+        }
+      }
+    });
+
+    images.forEach(file => formDataToSend.append("images", file))
 
     const dataToValidate = {
        ...RoomFormData ,
@@ -296,9 +252,9 @@ export const ListRoom = ({
       };
 
     if (RoomFormData.rentalType === "short-term") {
-      dataToValidate.pricePerMonth = undefined; // Explicitly remove for short-term
+      dataToValidate.pricePerMonth = undefined;      // Explicitly remove for short-term
     } else if (RoomFormData.rentalType === "long-term") {
-      dataToValidate.pricePerNight = undefined; // Explicitly remove for long-term
+      dataToValidate.pricePerNight = undefined;      // Explicitly remove for long-term
     }
 
     const validationResult = propertySchema.safeParse(dataToValidate); // Use the modified copy
@@ -319,13 +275,39 @@ export const ListRoom = ({
         clearImages();
       }
       return
-    } catch (error) {
-      console.error('[4] onSubmit failed:', error)
+    }
+    catch (error: any) {
       if (axios.isAxiosError(error) && error.response) {
         if (error.response.data.errors) {
-          const { general, ...fieldErrors } = error.response.data.errors;
-          setFieldErrors(fieldErrors);
-          setGeneralErrors(general || []);
+          const errors = error.response.data.errors;
+          if (Array.isArray(errors)) {
+            let general: string[] = [];
+            let fieldErrors: Record<string, string[]> = {};
+
+            errors.forEach((error: any) => {
+              if (error.field) {
+                fieldErrors[error.field] = fieldErrors[error.field] || [];
+                fieldErrors[error.field].push(error.message);
+              } else {
+                general.push(error.message);
+              }
+            });
+            setFieldErrors(fieldErrors);
+            setGeneralErrors(general || []);
+          } else {
+            let fieldErrors: Record<string, string[]> = {};
+            let generalErrors: string[] = [];
+            if (errors.general) {
+              generalErrors = errors.general;
+            }
+            for (const key in errors) {
+              if (key !== "general") {
+                fieldErrors[key] = errors[key];
+              }
+            }
+            setFieldErrors(fieldErrors);
+            setGeneralErrors(generalErrors);
+          }
         } else {
           setGeneralErrors([error.response.data.message || "Something went wrong."]);
         }
@@ -334,22 +316,7 @@ export const ListRoom = ({
       }
     }
     }else{
-      console.log('[3] Using default submission path');
-    const formData = new FormData();
-    // const submissionData = {
-    //   ...RoomFormData,
-    //   pricePerNight:
-    //     RoomFormData.rentalType === "short-term" ||
-    //     RoomFormData.rentalType === "both"
-    //       ? RoomFormData.pricePerNight
-    //       : undefined,
-    //   pricePerMonth:
-    //     RoomFormData.rentalType === "long-term" ||
-    //     RoomFormData.rentalType === "both"
-    //       ? RoomFormData.pricePerMonth
-    //       : undefined,
-    // };
-
+     const formData = new FormData();
     Object.entries(RoomFormData).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         if (Array.isArray(value)) {
@@ -405,6 +372,7 @@ export const ListRoom = ({
     }
   };
 }
+
   const handleCheckBoxChange = (type: string) => {
     setIsChecked(type);
     setRoomFormData({ ...RoomFormData, rentalType: type });
@@ -553,7 +521,7 @@ export const ListRoom = ({
                 label="Property Type"
                 id="propertyType"
                 options={propertyOptions}
-                value={RoomFormData.rentalType}
+                value={RoomFormData.propertyType}
                 onChange={handlePropertyTypeChnage}
               />
               {fieldErrors.propertyType && (
@@ -708,6 +676,14 @@ export const ListRoom = ({
                       min="2000"
                       id="pricePerMonth"
                       name="pricePerMonth"
+                      step="1" 
+                      onBlur={(e) => {
+                        // Force rounding on blur
+                        const value = e.target.value;
+                        if (value) {
+                          e.target.value = Math.round(parseFloat(value)).toString();
+                        }
+                      }}
                       aria-label="Price Per Month (INR)"
                       value={
                         RoomFormData.pricePerMonth === undefined
