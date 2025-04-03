@@ -333,6 +333,7 @@ interface AuthenticatedReq extends Request {
   };
 }
 export async function updateProperty(req:AuthenticatedReq, res:Response):Promise<void>{
+  console.log("Request Body:", req.body);
   const errors: Record<string, string[]> = {};
   try {
   const propertyId = parseInt(req.params.id);
@@ -375,15 +376,16 @@ export async function updateProperty(req:AuthenticatedReq, res:Response):Promise
   function parseNumber(
     value: any,
     fieldName: string,
+    // existingProperty: any,
     isRequired: boolean = true
   ): number | undefined {
     if (value === 'undefined') value = undefined;
     
     if (value === undefined || value === null || value === '') {
-      if (isRequired) {
-        throw new Error(`Invalid value for ${fieldName}`);
-      }
-      return undefined;
+      if (!isRequired) return undefined;
+      if (!existingProperty) throw new Error(`Property not found`);
+      existingProperty[fieldName as keyof typeof existingProperty];
+      return
     }
     const number = Number(value);
     if (isNaN(number)) {
@@ -468,10 +470,12 @@ try {
       }
     }
   });
+  console.log("Request Body after all code:", req.body);
     res.status(200).json(updatedProperty);
     return
   }
  catch (error:any) {
+  console.log("Request Body in catch block:", req.body);
   console.error("Error updating property:", error);
 
   const errorResponse = {

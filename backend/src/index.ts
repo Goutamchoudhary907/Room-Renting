@@ -13,11 +13,17 @@ import cors from "cors";
 app.use(cors());
 app.use((req, res, next) => {
   if (req.is('multipart/form-data')) {
-    // Convert string numbers to actual numbers
-    const numericFields = ['bedrooms', 'bathrooms', 'pricePerNight', 'pricePerMonth'];
+    // Convert all numeric fields from strings to numbers
+    const numericFields = ['bedrooms', 'bathrooms', 'pricePerNight', 'pricePerMonth', 'maxGuests'];
+    
     numericFields.forEach(field => {
-      if (req.body[field] !== undefined) {
-        req.body[field] = Number(req.body[field]);
+      if (req.body[field] !== undefined && req.body[field] !== '') {
+        const numValue = Number(req.body[field]);
+        if (!isNaN(numValue)) {
+          req.body[field] = numValue;
+        } else {
+          console.warn(`Failed to convert ${field} to number:`, req.body[field]);
+        }
       }
     });
   }
