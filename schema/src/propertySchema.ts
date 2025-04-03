@@ -10,7 +10,7 @@ export const propertySchema=z.object({
     message: 'Rental type must be either short-term, long-term, or both',
   }) ,
   pricePerNight: z.number().int().positive().optional(),
-  pricePerMonth: z.number().int().positive().optional(),
+  pricePerMonth: z.number().int().positive().nullable().optional(),
  depositAmount: z.number().int().positive().optional(),
  maxGuests: z.number().min(1).default(1),
  address:z.string().min(5, { message: 'Address must be at least 5 characters' }) ,
