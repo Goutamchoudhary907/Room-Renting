@@ -79,39 +79,39 @@ export const MyProperties =() =>{
         <div className="h-screen w-screen bg-[#F9FAFB]">
 
            <div className="flex justify-between items-center pt-8 pl-8 pr-8 ">
-            <h1 className="text-[#111827] font-bold text-3xl">My Properties</h1>
-            <button className="bg-[#2563EB] text-white text-xl p-2 w-52 cursor-pointer transition-all duration-500" 
+            <h1 className="text-[#111827] font-bold text-2xl">My Properties</h1>
+            <button className="bg-[#2563EB] text-white text-[16px] p-2 w-52 cursor-pointer transition-all duration-500" 
             onClick={() =>{
                 navigate("/property/create");
             }} 
             >+ Add New Property</button>
             </div>
 
-            <div className="flex justify-between items-center w-screen pt-4">
+            <div className="flex justify-between items-center w-screen pt-2">
 
-             <div className="w-1/2 h-24 m-4 p-3  bg-white rounded shadow  ml-18  flex items-center">
+             <div className="w-1/2 h-24 m-4 p-3  bg-white rounded shadow  ml-15  flex items-center">
                  <div className=" rounded-full overflow-hidden w-10 h-10 bg-[#DBEAFE] flex items-center justify-center">
                 <img className="object-contain" src={ProperyIcon} alt="home" />
                 </div>
                 <div className="flex flex-col justify-center ml-4">
-                <p className=" font-bold text-2xl">{properties.length}</p>
-                <p className="text-[#4B5563] font-medium text-xl ">Total Properties</p>
+                <p className=" font-bold text-xl">{properties.length}</p>
+                <p className="text-[#4B5563] font-medium text-[18px] ">Total Properties</p>
                 </div>
              </div>
 
-             <div className="w-1/2 h-24 m-4 p-3 bg-white rounded shadow  ml-18  flex items-center">
+             <div className="w-1/2 h-24 m-4 p-3 bg-white rounded shadow  ml-18 flex items-center">
                  <div className=" rounded-full overflow-hidden w-10 h-10 bg-[#22c55e0a] flex items-center justify-center">
                 <img className="object-contain" src={ActiveListingIcon} alt="home" />
                 </div>
                 <div className="flex flex-col justify-center ml-4">
-                <p className=" font-bold text-2xl">{activeListingsCount}</p>
-                <p className="text-[#4B5563] font-medium text-xl ">Active Listings</p>
+                <p className=" font-bold text-xl">{activeListingsCount}</p>
+                <p className="text-[#4B5563] font-medium text-[18px] ">Active Listings</p>
                 </div>
              </div>  
                
             </div> 
 
-            <div className=" flex justify-between items-center p-8">
+            <div className=" flex justify-between items-center pl-8 pt-4 pb-5">
 
                 <div >
                     <input type="text"
@@ -154,7 +154,7 @@ export const MyProperties =() =>{
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-20 px-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-17 px-8">
                 {displayProperties.map((property) =>(
                     <PropertyCard key={property.id} property={property}
                     onDelete={handleDelete}
@@ -212,11 +212,11 @@ const PropertyCard= ({property,onDelete,onEdit}:PropertyCardProps) =>{
     <div className="">
 
     <div className="rounded p-4 shadow-md">
-   <div className="pt-4 pb-5">
-   <img src={property.images[0].url} alt={property.title} className="w-full h-50 object-cover rounded-md mb-2"/>
+   <div className="pt-1 pb-3">
+   <img src={property.images[0].url} alt={property.title} className="w-full h-45 object-cover rounded-md mb-2"/>
    </div>
-   <div className="flex justify-between items-center pb-4">
-   <h3 className="font-semibold text-xl mb-1">{property.title}</h3>
+   <div className="flex justify-between items-center pb-3">
+   <h3 className="font-semibold text-xl ">{property.title}</h3>
    <div className=" rounded-full overflow-hidden w-22 h-7 bg-[#D1FAE5] flex items-center justify-center text-[#059669]">
     {property.bookingStatus?.charAt(0).toUpperCase() + property.bookingStatus.slice(1).toLowerCase()}
    </div>
@@ -255,7 +255,7 @@ const PropertyCard= ({property,onDelete,onEdit}:PropertyCardProps) =>{
       )}
     </div>
 
-    <div className="flex justify-between items-center pt-4">
+    <div className="flex justify-between items-center">
        <div>
        <p className="text-[#4B5563]">Rental Type</p>
        <p className="font-semibold text-xl">{property.rentalType}</p>
@@ -268,8 +268,8 @@ const PropertyCard= ({property,onDelete,onEdit}:PropertyCardProps) =>{
     </div>
 
  
-    <div className="grid grid-cols-3 gap-4 pt-8 text-[#4B5563]  font-medium pb-4">
-       <button className={`w-40 justify-center items-center border-1 border-gray-200 bg-white  transition-all duration-300 mr-4 h-10 rounded-xl cursor-pointer focus:bg-[#2564ebcc] focus:text-white`}
+    <div className="grid grid-cols-3 gap-4 pt-7 text-[#4B5563]  font-medium pb-4">
+       <button className={`w-32 justify-center items-center border-1 border-gray-200 bg-white  transition-all duration-300 mr-4 h-10 rounded-xl cursor-pointer focus:bg-[#2564ebcc] focus:text-white`}
        onClick={() => onEdit(property.id)}
        >
         <div className="flex justify-center items-center"
@@ -279,14 +279,14 @@ const PropertyCard= ({property,onDelete,onEdit}:PropertyCardProps) =>{
         </div>
         </button>
        
-        <button className={`text-white w-40 justify-center items-center border-1 border-gray-200 bg-[#2564ebe0] transition-all duration-300 mr-4 h-10   rounded-xl cursor-pointer`}>
+        <button className={`text-white w-32 justify-center items-center border-1 border-gray-200 bg-[#2564ebe0] transition-all duration-300 mr-4 h-10   rounded-xl cursor-pointer`}>
         <div className="flex justify-center items-center">
         <img src={CalenderIcon} alt="" className="w-8 h-6  pr-2"/>
         Availablity
         </div>
         </button>
 
-        <button className={`w-40 justify-center items-center border-1 border-gray-200 transition-all duration-300 mr-4 h-10 rounded-xl cursor-pointer focus:bg-red-200 focus:text-red-500`}
+        <button className={`w-32 justify-center items-center border-1 border-gray-200 transition-all duration-300 mr-4 h-10 rounded-xl cursor-pointer focus:bg-red-200 focus:text-red-500`}
         onClick={()=> onDelete(property.id)}
         >
         <div className="flex justify-center items-center">
