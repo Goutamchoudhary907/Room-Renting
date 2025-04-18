@@ -6,9 +6,11 @@ import facebookLogo from '../assets/Facebook-logo.png'
 import appleLogo from '../assets/Apple-logo.png'
 import { SigninInput } from '../../../schema/dist';
 import axios from 'axios';
-import {BACKEND_URL} from '../config';
+// import {BACKEND_URL} from '../config';
 
+import { useAuth } from '../context/AuthContext';
 export const Signin =()=>{
+   const { login } = useAuth();
 
     const navigate= useNavigate();
     const [signinInputs,setSigninInputs]= useState<SigninInput>({
@@ -19,10 +21,11 @@ export const Signin =()=>{
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     async function sendRequest(){
         try {
-            const response=await axios.post(`${BACKEND_URL}/auth/signin`, signinInputs);
-            const jwt=response.data.token;
-            localStorage.setItem("token",jwt);
-            navigate("/property/create");
+          await login(signinInputs.email, signinInputs.password); 
+          // const response=await axios.post(`${BACKEND_URL}/auth/signin`, signinInputs);
+          //   const jwt=response.data.token;
+          //   localStorage.setItem("token",jwt);
+            navigate("/home");
         } catch (error) {
             if (axios.isAxiosError(error)) {
               if (error.response) {

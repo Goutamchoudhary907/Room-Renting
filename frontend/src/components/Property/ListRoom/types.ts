@@ -57,3 +57,27 @@ export interface AmenitiesInputType {
   options: { value: string; label: string; imageSrc: string }[];
   onChange: (values: string[]) => void;
 }
+
+export interface Filters {
+  minPrice?: string;
+  maxPrice?: string;
+  amenities?: string[];
+  propertyType?: string;
+  rentalType?: string;
+  bedrooms?: string;
+  location?: string;
+  checkin?: Date | null;
+  checkout?: Date | null;
+  _ts?: number;
+}
+
+export interface Property {
+  id: string;
+  rentalType: string;
+  title: string;
+  pricePerNight?: number;
+  pricePerMonth?: number;
+  address: string;
+  property: string;
+  images?: { url: string }[];
+}

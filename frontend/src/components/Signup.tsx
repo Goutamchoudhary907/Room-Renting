@@ -2,11 +2,13 @@ import { ChangeEvent, useEffect, useState } from 'react';
 import {useNavigate} from 'react-router-dom'
 import {SignupInput} from '../../../schema/dist/index'
 import axios from 'axios';
-import {BACKEND_URL} from '../config';
+// import {BACKEND_URL} from '../config';
 import logo from "../assets/Signup-image.png"
 import googleLogo from '../assets/Google-logo.png'
 import facebookLogo from '../assets/Facebook-logo.png'
 import appleLogo from '../assets/Apple-logo.png'
+
+import { useAuth } from '../context/AuthContext';
 
 export const Signup =() =>{
  const navigate= useNavigate();
@@ -17,6 +19,7 @@ export const Signup =() =>{
     password:""
  })
 
+ const { signup } = useAuth();
  
  const [errors, setErrors] = useState<{ [key: string]: string }>({});
  useEffect(() => {
@@ -25,11 +28,12 @@ export const Signup =() =>{
 
   async function sendRequest(){
     try {
-        const response=await axios.post(`${BACKEND_URL}/auth/signup`, signupInputs);
-        const jwt=response.data;
-        localStorage.setItem("token",jwt);
+       await signup(signupInputs)
+        // const response=await axios.post(`${BACKEND_URL}/auth/signup`, signupInputs);
+        // const jwt=response.data;
+        // localStorage.setItem("token",jwt);
          alert("Signup successful.Please sign in");
-         navigate("auth/signin");
+         navigate("/auth/signin");
     }  catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response) {

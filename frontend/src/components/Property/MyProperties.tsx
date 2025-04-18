@@ -242,7 +242,7 @@ const PropertyCard= ({property,onDelete,onEdit}:PropertyCardProps) =>{
        <div className="flex justify-between items-center">
 
          <div className="flex items-end">
-         <p className="font-bold text-2xl text-black"> ${property.pricePerNight}</p>
+         <p className="font-bold text-2xl text-black"> ₹{property.pricePerNight}</p>
            <p  className="text-[#4B5563] font-semibold">/night</p>
          </div>
 
