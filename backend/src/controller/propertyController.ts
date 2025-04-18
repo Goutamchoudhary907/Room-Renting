@@ -198,30 +198,46 @@ export async function getFilteredProperties(req:Request, res:Response):Promise<v
     where.bedrooms=Number(bedrooms);
   }
 
-  if(minPrice && maxPrice){
-    where.OR=[
-      {pricePerMonth:{gte:Number(minPrice), lte:Number(maxPrice)}},
-      {pricePerNight:{gte:Number(minPrice), lte:Number(maxPrice)}}
-    ];
-  }else if (minPrice){
-    where.OR=[
-      {pricePerMonth:{gte:Number(minPrice)}},
-      {pricePerNight:{gte:Number(minPrice)}},
-    ];
-  }else if(maxPrice){
-    where.OR=[
-      {pricePerMonth:{gte:Number(maxPrice)}},
-      {pricePerNight:{gte:Number(maxPrice)}},
-    ];
-  }
+ // Price Filter: handled separately
+const priceFilter: any[] = [];
+
+if (minPrice && maxPrice) {
+  priceFilter.push({
+    pricePerMonth: {
+      gte: Number(minPrice),
+      lte: Number(maxPrice),
+    },
+  });
+  priceFilter.push({
+    pricePerNight: {
+      gte: Number(minPrice),
+      lte: Number(maxPrice),
+    },
+  });
+} else if (minPrice) {
+  priceFilter.push(
+    { pricePerMonth: { gte: Number(minPrice) } },
+    { pricePerNight: { gte: Number(minPrice) } }
+  );
+} else if (maxPrice) {
+  priceFilter.push(
+    { pricePerMonth: { lte: Number(maxPrice) } },
+    { pricePerNight: { lte: Number(maxPrice) } }
+  );
+}
+
+// Apply price filter with OR if needed
+if (priceFilter.length > 0) {
+  where.OR = priceFilter;
+}
 
   if(address){
-    where.address= {contains:address as string, mode:'insesitive'};
+    where.address= {contains:address as string, mode:'insensitive'};
   }
 
   if(amenities){
     // assuming amenities are stored as comma-seperated in query
-    const amenityList= (amenities as string).split(',');
+    const amenityList= Array.isArray(amenities) ? amenities : [amenities];
     where.amenities={hasEvery:amenityList}
   }
   if(availability){

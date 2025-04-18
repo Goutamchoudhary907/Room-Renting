@@ -4,8 +4,8 @@ import { createProperty, getAllProperties, getFilteredProperties,getUserProperti
 const router = express.Router();
 
 router.post("/create",authMiddleware,upload.array('images', 10), createProperty)
-router.get("/all",authMiddleware, getAllProperties);
-router.get("/search",authMiddleware, getFilteredProperties);
+router.get("/all", getAllProperties);
+router.get("/search", getFilteredProperties);
 router.get("/my/properties", authMiddleware,getUserProperties)
 router.delete("/delete/:id",authMiddleware,deleteProperty);
 router.put("/edit/:id", authMiddleware,upload.array('images', 10),updateProperty);

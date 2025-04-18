@@ -18,6 +18,7 @@ model User{
   Properties Property[]
   @@map("user")         // name the table user
   
+  savedProperties SavedProperty[]
 }
 
 model Property{
@@ -28,6 +29,7 @@ model Property{
   bedrooms        Int
   bathrooms       Int
   rentalType      String
+  propertyType    String   @default("apartment")
   pricePerNight   Int?
   pricePerMonth   Int?
   depositAmount   Int?
@@ -42,8 +44,19 @@ model Property{
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   bookingStatus  BookingStatusEnum @default(AVAILABLE)
-
+  savedBy       SavedProperty[]
   @@map("properties")
+}
+
+model SavedProperty{
+ id             Int    @id @default(autoincrement())
+ userId         Int
+ propertyId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+ @@unique([userId, propertyId], name: "unique_user_property") // Prevent duplicate saves
+  @@index([userId])
+  @@index([propertyId])
 }
 
 model Image{
