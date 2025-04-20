@@ -13,6 +13,7 @@ import { Home } from './components/Home/Home'
 import { AuthProvider } from './context/AuthContext' 
 import { AllRooms } from './components/AllRooms/AllRooms'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { RoomDetails } from './components/RoomDetails/RoomDetails'
 
 function App() {
 const location=useLocation();
@@ -35,6 +36,8 @@ useEffect(() => {
 
 
       <Route path="/property/all-rooms" element={<AllRooms/>}/>
+      <Route path="/property/room-detail/:id" element={<RoomDetails/>}/>
+      
       
       <Route element={<ProtectedRoute />}>
       <Route path="/property/create" element={<ListRoom/>}/>

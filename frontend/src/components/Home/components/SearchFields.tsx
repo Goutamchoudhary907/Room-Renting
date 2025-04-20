@@ -68,10 +68,11 @@ interface DateInputField{
     label:string;
     selected:Date | null ;
     onChange:(date:Date | null) => void;
+    minDate?:Date;
 }
 
 
-export const DateInputField=({id,label, selected, onChange}:DateInputField) =>{
+export const DateInputField=({id,label, selected, onChange,minDate}:DateInputField) =>{
     return(
         <div className="relative w-full md:w-[180px] lg:w-50 h-12 sm:h-10">
            {!selected && (
@@ -88,6 +89,7 @@ export const DateInputField=({id,label, selected, onChange}:DateInputField) =>{
             placeholderText=""
             className="w-full h-10 bg-white border-2 border-gray-200 font-semibold text-center focus:outline-1  lg:placeholder:text-sm placeholder:font-semibold" 
               dateFormat="yyyy-MM-dd"
+              minDate={minDate}
             />
  <img
           src={DatePickerImg}
