@@ -116,7 +116,7 @@ export async function createProperty(req:AuthenticatedRequest, res:Response):Pro
     });
     return
 }
-
+console.log("req.files:", req.files);
     const newProperty= await prisma.property.create({
         data:{
           ...validatedData ,
@@ -137,52 +137,58 @@ export async function createProperty(req:AuthenticatedRequest, res:Response):Pro
     res.status(201).json(newProperty);
     // console.log("Response sent");
     return
-  } catch (error:any) {
-    console.error("Error creating property: ", error)
-
-   const errorResponse={
-    fieldErrors:{} as Record<string, string[]>,
-    generalErrors:[] as string[]
-   };
-
-
-    if(error instanceof multer.MulterError){
-      if(error.code=== "LIMIT_FILE_SIZE"){
-        errorResponse.fieldErrors.images=["File size is too loarge (max 5MB)"]
-      }else{
-        errorResponse.fieldErrors.images=[error.message];
-      }
-    }
-    else if(error instanceof ZodError){
-     error.issues.forEach((issue:ZodIssue) =>{
-      const field=issue.path[0] as string;
-      if(!errorResponse.fieldErrors[field]){
-        errorResponse.fieldErrors[field]=[];
-      }
-      errorResponse.fieldErrors[field].push(issue.message);
-     });
-    }
-
- // Handle foreign key constraint failure
-    else if (error.code === 'P2003') {
-      errorResponse.generalErrors.push('User does not exist.');
-    }
-
-     // Handle Prisma operation failure
-    else if (error.code === 'P2016') {
-      errorResponse.generalErrors.push('Database operation failed.');
-    }
- else{
-  errorResponse.generalErrors.push(error.message || 'An unexpected error occurred');
- }
-
- res.status(error instanceof ZodError || error instanceof multer.MulterError ? 400 : 500).json({
-  errors: {
-      ...errorResponse.fieldErrors,
-      general: errorResponse.generalErrors
-  }
-});
-  }   
+  } catch (error: any) {
+        console.error("Error creating property: ", error);
+    
+        const errorResponse = {
+          fieldErrors: {} as Record<string, string[]>,
+          generalErrors: [] as string[]
+        };
+    
+        if (error instanceof multer.MulterError) {
+          if (error.code === "LIMIT_FILE_SIZE") {
+            errorResponse.fieldErrors.images = ["File size is too large (max 5MB)"];
+            res.status(400).json({ errors: { ...errorResponse.fieldErrors, general: errorResponse.generalErrors } });
+            return;
+          } else if (error.code === "LIMIT_UNEXPECTED_FILE") {
+            errorResponse.fieldErrors.images = [error.message || "Too many files uploaded."];
+            res.status(400).json({ errors: { ...errorResponse.fieldErrors, general: errorResponse.generalErrors } });
+            return;
+          } else {
+            errorResponse.fieldErrors.images = [error.message || "Image upload failed."];
+            res.status(400).json({ errors: { ...errorResponse.fieldErrors, general: errorResponse.generalErrors } });
+            return;
+          }
+        } else if (error instanceof ZodError) {
+          error.issues.forEach((issue: ZodIssue) => {
+            const field = issue.path[0] as string;
+            if (!errorResponse.fieldErrors[field]) {
+              errorResponse.fieldErrors[field] = [];
+            }
+            errorResponse.fieldErrors[field].push(issue.message);
+          });
+          res.status(400).json({ errors: errorResponse.fieldErrors });
+          return;
+        } else if (error.code === 'P2002') {
+          // Unique constraint violation (e.g., duplicate title or address if unique)
+          errorResponse.generalErrors.push('The provided information already exists.');
+          res.status(409).json({ errors: { general: errorResponse.generalErrors } }); // 409 Conflict
+          return;
+        } else if (error.code === 'P2003') {
+          errorResponse.generalErrors.push('Invalid related data (e.g., user not found).');
+          res.status(400).json({ errors: { general: errorResponse.generalErrors } }); // 400 Bad Request
+          return;
+        } else if (error.code === 'P2016') {
+          errorResponse.generalErrors.push('Database operation failed due to record not found.');
+          res.status(404).json({ errors: { general: errorResponse.generalErrors } }); // 404 Not Found (depending on context)
+          return;
+        } else {
+          // Catch-all for other errors
+          errorResponse.generalErrors.push(error.message || 'An unexpected server error occurred.');
+          res.status(500).json({ errors: { general: errorResponse.generalErrors } });
+          return;
+        }
+      }  
 }
 
 export async function getFilteredProperties(req:Request, res:Response):Promise<void>{

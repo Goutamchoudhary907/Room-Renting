@@ -10,8 +10,14 @@ app.use(express.json());
 app.use(express.text());
 const upload = multer();
 import cors from "cors";
-
-app.use(cors());
+const corsOptions = {
+  origin: 'http://localhost:5173', 
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+  credentials: true, 
+  allowedHeaders: 'Content-Type,Authorization', 
+  maxAge: 3600,
+};
+app.use(cors(corsOptions));
 app.use((req, res, next) => {
   if (req.is('multipart/form-data')) {
     // Convert all numeric fields from strings to numbers

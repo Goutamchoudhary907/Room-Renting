@@ -9,5 +9,5 @@ router.get("/search", getFilteredProperties);
 router.get("/my/properties", authMiddleware,getUserProperties)
 router.delete("/delete/:id",authMiddleware,deleteProperty);
 router.put("/edit/:id", authMiddleware,upload.array('images', 10),updateProperty);
-router.get("/:id", authMiddleware, getPropertyById);
+router.get("/:id", getPropertyById);
 export default router;
