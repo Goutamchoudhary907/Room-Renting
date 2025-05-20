@@ -205,9 +205,9 @@ export const AllRooms=() =>{
         }
        },[user,token,savedPropertyIds]);
 
-       if (authLoading || loadingSavedProperties) {
-        return <div>Loading properties and saved status...</div>; 
-    }
+    //    if (authLoading || loadingSavedProperties) {
+    //     return <div>Loading properties and saved status...</div>; 
+    // }
     return(
         <div>
             <SearchFields 

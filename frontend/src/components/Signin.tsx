@@ -1,12 +1,14 @@
 import { ChangeEvent, useState } from 'react';
 import {useNavigate} from 'react-router-dom'
 import logo from "../assets/Signup-image.png"
-import googleLogo from '../assets/Google-logo.png'
+// import googleLogo from '../assets/Google-logo.png'
 import facebookLogo from '../assets/Facebook-logo.png'
 import appleLogo from '../assets/Apple-logo.png'
 import { SigninInput } from '../../../schema/dist';
 import axios from 'axios';
-// import {BACKEND_URL} from '../config';
+import { GoogleLogin } from '@react-oauth/google';
+
+
 
 import { useAuth } from '../context/AuthContext';
 export const Signin =()=>{
@@ -68,13 +70,36 @@ export const Signin =()=>{
                 Sign in
             </div>
             <div className="mt-3 flex flex-col space-y-1 items-center">
-              <button className="flex items-center justify-center  border rounded bg-[#DE3B40]  text-white w-[320px] h-[28px]" >
+              {/* <button className="flex items-center justify-center  border rounded bg-[#DE3B40]  text-white w-[320px] h-[28px]" >
               <div className="w-6 h-6">
                 <img src={googleLogo} alt="Google Logo"/>
                 </div>
                 <span className="text-[12px]">Login with Google</span>
-                </button>
-              <button className="flex items-center border  rounded bg-[#335ca6] justify-center text-white w-[320px] h-[28px]">
+                </button> */}
+                      <GoogleLogin
+                   onSuccess={async (credentialResponse) => {
+                     if (credentialResponse.credential) {
+                       try {
+                         const res = await axios.post("http://localhost:3000/auth/google", {
+                           credential: credentialResponse.credential,
+                         });
+                 
+                         const { token, user } = res.data;
+                         localStorage.setItem("token", token);
+                         console.log("User:", user);
+                         navigate("/");
+                       } catch (err) {
+                         console.error("Backend login error:", err);
+                       }
+                     } else {
+                       console.error("No credential received");
+                     }
+                   }}
+                   onError={() => {
+                     console.log("Google Login Failed");
+                   }}
+                  />
+              <button className="mt-3 flex items-center border  rounded bg-[#335ca6] justify-center text-white w-[320px] h-[28px]">
                 <div className="w-6 h-6">
                 <img src={facebookLogo} alt="Facebook Logo" />
                 </div>

@@ -45,8 +45,8 @@ export const SearchFields=({onSearch,initialLocation,initialCheckin,initialCheck
      </div>
      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:flex md:gap-2 lg:gap-0">
     {/* <div className="flex flex-col md:flex-row items-center gap-4 md:gap-0"> */}
-      <DateInputField id="checkin" label="Check-in" onChange={setCheckinDate} selected={checkinDate} />
-      <DateInputField id="checkout" label="Check-out" onChange={setCheckoutDate} selected={checkoutDate}/>
+      <DateInputField id="checkin" label="Check-in" onChange={setCheckinDate} selected={checkinDate} minDate={new Date()} />
+      <DateInputField id="checkout" label="Check-out" onChange={setCheckoutDate} selected={checkoutDate} minDate={checkinDate || new Date()} />
     </div>
 
     <button className="h-12 sm:h-10 md:h-8 lg:h-9 w-full md:mt-0.5 lg:mt-0 md:w-16 bg-blue-500 sm:rounded-md lg-w-16 flex items-center 
@@ -68,7 +68,7 @@ interface DateInputField{
     label:string;
     selected:Date | null ;
     onChange:(date:Date | null) => void;
-    minDate?:Date;
+    minDate?:Date |null;
 }
 
 
@@ -88,8 +88,12 @@ export const DateInputField=({id,label, selected, onChange,minDate}:DateInputFie
             onChange={onChange}
             placeholderText=""
             className="w-full h-10 bg-white border-2 border-gray-200 font-semibold text-center focus:outline-1  lg:placeholder:text-sm placeholder:font-semibold" 
-              dateFormat="yyyy-MM-dd"
-              minDate={minDate}
+              dateFormat="dd-MM-yyyy"
+              minDate={minDate || new Date()} 
+              selectsStart={id === 'checkin'}  // This is a start date picker
+              selectsEnd={id === 'checkout'}  // This is an end date picker
+              startDate={id === 'checkout' ? minDate : undefined}  // For checkout, set startDate to checkin date
+              endDate={id === 'checkin' ? undefined : selected}    // For checkin, no end date
             />
  <img
           src={DatePickerImg}

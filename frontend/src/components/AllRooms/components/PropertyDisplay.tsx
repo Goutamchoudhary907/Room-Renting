@@ -1,6 +1,7 @@
 import React from 'react';
 import { HeartIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
+import { useNavigate } from 'react-router-dom';
 interface Property{
     id:string;
     rentalType:string;
@@ -68,7 +69,11 @@ const PropertyCard = ({ property,onSave,isSaved,saveError,loadingSavedProperties
     return type;
   };
   const displayedRentalType = formatRentalType(property.rentalType);
+  const navigate = useNavigate();
 
+  const handleViewDetailsClick = () => {
+    navigate(`/property/room-detail/${property.id}`);
+  };
     return (
       
       <div className="relative rounded-lg p-4 shadow-md text-left w-full transition-all duration-300 ease-out overflow-hidden
@@ -149,7 +154,8 @@ const PropertyCard = ({ property,onSave,isSaved,saveError,loadingSavedProperties
         </button>
 
         <button className={`w-32 justify-center items-center border-1 border-gray-200 bg-white  transition-all duration-300 mr-4 h-10 rounded-xl cursor-pointer focus:bg-[#2564ebcc] focus:text-white`}
-      >
+          onClick={handleViewDetailsClick}
+         >
         <div className="flex justify-center items-center"
         >
         View Details

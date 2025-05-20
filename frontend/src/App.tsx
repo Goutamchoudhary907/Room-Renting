@@ -14,7 +14,14 @@ import { AuthProvider } from './context/AuthContext'
 import { AllRooms } from './components/AllRooms/AllRooms'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { RoomDetails } from './components/RoomDetails/RoomDetails'
-
+import { Booking } from './components/Booking/Booking'
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import { Navbar } from './components/Navbar/Navbar'
+import { Footer } from './components/Footer/Footer'
+import { AboutUs } from './pages/AboutUs'
+import { ContactUs } from './pages/ContactUs'
+import { PrivacyPolicy } from './pages/PrivacyPolicy'
+import { TermsOfService } from './pages/TermsOfService'
 function App() {
 const location=useLocation();
 const [routeKey, setRouteKey] = useState(location.pathname); // Initialize with current pathname
@@ -24,10 +31,13 @@ useEffect(() => {
 }, [location]);                     // Run this effect when location changes
 
   return (
-     <AuthProvider>
+    
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ''}>
+<AuthProvider>
+  <Navbar/>
     <Routes location={location} key={routeKey}>
 
-    <Route path="/home" element={<Home/>}/>
+    <Route path="/" element={<Home/>}/>
 
       <Route path="/auth/signup" element={<Signup/>}/>
       <Route path="/auth/signin" element={<Signin/>}/>
@@ -38,15 +48,24 @@ useEffect(() => {
       <Route path="/property/all-rooms" element={<AllRooms/>}/>
       <Route path="/property/room-detail/:id" element={<RoomDetails/>}/>
       
+      <Route path="/about" element={<AboutUs/>}/>
+      <Route path="/contact" element={<ContactUs/>}/>
+      <Route path="/privacy-policy" element={<PrivacyPolicy/>}/>
+      <Route path="/terms-of-service" element={<TermsOfService/>}/>
       
       <Route element={<ProtectedRoute />}>
       <Route path="/property/create" element={<ListRoom/>}/>
       <Route path="/property/edit/:id" element={<EditRoom/>}/>
       <Route path="/property/my/properties" element={<MyProperties/>}/>
+
+      <Route path="/book/:id" element={<Booking />} />
       </Route>
 
      </Routes>
+     <Footer/>
      </AuthProvider>
+      </GoogleOAuthProvider>
+    
   )
 }
 

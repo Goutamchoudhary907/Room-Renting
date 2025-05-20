@@ -4,10 +4,10 @@ import {SignupInput} from '../../../schema/dist/index'
 import axios from 'axios';
 // import {BACKEND_URL} from '../config';
 import logo from "../assets/Signup-image.png"
-import googleLogo from '../assets/Google-logo.png'
+import googleLogo from '../assets/Google-logo (2).png'
 import facebookLogo from '../assets/Facebook-logo.png'
 import appleLogo from '../assets/Apple-logo.png'
-
+import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 
 export const Signup =() =>{
@@ -16,7 +16,8 @@ export const Signup =() =>{
     firstName:"" ,
     lastName:"" ,
     email:"" ,
-    password:""
+    password:"" ,
+    phoneNumber:""
  })
 
  const { signup } = useAuth();
@@ -59,6 +60,25 @@ export const Signup =() =>{
     })
   };
   console.log("Errors state:", errors);
+
+  
+const login = useGoogleLogin({
+  onSuccess: async (tokenResponse) => {
+    try {
+      const res = await axios.post("http://localhost:3000/auth/google", {
+        accessToken: tokenResponse.access_token,
+      });
+      const { token, user } = res.data;
+      localStorage.setItem("token", token);
+      console.log("User:", user);
+      navigate("/");
+    } catch (err) {
+      console.error("Backend signup error:", err);
+      setErrors({ general: "Google signup failed. Try again." });
+    }
+  },
+  onError: () => console.log("Google Signup Failed"),
+});
   return (
     <div className="h-screen flex justify-center items-center bg-gray-200">
       <div className="w-[1000px] h-[600px]  flex rounded-lg bg-white ">
@@ -76,13 +96,24 @@ export const Signup =() =>{
             Sign up
         </div>
         <div className="mt-3 flex flex-col space-y-1 items-center">
-          <button className="flex items-center justify-center  border rounded bg-[#DE3B40]  text-white w-[320px] h-[28px]" >
+          {/* <button className="flex items-center justify-center  border rounded bg-[#DE3B40]  text-white w-[320px] h-[28px]" >
           <div className="w-6 h-6">
             <img src={googleLogo} alt="Google Logo"/>
             </div>
             <span className="text-[12px]">Sign up with Google</span>
+            </button> */}
+            <button
+              onClick={() => login()}
+              className="flex items-center justify-center border border-[#dadce0] rounded-md bg-white text-[#3c4043] hover:shadow-md w-[320px] h-[40px] font-medium text-sm transition-all duration-200"
+            >
+              <img
+                src={googleLogo}
+                alt="Google Logo"
+                className="w-5 h-5 mr-3"
+              />
+              <span>Sign up with Google</span>
             </button>
-          <button className="flex items-center border  rounded bg-[#335ca6] justify-center text-white w-[320px] h-[28px]">
+          <button className="mt-3 flex items-center border  rounded bg-[#335ca6] justify-center text-white w-[320px] h-[28px]">
             <div className="w-6 h-6">
             <img src={facebookLogo} alt="Facebook Logo" />
             </div>

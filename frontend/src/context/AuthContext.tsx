@@ -7,6 +7,7 @@ interface User{
     email:string;
     firstName:string;
     lastName:string;
+    phoneNumber?: string;
 }
 
 interface AuthContextType{
@@ -18,9 +19,11 @@ interface AuthContextType{
         lastName:string;
         email:string;
         password:string;
+        phoneNumber?: string;
     }) => Promise<void>;
     logout: () => void;
     isLoading: boolean;
+    updateUserPhoneNumber: (phoneNumber: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -92,7 +95,7 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
         localStorage.setItem('user', JSON.stringify(user));
             setToken(token);
             setUser(user);
-            navigate("/home")
+            navigate("/")
         } catch (error) {
           throw error;            
         }
@@ -115,6 +118,32 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
             throw error;
         }
     };
+    const updateUserPhoneNumber = async (phoneNumber: string) => {
+        try {
+            const response = await axios.put(`${BACKEND_URL}/auth/update-phone`, 
+                { phoneNumber },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+            
+            if (user) {
+                const updatedUser: User = {
+                    ...user,
+                    phoneNumber
+                };
+                setUser(updatedUser);
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+            }
+            return response.data;
+        } catch (error) {
+            console.error('Error updating phone number:', error);
+            throw error;
+        }
+    };
 
     const logout=() =>{
         localStorage.removeItem('token');
@@ -124,7 +153,7 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
     };
 
     return(
-        <AuthContext.Provider value={{user, token, login,signup, logout,isLoading}}>
+        <AuthContext.Provider value={{user, token, login,signup, logout,isLoading,updateUserPhoneNumber}}>
              {isLoading ? <div>Loading...</div> : children}
         </AuthContext.Provider>
     );
