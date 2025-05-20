@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 const router = express.Router();
-import { signupInput, signinInput } from "../../../schema/dist/index.js";
+import { signupInput, signinInput,updatePhoneInput } from "../../../schema/dist/index.js";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 const prisma = new PrismaClient();
@@ -105,6 +105,9 @@ router.post("/signin", async (req: Request, res: Response): Promise<any> => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    if (!user.password) {
+      return res.status(500).json({ message: "User password is missing." });
+    }
     const passwordMatch = await bcrypt.compare(body.password, user.password);
 
     if (!passwordMatch) {
@@ -177,4 +180,30 @@ router.get("/me", authMiddleware, async (req:AuthenticatedRequest, res:Response)
     res.status(500).json({ message: "Error fetching user data" });
   }
 })
+
+router.put("/update-phone", authMiddleware,async (req:AuthenticatedRequest, res:Response) =>{
+  const {phoneNumber} =updatePhoneInput.parse(req.body);
+  try {
+    if (!req.user?.email) {
+       res.status(401).json({ message: 'Unauthorized: User email not found in token' });
+       return
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { email: req.user.email },
+      data: { phoneNumber },
+    });
+
+    if(updatedUser){
+      res.json({message:'Phone number updated successfully'})
+    }else{
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    console.error('Error updating phone number:', error);
+    res.status(500).json({ message: 'Failed to update phone number' });
+  } finally {
+    await prisma.$disconnect();
+  }
+});
 export default router;

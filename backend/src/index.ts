@@ -3,11 +3,16 @@ import authRoutes from './routes/auth.js';
 import forgotPasswordRoutes from './routes/ForgotPassword.js';
 import propertyRoutes from './routes/properties/propertyRoutes.js'
 import savedPropertyRoute from "./routes/SavedProperty/savedProperties.js"
+import paymentRoutes from './routes/Payment/paymentRoutes.js'
+import mapRouter from "./routes/map/mapRoutes.js"
+import dodoWebhookHandler from './services/webhook.js'; 
+import googleAuthRoute from "./routes/auth/googleAuth.js";
 import multer from 'multer';
 const app=express();
 
 app.use(express.json());
 app.use(express.text());
+app.use('/webhook', express.raw({ type: 'application/json' }));
 const upload = multer();
 import cors from "cors";
 const corsOptions = {
@@ -37,9 +42,15 @@ app.use((req, res, next) => {
   next();
 });
 app.use("/auth", authRoutes);
+app.use("/", googleAuthRoute);
 app.use("", forgotPasswordRoutes)
 app.use("/property", propertyRoutes)
 app.use("/",savedPropertyRoute);
+
+app.use("/map",mapRouter);
+
+app.use("/booking",paymentRoutes);
+app.post('/webhook', dodoWebhookHandler);
 
 app.listen(3000,() =>{
     console.log('Server running on http://localhost:3000');
