@@ -8,17 +8,20 @@ datasource db {
 }
 
 model User{
-  id   Int @id @default(autoincrement())
-  firstName  String
-  lastName    String
-  email String   @unique
-  password  String
-  createdAt   DateTime @default(now())
-  reset     String?
-  Properties Property[]
+  id               Int @id @default(autoincrement())
+  firstName        String
+  lastName         String
+  email            String   @unique
+  password         String?
+  googleId        String?  @unique
+  phoneNumber      String?
+  createdAt        DateTime @default(now())
+  reset            String?
+  Properties       Property[]
   @@map("user")         // name the table user
   
   savedProperties SavedProperty[]
+  Booking Booking[]
 }
 
 model Property{
@@ -46,6 +49,7 @@ model Property{
   bookingStatus  BookingStatusEnum @default(AVAILABLE)
   savedBy       SavedProperty[]
   @@map("properties")
+  Booking Booking[]
 }
 
 model SavedProperty{
@@ -67,8 +71,39 @@ model Image{
   @@map("images")
 }
 
+model Booking {
+  id                Int       @id @default(autoincrement())
+  bookingId         String    @unique
+  userId            Int
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  propertyId        Int
+  property          Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  rentalType        String
+  checkinDate       DateTime?
+  checkoutDate      DateTime?
+  moveInDate        DateTime?
+  leaseDuration     Int?
+  paymentStatus     PaymentStatus @default(PENDING)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  totalAmount       Decimal?  
+  guestCount        Int?
+  bookingDate       DateTime  @default(now())
+  specialRequests   String?
+  paymentMethodUsed String?
+  transactionId     String?   @unique // Unique ID from the payment gateway
+  dodoSubscriptionId String?
+  @@map("bookings")
+}
 enum BookingStatusEnum{
   AVAILABLE
   BOOKED
   UNAVAILABLE
+}
+enum PaymentStatus {
+  PENDING
+  SUCCESSFUL
+  FAILED
+  SUBSCRIPTION_ACTIVE
+  SUBSCRIPTION_ACTIVATION_FAILED
 }
