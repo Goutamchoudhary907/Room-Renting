@@ -8,7 +8,7 @@ dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET;
 import { sendEmail } from "./email-service";
 import bcrypt from "bcrypt";
-import { forgotPasswordInput, resetPasswordInput } from "../../schema/dist/authSchema";
+import { forgotPasswordInput, resetPasswordInput } from "../../schema/src/authSchema";
 
 router.post("/auth/forgot-password", async (req: Request, res: Response):Promise<any> => {
   const email = req.body;
@@ -64,7 +64,7 @@ router.post("/auth/forgot-password", async (req: Request, res: Response):Promise
         `,
     });
     res.status(200).json("Password reset email send");
-  } catch (error) {
+  } catch (error:unknown ) {
     console.error("Error during forgot password", error);
     if(error instanceof Error){
       res.status(500).json({
@@ -114,7 +114,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
     let decoded;
     try {
         decoded = jwt.verify(token, JWT_SECRET) as { user: string };
-    } catch (error: any) {
+    } catch (error: unknown ) {
         if (error instanceof jwt.TokenExpiredError) {
              res.status(401).json({ message: "Reset token has expired. Please request a new one." });
              return
@@ -161,7 +161,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
     res.status(200).json({
       message: "Password reset successful",
     });
-  } catch (error: any) {
+  } catch (error: unknown ) {
     console.error("Error", error);
     if (error instanceof jwt.JsonWebTokenError) {
       console.error("JWT Error Details:", error.message);
@@ -170,7 +170,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
     }
 
     // Handle other errors (Prisma errors, bcrypt errors, etc.)
-    if (error.code === "P2025") {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "P2025") {
       // prisma not found error
       res.status(404).json({ message: "User not found" });
       return
@@ -216,7 +216,7 @@ router.get("/auth/reset-password", async (req: Request, res: Response) => {
     console.log("Redirecting to:", redirectURL);
     res.redirect(redirectURL);
     return
-  } catch (error) {
+  } catch (error:unknown ) {
     console.error("Error verifying token:", error);
      res.status(401).send("Invalid or expired token");
      return

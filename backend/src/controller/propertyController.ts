@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from "../middleware/middleware.js";
 import { PrismaClient } from "@prisma/client";
-import {propertySchema, PropertySchema} from '../../schema/dist/propertySchema'
+import {propertySchema, PropertySchema} from '../../schema/src/propertySchema'
 const prisma = new PrismaClient();
 import { ZodError, ZodIssue } from 'zod'; 
 import multer, { MulterError } from 'multer';
@@ -173,8 +173,8 @@ const otherData = { ...validatedData, address: undefined };
           maxGuests: validatedData.maxGuests ?? 1,
           host: { connect: { id: userId } },
           images:{
-            create: req.files.map(file => ({
-              url: file.path 
+            create: (req.files as Express.Multer.File[]).map((img: Express.Multer.File) => ({
+              url: img.path 
             }))
           },
         } ,
