@@ -52,6 +52,4 @@ app.use("/map",mapRouter);
 app.use("/booking",paymentRoutes);
 app.post('/webhook', dodoWebhookHandler);
 
-app.listen(3000,() =>{
-    console.log('Server running on http://localhost:3000');
-});
+export default app;

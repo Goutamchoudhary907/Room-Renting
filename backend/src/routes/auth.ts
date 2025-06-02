@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 const router = express.Router();
-import { signupInput, signinInput,updatePhoneInput } from "../../../schema/dist/index.js";
+import { signupInput, signinInput,updatePhoneInput } from "../../schema/dist/authSchema.js";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 const prisma = new PrismaClient();

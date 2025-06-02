@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from "../middleware/middleware.js";
 import { PrismaClient } from "@prisma/client";
-import {propertySchema, PropertySchema} from '../../../schema/dist/propertySchema.js'
+import {propertySchema, PropertySchema} from '../../schema/dist/propertySchema.js'
 const prisma = new PrismaClient();
 import { ZodError, ZodIssue } from 'zod'; 
 import multer, { MulterError } from 'multer';
@@ -33,6 +33,13 @@ interface MappedErrors{
 export async function createProperty(req:AuthenticatedRequest, res:Response):Promise<void>{
   console.log("req.body:", req.body);
   const errors: Record<string, string[]> = {};
+  const { address, ...rest } = req.body;
+
+  if (!address) {
+     res.status(400).json({ error: "Address is required" });
+     return
+  }
+
   try {
     const userId=req.user?.userId;
     if(!userId){
@@ -50,6 +57,7 @@ export async function createProperty(req:AuthenticatedRequest, res:Response):Pro
       maxGuests,
       amenities,
       rentalType,
+      address,
       ...rest
     } = req.body;
 
@@ -74,6 +82,9 @@ export async function createProperty(req:AuthenticatedRequest, res:Response):Pro
       }
       return number;
     }
+    const latitude = parseNumber(req.body.latitude, 'latitude', false);
+    const longitude = parseNumber(req.body.longitude, 'longitude', false);
+
       const parsedBody = {
           bedrooms: parseNumber(bedrooms, 'bedrooms') ?? 1,
           bathrooms: parseNumber(bathrooms, 'bathrooms') ?? 1,
@@ -87,6 +98,19 @@ export async function createProperty(req:AuthenticatedRequest, res:Response):Pro
           depositAmount: parseNumber(depositAmount, 'depositAmount', false) ?? undefined,
           maxGuests: parseNumber(maxGuests, 'maxGuests', false) ?? 1,
           amenities: Array.isArray(amenities) ? amenities : amenities ? [amenities] : [],
+          formattedAddress: req.body.formattedAddress ?? '',
+          address: {
+            country: address?.country || 'India',
+            flatOrHouse: address?.flatOrHouse || '',
+            street: address?.street || '',
+            landmark: address?.landmark || '',
+            locality: address?.locality || '',
+            city: address?.city || '',
+            state: address?.state || '',
+            postalCode: address?.postalCode || '',
+          },
+          latitude,
+          longitude,
           ...rest,
       };
 
@@ -117,9 +141,35 @@ export async function createProperty(req:AuthenticatedRequest, res:Response):Pro
     return
 }
 console.log("req.files:", req.files);
+const {
+  country,
+  flatOrHouse,
+  street,
+  landmark,
+  locality,
+  city,
+  state,
+  postalCode,
+  
+} = validatedData.address || {};
+
+const otherData = { ...validatedData, address: undefined };
+
     const newProperty= await prisma.property.create({
         data:{
-          ...validatedData ,
+          ...otherData,
+          country,
+          flatOrHouse,
+          street,
+          landmark,
+          locality,
+          city,
+          state,
+          postalCode,
+          formattedAddress: validatedData.formattedAddress ?? '',
+          latitude: validatedData.latitude ?? null,
+          longitude: validatedData.longitude ?? null,
+          
           maxGuests: validatedData.maxGuests ?? 1,
           host: { connect: { id: userId } },
           images:{
@@ -138,57 +188,57 @@ console.log("req.files:", req.files);
     // console.log("Response sent");
     return
   } catch (error: any) {
-        console.error("Error creating property: ", error);
+    console.error("Error creating property: ", error);
     
-        const errorResponse = {
-          fieldErrors: {} as Record<string, string[]>,
-          generalErrors: [] as string[]
-        };
-    
-        if (error instanceof multer.MulterError) {
-          if (error.code === "LIMIT_FILE_SIZE") {
-            errorResponse.fieldErrors.images = ["File size is too large (max 5MB)"];
-            res.status(400).json({ errors: { ...errorResponse.fieldErrors, general: errorResponse.generalErrors } });
-            return;
-          } else if (error.code === "LIMIT_UNEXPECTED_FILE") {
-            errorResponse.fieldErrors.images = [error.message || "Too many files uploaded."];
-            res.status(400).json({ errors: { ...errorResponse.fieldErrors, general: errorResponse.generalErrors } });
-            return;
-          } else {
-            errorResponse.fieldErrors.images = [error.message || "Image upload failed."];
-            res.status(400).json({ errors: { ...errorResponse.fieldErrors, general: errorResponse.generalErrors } });
-            return;
-          }
-        } else if (error instanceof ZodError) {
-          error.issues.forEach((issue: ZodIssue) => {
-            const field = issue.path[0] as string;
-            if (!errorResponse.fieldErrors[field]) {
-              errorResponse.fieldErrors[field] = [];
-            }
-            errorResponse.fieldErrors[field].push(issue.message);
-          });
-          res.status(400).json({ errors: errorResponse.fieldErrors });
-          return;
-        } else if (error.code === 'P2002') {
-          // Unique constraint violation (e.g., duplicate title or address if unique)
-          errorResponse.generalErrors.push('The provided information already exists.');
-          res.status(409).json({ errors: { general: errorResponse.generalErrors } }); // 409 Conflict
-          return;
-        } else if (error.code === 'P2003') {
-          errorResponse.generalErrors.push('Invalid related data (e.g., user not found).');
-          res.status(400).json({ errors: { general: errorResponse.generalErrors } }); // 400 Bad Request
-          return;
-        } else if (error.code === 'P2016') {
-          errorResponse.generalErrors.push('Database operation failed due to record not found.');
-          res.status(404).json({ errors: { general: errorResponse.generalErrors } }); // 404 Not Found (depending on context)
-          return;
-        } else {
-          // Catch-all for other errors
-          errorResponse.generalErrors.push(error.message || 'An unexpected server error occurred.');
-          res.status(500).json({ errors: { general: errorResponse.generalErrors } });
-          return;
-        }
-      }  
+       const errorResponse = {
+        fieldErrors: {} as Record<string, string[]>,
+        generalErrors: [] as string[]
+       };
+  
+      if (error instanceof multer.MulterError) {
+       if (error.code === "LIMIT_FILE_SIZE") {
+        errorResponse.fieldErrors.images = ["File size is too large (max 5MB)"];
+        res.status(400).json({ errors: { ...errorResponse.fieldErrors, general: errorResponse.generalErrors } });
+        return;
+       } else if (error.code === "LIMIT_UNEXPECTED_FILE") {
+        errorResponse.fieldErrors.images = [error.message || "Too many files uploaded."];
+        res.status(400).json({ errors: { ...errorResponse.fieldErrors, general: errorResponse.generalErrors } });
+        return;
+       } else {
+        errorResponse.fieldErrors.images = [error.message || "Image upload failed."];
+        res.status(400).json({ errors: { ...errorResponse.fieldErrors, general: errorResponse.generalErrors } });
+        return;
+       }
+      } else if (error instanceof ZodError) {
+       error.issues.forEach((issue: ZodIssue) => {
+        const field = issue.path[0] as string;
+        if (!errorResponse.fieldErrors[field]) {
+         errorResponse.fieldErrors[field] = [];
+        }
+        errorResponse.fieldErrors[field].push(issue.message);
+       });
+       res.status(400).json({ errors: errorResponse.fieldErrors });
+       return;
+      } else if (error.code === 'P2002') {
+       // Unique constraint violation (e.g., duplicate title or address if unique)
+       errorResponse.generalErrors.push('The provided information already exists.');
+       res.status(409).json({ errors: { general: errorResponse.generalErrors } }); // 409 Conflict
+       return;
+      } else if (error.code === 'P2003') {
+       errorResponse.generalErrors.push('Invalid related data (e.g., user not found).');
+       res.status(400).json({ errors: { general: errorResponse.generalErrors } }); // 400 Bad Request
+       return;
+      } else if (error.code === 'P2016') {
+       errorResponse.generalErrors.push('Database operation failed due to record not found.');
+       res.status(404).json({ errors: { general: errorResponse.generalErrors } }); // 404 Not Found (depending on context)
+       return;
+      } else {
+       // Catch-all for other errors
+       errorResponse.generalErrors.push(error.message || 'An unexpected server error occurred.');
+       res.status(500).json({ errors: { general: errorResponse.generalErrors } });
+       return;
+      }
+     }  
 }
 
 export async function getFilteredProperties(req:Request, res:Response):Promise<void>{
@@ -384,6 +434,36 @@ export async function updateProperty(req:AuthenticatedReq, res:Response):Promise
     res.status(403).json({ message: 'Unauthorized: You do not own this property' });
     return;
   }
+
+// Reconstruct nested address object from flat keys in req.body
+const addressKeys = [
+  'street',
+  'city',
+  'state',
+  'postalCode',
+  'country',
+  'formattedAddress',
+  'flatOrHouse',
+  'landmark',
+  'locality',
+  'latitude',
+  'longitude'
+];
+
+const reconstructedAddress: Record<string, any> = {};
+for (const key of addressKeys) {
+  if (req.body[key] !== undefined) {
+    reconstructedAddress[key] = req.body[key];
+    delete req.body[key]; // Remove from root body
+  }
+}
+
+// If address not already present as object, inject it
+if (Object.keys(reconstructedAddress).length > 0) {
+  req.body.address = reconstructedAddress;
+}
+
+
   const {
     bedrooms,
     bathrooms,
@@ -392,6 +472,7 @@ export async function updateProperty(req:AuthenticatedReq, res:Response):Promise
     amenities,
     rentalType,
     imagesToDelete,   // Array of image IDs to delete
+    address,
     ...rest
   } = req.body;
 
@@ -415,6 +496,8 @@ export async function updateProperty(req:AuthenticatedReq, res:Response):Promise
     }
     return number;
   }
+
+
   const parsedBody={
     bedrooms: bedrooms !== undefined ? Number(bedrooms) : existingProperty.bedrooms,  bathrooms: parseNumber(bathrooms, 'bathrooms') ?? existingProperty.bathrooms,
     rentalType: rentalType ?? existingProperty.rentalType,
@@ -471,15 +554,37 @@ try {
     }));
   }
 
+  const updateData: any = {
+    ...validatedData,
+    images: newImages.length > 0 ? { create: newImages } : undefined,
+    updatedAt: new Date()
+  };
+
+  if (address && typeof address === 'object') {
+    const addressFields = [
+      'street',
+      'city',
+      'state',
+      'postalCode',
+      'country',
+      'formattedAddress',
+      'flatOrHouse',
+      'landmark',
+      'locality',
+      'latitude',
+      'longitude'
+    ];
+
+    for (const key of addressFields) {
+      if (address[key] !== undefined) {
+        updateData[key] = address[key];
+      }
+    }
+  }
+
   const updatedProperty = await prisma.property.update({
     where: { id: propertyId },
-    data: {
-      ...validatedData,
-      images: newImages.length > 0 ? {
-        create: newImages
-      } : undefined,
-      updatedAt: new Date()
-    },
+    data: updateData,
     include: {
       images: true,
       host: {

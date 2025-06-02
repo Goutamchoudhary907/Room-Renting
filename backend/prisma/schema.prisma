@@ -36,7 +36,17 @@ model Property{
   pricePerNight   Int?
   pricePerMonth   Int?
   depositAmount   Int?
-  address         String
+
+  street          String?
+  city            String?
+  state           String?
+  postalCode      String?
+  country         String?
+  formattedAddress String?
+  flatOrHouse    String?
+  landmark       String?
+  locality       String?
+  address         String?
   latitude        Decimal?  
   longitude       Decimal?
   amenities       String[]
@@ -51,6 +61,7 @@ model Property{
   @@map("properties")
   Booking Booking[]
 }
+
 
 model SavedProperty{
  id             Int    @id @default(autoincrement())

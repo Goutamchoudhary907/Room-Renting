@@ -43,7 +43,23 @@ export default {
             }
 
             const details=await mapService.getPlaceDetails(placeId);
-            res.json(details);
+            if (!details) {
+                res.status(404).json({ error: 'Place details not found' });
+                return;
+              }
+              const parsed = mapService.parseAddressComponents(
+                details.address_components || [],
+                details.formatted_address || '',
+                details.name
+              );
+              
+        
+              res.json({
+                parsedAddress: parsed,
+                rawDetails: details
+              });
+        
+            // res.json(details);
         } catch (error:any) {
             console.error('Place details error:', error);
             res.status(500).json({ error: error.message });

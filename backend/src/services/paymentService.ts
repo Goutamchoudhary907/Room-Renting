@@ -3,7 +3,9 @@
 import DodoPayments from 'dodopayments';
 import { PrismaClient } from '@prisma/client';
 import { log } from 'console';
+import dotenv from 'dotenv';
 
+dotenv.config();
 const prisma = new PrismaClient();
 
 // let baseURL = 'https://test.dodopayments.com'; 
@@ -100,7 +102,7 @@ async function initiatePayment(payload: InitiatePaymentPayload) {
       product_id: "pdt_agbP47u6rLd9tjINLcGud", 
       quantity: 1,
       payment_link:true,
-      return_url: `http://localhost:3000/booking-confirmation/${bookingId}`,
+      return_url: `${process.env.PBACKEND_URL}/booking-confirmation/${bookingId}`,
     });
 
     console.log('On-Demand Subscription Created:', subscriptionResponse);
@@ -148,7 +150,7 @@ async function chargeOnDemandSubscription(subscriptionId: string, amount: number
     const response = await client.subscriptions.charge(subscriptionId, { product_price: amountInPaise });
 
     console.log('On-Demand Subscription Charged:', response);
-    return response; 
+    return response;  
   } catch (error: any) {
     console.error(`Error charging on-demand subscription ${subscriptionId}:`, error);
     throw error;
