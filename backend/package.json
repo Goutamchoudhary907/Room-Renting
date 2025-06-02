@@ -21,7 +21,7 @@
     "@vendia/serverless-express": "^4.12.6",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
-    "cloudinary": "^2.5.1",
+    "cloudinary": "^1.41.3",
     "cors": "^2.8.5",
     "dodopayments": "^1.18.3",
     "dotenv": "^16.4.7",
