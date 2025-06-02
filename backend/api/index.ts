@@ -1,4 +1,4 @@
-import app from '../dist/index.js';
+import app from '../src/index';
 import serverlessExpress from '@vendia/serverless-express';
 
 export const handler = serverlessExpress({ app });
