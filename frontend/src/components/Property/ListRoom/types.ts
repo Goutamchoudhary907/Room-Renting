@@ -4,6 +4,16 @@ export interface ChildrenProps {
   children: React.ReactNode;
 }
 
+export interface Address {
+  country?: string;
+  flatOrHouse?: string;
+  street?: string;
+  landmark?: string;
+  locality?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+}
 export interface RoomFormData {
   title: string;
   description: string;
@@ -15,7 +25,8 @@ export interface RoomFormData {
   rentalType: string;
   pricePerNight: number | undefined;
   pricePerMonth: number | undefined;
-  address: string;
+  address: Address;
+  formattedAddress?: string;
   amenities: string[];
   depositAmount?: number | null;
   latitude?: number | null;

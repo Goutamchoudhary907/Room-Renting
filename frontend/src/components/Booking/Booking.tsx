@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
-import { RoomDetailsData } from "../RoomDetails/RoomDetails";
+import { RoomDetailsData } from "../../pages/property/RoomDetails";
 import axios from "axios";
 import { BACKEND_URL } from "../../config";
 import { BookingForm } from "./BookingForm";

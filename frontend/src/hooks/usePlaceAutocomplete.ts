@@ -4,6 +4,7 @@ import axios from "axios";
 import { useDebounce } from "./useDebounce";
 
 interface Prediction{
+    structured_formatting: any;
     description:string;
     place_id:string;
 }

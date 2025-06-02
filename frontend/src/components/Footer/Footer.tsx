@@ -1,5 +1,14 @@
+import { useAuth } from "../../context/AuthContext";
+import { useLoading } from "../../context/LoadingContext";
+import FooterSkeleton from "./FooterSkeleton";
 
 export const Footer = () => {
+   const { isLoading } = useLoading();
+    const { isLoading: isAuthLoading } = useAuth();
+
+   if(isLoading || isAuthLoading){
+    return <FooterSkeleton/>
+   }
     return (
       <footer className="bg-white border-t mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid grid-cols-1 md:grid-cols-3 gap-8">

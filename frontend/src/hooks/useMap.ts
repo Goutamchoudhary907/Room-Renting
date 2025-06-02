@@ -18,7 +18,15 @@ const useMap = () => {
       const response = await axios.get(`${BACKEND_URL}/map/geocode`, {
         params: {address}
       });
-      return response.data;
+      const lat = parseFloat(response.data.lat);
+    const lng = parseFloat(response.data.lng);
+
+    if (isNaN(lat) || isNaN(lng)) {
+      throw new Error('Invalid coordinates received from geocoding API');
+    }
+
+    return { lat, lng };
+
     } catch (err:any) {
       setError(err.response?.data?.error || 'Geocoding failed');
       return null;
@@ -49,7 +57,6 @@ const useMap = () => {
           }
         );
       });
-
      setRoutes(result.routes)
       return result.routes;
     } catch (err:any) {

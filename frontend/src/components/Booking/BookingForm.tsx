@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom"
-import {updatePhoneInput} from "../../../../schema/dist/index.js"
+import {updatePhoneInput} from "../../../schema/dist/authSchema"
 import { z } from "zod";
 interface BookingFormProps {
     propertyId: string;

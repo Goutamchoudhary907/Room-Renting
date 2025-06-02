@@ -1,27 +1,28 @@
 import {  Route, Routes, useLocation } from 'react-router-dom'
 import './App.css'
-import { Signup } from './components/Signup'
-import { Signin } from './components/Signin'
-import { ForgotPassword } from './components/ForgotPassword'
-import { ResetPassword } from './components/ResetPassword'
+import { Signup } from './pages/auth/Signup'
+import { Signin } from './pages/auth/Signin'
+import { ForgotPassword } from './pages/auth/ForgotPassword'
+import { ResetPassword } from './pages/auth/ResetPassword'
 import { useEffect, useState } from 'react'
-import { ListRoom } from './components/Property/ListRoom/ListRoom'
-import { MyProperties } from './components/Property/MyProperties'
-import { EditRoom } from './components/Property/EditRoom/EditRoom'
-import { Home } from './components/Home/Home'
+import { ListRoom } from './pages/property/ListRoom'
+import { MyProperties } from './pages/property/MyProperties'
+import { EditRoom } from './pages/property/EditRoom'
+import { Home } from './pages/Home'
 
 import { AuthProvider } from './context/AuthContext' 
-import { AllRooms } from './components/AllRooms/AllRooms'
+import { AllRooms } from './pages/property/AllRooms'
 import { ProtectedRoute } from './components/ProtectedRoute'
-import { RoomDetails } from './components/RoomDetails/RoomDetails'
+import { RoomDetails } from './pages/property/RoomDetails'
 import { Booking } from './components/Booking/Booking'
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { Navbar } from './components/Navbar/Navbar'
 import { Footer } from './components/Footer/Footer'
-import { AboutUs } from './pages/AboutUs'
-import { ContactUs } from './pages/ContactUs'
-import { PrivacyPolicy } from './pages/PrivacyPolicy'
-import { TermsOfService } from './pages/TermsOfService'
+import { AboutUs } from './pages/info/AboutUs'
+import { ContactUs } from './pages/info/ContactUs'
+import { PrivacyPolicy } from './pages/info/PrivacyPolicy'
+import { TermsOfService } from './pages/info/TermsOfService'
+import { LoadingProvider } from './context/LoadingContext';
 function App() {
 const location=useLocation();
 const [routeKey, setRouteKey] = useState(location.pathname); // Initialize with current pathname
@@ -31,7 +32,7 @@ useEffect(() => {
 }, [location]);                     // Run this effect when location changes
 
   return (
-    
+    <LoadingProvider>
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ''}>
 <AuthProvider>
   <Navbar/>
@@ -65,6 +66,7 @@ useEffect(() => {
      <Footer/>
      </AuthProvider>
       </GoogleOAuthProvider>
+      </LoadingProvider>
     
   )
 }

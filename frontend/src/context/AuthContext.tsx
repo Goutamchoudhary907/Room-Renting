@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode, useRef } fro
 import axios from 'axios';
 import { BACKEND_URL } from '../config';
 import { useNavigate } from 'react-router-dom';
+import { flushSync } from 'react-dom';
 interface User{
     id:string;
     email:string;
@@ -14,6 +15,7 @@ interface AuthContextType{
     user:User | null;
     token:string | null;
     login:(email:string, password:string) => Promise<void>;
+    loginWithGoogle: (credential: string) => Promise<void>;
     signup:(inputs:{
         firstName:string;
         lastName:string;
@@ -29,9 +31,11 @@ interface AuthContextType{
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider=({children}:{children:ReactNode}) =>{
-    const [user,setUser]=useState<User | null>(null);
-    const [token, setToken] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const storedToken = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+    const [user, setUser] = useState<User | null>(storedUser ? JSON.parse(storedUser) : null);
+    const [token, setToken] = useState<string | null>(storedToken);
+    const [isLoading, setIsLoading] = useState(!storedUser || !storedToken);
     const navigate = useNavigate();
     const initializedRef = useRef(false);
 
@@ -39,9 +43,6 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
         if (initializedRef.current) return;
         initializedRef.current = true;
         const initAuth= async () =>{
-            const storedToken = localStorage.getItem('token');
-            const storedUser = localStorage.getItem('user');
-
             if (storedUser) {
                 setUser(JSON.parse(storedUser));
             }
@@ -53,6 +54,7 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
                         Authorization: `Bearer ${storedToken}`
                     }
                    }) ;
+                   
                    if (JSON.stringify(response.data.user) !== storedUser) {
                     localStorage.setItem('user', JSON.stringify(response.data.user));
                     setUser(response.data.user);
@@ -61,11 +63,6 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
                    console.log("User and token set successfully.");
                 }catch(error){
                     console.error("Token verification failed:", error);
-                    // localStorage.removeItem('token');
-                    // localStorage.removeItem('user');
-                    // setUser(null);
-                    // setToken(null);
-                    console.log("Token removed, user and token set to null.");
                 }
             }else {
                 console.log("No token found in localStorage.");
@@ -145,16 +142,42 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
         }
     };
 
+    const loginWithGoogle = async (credential: string) => {
+      try {
+        const response = await axios.post(`${BACKEND_URL}/auth/google`, {
+          credential
+        });
+    
+        const { token, user } = response.data;
+    
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+    
+        flushSync(() => {
+          setToken(token);
+          setUser(user);
+        });
+    
+        navigate("/");
+    
+      } catch (error) {
+        console.error('Google login failed:', error);
+        throw error;
+      }
+    };
+
+    
     const logout=() =>{
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
         setToken(null);
         setUser(null);
         navigate("/auth/signin");
     };
 
     return(
-        <AuthContext.Provider value={{user, token, login,signup, logout,isLoading,updateUserPhoneNumber}}>
-             {isLoading ? <div>Loading...</div> : children}
+        <AuthContext.Provider value={{user, token, login,signup, logout,isLoading,updateUserPhoneNumber,loginWithGoogle}}>
+              {children}
         </AuthContext.Provider>
     );
 };

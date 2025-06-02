@@ -1,4 +1,4 @@
-import { RoomDetailsData } from '../components/RoomDetails/RoomDetails';
+import { RoomDetailsData } from '../pages/property/RoomDetails';
 
 export interface ShortTermTotal {
   subTotal: number;
