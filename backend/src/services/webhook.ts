@@ -2,7 +2,7 @@
 import { Request, Response } from 'express';
 import { Webhook } from "standardwebhooks";
 import { PrismaClient, PaymentStatus } from '@prisma/client';
-import { chargeOnDemandSubscription } from '../services/paymentService.js'
+import { chargeOnDemandSubscription } from '../services/paymentService'
 
 const prisma = new PrismaClient();
 const webhook = new Webhook(process.env.DODO_PAYMENTS_WEBHOOK_KEY || '');

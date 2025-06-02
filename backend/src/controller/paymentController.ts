@@ -1,10 +1,10 @@
 // controllers/paymentController.ts
 
 import { Request, Response } from 'express';
-import { initiatePayment, chargeOnDemandSubscription, getPaymentDetail } from '../services/paymentService.js';
+import { initiatePayment, chargeOnDemandSubscription, getPaymentDetail } from '../services/paymentService';
 import { PrismaClient } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
-import { authMiddleware, AuthenticatedRequest } from '../middleware/middleware.js';
+import { authMiddleware, AuthenticatedRequest } from '../middleware/middleware';
 
 const prisma = new PrismaClient();
 

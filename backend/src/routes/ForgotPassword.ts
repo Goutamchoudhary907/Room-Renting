@@ -6,9 +6,9 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET;
-import { sendEmail } from "./email-service.js";
+import { sendEmail } from "./email-service";
 import bcrypt from "bcrypt";
-import { forgotPasswordInput, resetPasswordInput } from "../../schema/dist/authSchema.js";
+import { forgotPasswordInput, resetPasswordInput } from "../../schema/dist/authSchema";
 
 router.post("/auth/forgot-password", async (req: Request, res: Response):Promise<any> => {
   const email = req.body;

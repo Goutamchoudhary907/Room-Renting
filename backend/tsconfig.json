@@ -10,12 +10,15 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": false,
+    "allowSyntheticDefaultImports": true,
     "types": ["node", "@prisma/client"],
+    "noEmit": false,
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"]
-    },
-    "noEmit": false 
+    }
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
