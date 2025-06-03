@@ -3,14 +3,13 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "type": "module",
-  "scripts": {
- "build": "tsc && cp -r prisma dist/ && cp -r schema dist/ && cp -r routes dist/",
-    "start": "node dist/index.js",
-    "dev": "nodemon --exec \"npm run build && node dist/index.js\"",
-    "prisma:generate": "prisma generate",
-  "vercel-build": "npm install && npm run prisma:generate && npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+"scripts": {
+  "build": "tsc && cp -r prisma dist/ && cp -r schema dist/ && cp -r src/routes dist/src/",
+  "start": "node dist/index.js",
+  "dev": "nodemon --exec \"npm run build && node dist/index.js\"",
+  "prisma:generate": "prisma generate",
+  "vercel-build": "npm install && npm run prisma:generate && npm run build"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
