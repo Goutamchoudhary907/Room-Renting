@@ -3,7 +3,7 @@ import {useNavigate} from 'react-router-dom'
 import logo from "../../assets/Signup-image.png"
 import facebookLogo from '../../assets/Facebook-logo.png'
 import appleLogo from '../../assets/Apple-logo.png'
-import { SigninInput } from '../../../schema/dist/authSchema';
+import { SigninInput } from '../../../schema/src/authSchema.js';
 import axios from 'axios';
 import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';

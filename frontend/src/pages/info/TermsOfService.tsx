@@ -1,5 +1,3 @@
-// src/pages/TermsOfService.tsx
-import { Link } from "react-router-dom";
 
 export const TermsOfService = () => {
   return (

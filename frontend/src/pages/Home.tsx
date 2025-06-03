@@ -26,7 +26,7 @@ interface Property{
 export const Home= () =>{
    // const { user } = useAuth();
    // const isLoggedIn = !!user;
-    const [error,setError]=useState(null);
+    const [error, setError] = useState<string | null>(null);
     const [recommendedProperties, setRecommendedProperties] = useState<Property[]>([]);
     const { isLoading, setLoading  } = useLoading();
      const { isLoading: isAuthLoading } = useAuth();
@@ -74,6 +74,11 @@ export const Home= () =>{
           <HowItWorks />
           <ListingAndSearchCard />
         </>
+      )}
+      {error && (
+        <div className="text-red-500 text-center mt-4">
+          Error: {error}
+        </div>
       )}
     </div>
    )

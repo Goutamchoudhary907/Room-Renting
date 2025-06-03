@@ -16,13 +16,6 @@ export const SearchBar = () => {
   const backgroundImage = isLoggedIn
     ? `url(${SearchBarImageLogged})`
     : `url(${SearchBarImage})`;
-
-  const greeting =
-    isLoggedIn && user
-      ? `Welcome back, ${user.firstName}!`
-      : "Find Your Perfect Stay- From a Night";
-
-  const subHeading = isLoggedIn && user ? "Ready to explore?" : "to Months";
   const tagline =
     isLoggedIn && user
       ? "Start your next adventure"

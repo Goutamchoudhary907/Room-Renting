@@ -1,6 +1,6 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import {useNavigate} from 'react-router-dom'
-import {SignupInput} from '../../../schema/dist/authSchema'
+import {SignupInput} from '../../../schema/src/authSchema.js'
 import axios from 'axios';
 import logo from "../../assets/Signup-image.png"
 import googleLogo from '../../assets/Google-logo (2).png'

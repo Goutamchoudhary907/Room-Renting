@@ -1,6 +1,5 @@
 import DatePicker from 'react-datepicker';
 import { useEffect, useState } from "react";
-import DatePickerImg from "../../assets/DatePickerImg.png"
 import LocationIcon from "../../assets/Location.png"
 import SearchIcon from "../../assets/SearchIcon.png"
 import 'react-datepicker/dist/react-datepicker.css';

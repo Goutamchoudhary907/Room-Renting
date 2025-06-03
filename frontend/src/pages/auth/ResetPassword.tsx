@@ -1,5 +1,5 @@
 import { ChangeEvent, useState } from "react"
-import { ResetPasswordInput } from "../../../schema/dist/authSchema";
+import { ResetPasswordInput } from "../../../schema/src/authSchema.js";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import {z} from 'zod'

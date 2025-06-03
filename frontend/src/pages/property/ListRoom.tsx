@@ -1,7 +1,7 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import HomeIcon from "../../assets/Home_icon.png";
 import axios from "axios";
-import { propertySchema } from "../../../schema/dist/propertySchema.js";
+import { propertySchema } from "../../../schema/src/propertySchema.js";
 import LocationIcon from "../../assets/LocationIcon.png";
 import RoomIcon from "../../assets/RoomSpecificationIcon.png";
 import AmenitiesIcon from "../../assets/AmenitiesIcon.png";
@@ -231,58 +231,6 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
   }
 };
 
-const handleLocationButtonClick = () => {
-  if (!navigator.geolocation) {
-    setGeneralErrors(["Geolocation is not supported by your browser"]);
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(
-    async (position) => {
-      try {
-        const addressResponse = await axios.get(`${BACKEND_URL}/map/address-components`, {
-          params: {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          }
-        });
-
-        setRoomFormData(prev => ({
-          ...prev,
-          address: {
-            country: addressResponse.data.country || 'India',
-            flatOrHouse: addressResponse.data.flatOrHouse || '',
-            street: addressResponse.data.street || '',
-            landmark: addressResponse.data.landmark || '',
-            locality: addressResponse.data.locality || '',
-            city: addressResponse.data.city || '',
-            state: addressResponse.data.state || '',
-            postalCode: addressResponse.data.postalCode || ''
-          },
-          latitude: addressResponse.data.latitude,
-          longitude: addressResponse.data.longitude,
-          formattedAddress: addressResponse.data.formattedAddress || ''
-        }));
-
-        if(map && marker) {
-          const latLng = new google.maps.LatLng(
-            addressResponse.data.latitude,
-            addressResponse.data.longitude
-          );
-          map.panTo(latLng);
-          marker.setPosition(latLng);
-        }
-      } catch (error) {
-        console.error('Error fetching location details:', error);
-        setGeneralErrors(["Failed to get location details"]);
-      }
-    },
-    (error) => {
-      console.error('Error getting location:', error);
-      setGeneralErrors(["Please enable location access to use this feature"]);
-    }
-  );
-};
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>

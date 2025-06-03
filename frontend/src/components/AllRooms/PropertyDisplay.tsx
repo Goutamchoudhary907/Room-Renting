@@ -67,10 +67,6 @@ const PropertyCard = ({
   loadingSavedProperties,
 }: PropertyCardProps) => {
   const navigate = useNavigate();
-  const handleSaveClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    await onSave(property.id);
-  };
   const handleCardClick = () => {
     console.log("Card clicked");
     navigate(`/property/room-detail/${property.id}`);
