@@ -17,7 +17,12 @@ app.use('/webhook', express.raw({ type: 'application/json' }));
 const upload = multer();
 import cors from "cors";
 const corsOptions = {
-  origin: 'http://localhost:5173', 
+  origin: [
+    'http://localhost:5173',
+    'https://rentpy.vercel.app', 
+    'https://rentpy-git-main-goutamchoudhary907s-projects.vercel.app',
+    /\.vercel\.app$/ // Allow all Vercel preview URLs
+  ],
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
   credentials: true, 
   allowedHeaders: 'Content-Type,Authorization', 
@@ -52,4 +57,14 @@ app.use("/map",mapRouter);
 
 app.use("/booking",paymentRoutes);
 // app.post('/webhook', dodoWebhookHandler);
+
+app.get('/', (req, res) => {
+  res.json({ message: 'API is working' });
+});
+
+// Handle 404
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not found' });
+});
+
 export const handler = configure({ app })
