@@ -1,6 +1,6 @@
 import { Router } from "express";
-import mapController from "../../controller/mapController"
-import addressController from "../../controller/addressController";
+import mapController from "../../controller/mapController.js"
+import addressController from "../../controller/addressController.js";
 
 const router=Router();
 

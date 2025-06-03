@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 const router = express.Router();
-import { signupInput, signinInput,updatePhoneInput } from "../../schema/src/authSchema";
+import { signupInput, signinInput,updatePhoneInput } from "../../schema/src/authSchema.js";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 const prisma = new PrismaClient();
@@ -8,7 +8,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET;
-import {AuthenticatedRequest, authMiddleware} from '../middleware/middleware';
+import {AuthenticatedRequest, authMiddleware} from '../middleware/middleware.js';
 
 router.post("/signup", async (req: Request, res: Response): Promise<any> => {
   const body = req.body;

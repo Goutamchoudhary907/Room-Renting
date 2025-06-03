@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import mapService from "../services/mapService"
+import mapService from "../services/mapService.js"
 
 export default {
 

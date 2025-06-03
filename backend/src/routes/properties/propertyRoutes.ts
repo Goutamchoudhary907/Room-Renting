@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
-import { authMiddleware } from "../../middleware/middleware";
-import { createProperty, getAllProperties, getFilteredProperties,getUserProperties,deleteProperty ,upload, updateProperty, getPropertyById } from "../../controller/propertyController";
+import { authMiddleware } from "../../middleware/middleware.js";
+import { createProperty, getAllProperties, getFilteredProperties,getUserProperties,deleteProperty ,upload, updateProperty, getPropertyById } from "../../controller/propertyController.js";
 const router = express.Router();
 
 router.post("/create",authMiddleware,upload.array('images', 10), createProperty)
