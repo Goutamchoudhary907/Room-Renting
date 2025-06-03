@@ -1,12 +1,13 @@
 import { ChangeEvent, useState } from "react"
 import { ResetPasswordInput } from "../../../schema/dist/authSchema";
 import axios from "axios";
-import { BACKEND_URL } from "../../config";
 import { useLocation, useNavigate } from "react-router-dom";
 import {z} from 'zod'
 import { useLoading } from "../../context/LoadingContext";
 import { ResetPasswordSkeleton } from "../skeletons/auth/ResetPasswordSkeleton ";
 import { useAuth } from "../../context/AuthContext";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 export const ResetPassword =()=>{
  const navigate=useNavigate();
  const location=useLocation();

@@ -7,7 +7,7 @@ import { SearchBar } from "../components/Home/SearchBar"
 import { WhyUs } from "../components/Home/WhyUs"
 import { HomeSkeleton } from "./skeletons/HomeSkeleton";
 import axios from "axios";
-import { BACKEND_URL } from "../config";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 import { useLoading } from "../context/LoadingContext"; 
 import { useAuth } from "../context/AuthContext"
 // import { useAuth } from "../../context/AuthContext"

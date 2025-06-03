@@ -2,7 +2,7 @@ import { useSearchParams } from "react-router-dom"
 import { SearchFields } from "../../components/Home/SearchFields"
 import { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { BACKEND_URL } from "../../config";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 import { PropertyDisplay } from "../../components/AllRooms/PropertyDisplay";
 import { useAuth } from "../../context/AuthContext";
 import Notification from "../../components/Notification";

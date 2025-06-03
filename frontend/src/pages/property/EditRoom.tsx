@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { RoomFormData } from "../../components/Property/ListRoom/types";
-import { BACKEND_URL } from "../../config";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 import axios from "axios";
 import { ListRoom } from "./ListRoom";
 import { useLoading } from "../../context/LoadingContext";

@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import axios from 'axios';
-import { BACKEND_URL } from '../config';
 import { useNavigate } from 'react-router-dom';
 import { flushSync } from 'react-dom';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 interface User{
     id:string;
     email:string;

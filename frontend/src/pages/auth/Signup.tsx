@@ -2,7 +2,6 @@ import { ChangeEvent, useEffect, useState } from 'react';
 import {useNavigate} from 'react-router-dom'
 import {SignupInput} from '../../../schema/dist/authSchema'
 import axios from 'axios';
-// import {BACKEND_URL} from '../config';
 import logo from "../../assets/Signup-image.png"
 import googleLogo from '../../assets/Google-logo (2).png'
 import facebookLogo from '../../assets/Facebook-logo.png'
@@ -12,6 +11,7 @@ import { useAuth } from '../../context/AuthContext';
 import { SigninSkeleton } from '../skeletons/auth/SigninSkeleton';
 import { useLoading } from '../../context/LoadingContext';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 export const Signup =() =>{
  const navigate= useNavigate();
  const [signupInputs,setSignupInputs]= useState<SignupInput>({
@@ -68,7 +68,7 @@ const login = useGoogleLogin({
   onSuccess: async (tokenResponse) => {
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:3000/auth/google", {
+      const res = await axios.post(`${BACKEND_URL}/auth/google`, {
         accessToken: tokenResponse.access_token,
       });
       const { token } = res.data;

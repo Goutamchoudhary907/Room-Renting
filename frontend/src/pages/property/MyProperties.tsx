@@ -1,7 +1,7 @@
 import ProperyIcon from "../../assets/PropertyIcon.png";
 import ActiveListingIcon from "../../assets/ActiveListingIcon.png"
 import { useEffect, useState } from "react";
-import { BACKEND_URL } from "../../config";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 import axios from 'axios';
 import EditIcon from "../../assets/EditIcon.png"
 import CalenderIcon from "../../assets/CalendarIcon2.png"

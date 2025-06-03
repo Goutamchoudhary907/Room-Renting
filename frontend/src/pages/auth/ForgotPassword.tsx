@@ -1,10 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { ChangeEvent, useState } from "react";
 import axios from "axios";
-import { BACKEND_URL } from "../../config";
 import { useLoading } from "../../context/LoadingContext";
 import { ForgotPasswordSkeleton } from "../skeletons/auth/ForgotPasswordSkeleton";
 import { useAuth } from "../../context/AuthContext";
+
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 export const ForgotPassword= () =>{
     const navigate= useNavigate();

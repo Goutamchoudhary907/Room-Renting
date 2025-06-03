@@ -5,7 +5,7 @@ import { propertySchema } from "../../../schema/dist/propertySchema.js";
 import LocationIcon from "../../assets/LocationIcon.png";
 import RoomIcon from "../../assets/RoomSpecificationIcon.png";
 import AmenitiesIcon from "../../assets/AmenitiesIcon.png";
-import { BACKEND_URL } from "../../config.js";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 import { useNavigate } from "react-router-dom";
 import { ChildrenProps, RoomFormData } from "../../components/Property/ListRoom/types.js";
 import {
