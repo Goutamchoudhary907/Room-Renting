@@ -5,7 +5,7 @@ import propertyRoutes from './routes/properties/propertyRoutes'
 import savedPropertyRoute from "./routes/SavedProperty/savedProperties"
 import paymentRoutes from './routes/Payment/paymentRoutes'
 import mapRouter from "./routes/map/mapRoutes"
-import dodoWebhookHandler from './services/webhook'; 
+// import dodoWebhookHandler from './services/webhook'; 
 import googleAuthRoute from "./routes/auth/googleAuth";
 import multer from 'multer';
 import serverless from '@vendia/serverless-express';
@@ -51,5 +51,5 @@ app.use("/",savedPropertyRoute);
 app.use("/map",mapRouter);
 
 app.use("/booking",paymentRoutes);
-app.post('/webhook', dodoWebhookHandler);
+// app.post('/webhook', dodoWebhookHandler);
 export default serverless({ app });

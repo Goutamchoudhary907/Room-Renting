@@ -172,10 +172,8 @@ const otherData = { ...validatedData, address: undefined };
           
           maxGuests: validatedData.maxGuests ?? 1,
           host: { connect: { id: userId } },
-          images:{
-            create: (req.files as Express.Multer.File[]).map((img: Express.Multer.File) => ({
-              url: img.path 
-            }))
+          images: {
+            create: req.files.map((file: Express.Multer.File) => ({ url: file.path }))
           },
         } ,
         include:{

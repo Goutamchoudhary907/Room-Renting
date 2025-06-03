@@ -4,8 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "outDir": "./dist",
-    "rootDir": "./",   
-    "strict": true,
+    "rootDir": "./",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -15,6 +14,7 @@
     "allowSyntheticDefaultImports": true,
     "types": ["node", "@prisma/client"],
     "noEmit": false,
+    "strict":true,
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"]
