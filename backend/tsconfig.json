@@ -7,25 +7,12 @@
     "rootDir": ".",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "types": ["node", "@prisma/client"],
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@schema/*": ["./schema/*", "../schema/*"]
-    },
-    "preserveSymlinks": true
+      "@/*": ["src/*"],
+      "@schema/*": ["schema/*"]
+    }
   },
-  "include": [
-    "src/**/*.ts",
-    "schema/**/*.ts",
-    "../schema/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts"
-  ]
+  "include": ["src/**/*.ts", "schema/**/*.ts"]
 }
