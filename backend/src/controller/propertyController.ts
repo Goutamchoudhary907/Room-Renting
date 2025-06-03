@@ -528,13 +528,12 @@ try {
 
   // Find images to delete
   const imagesToRemove = existingProperty.images
-  .filter(img => deleteIds.includes(img.id));
+  .filter((img: { id: number; url: string }) => deleteIds.includes(img.id));
 
 // Delete from Cloudinary first
-  await deleteFromCloudinary(
-    imagesToRemove.map(img => img.url)
-  )
-
+await deleteFromCloudinary(
+  imagesToRemove.map((img: { id: number; url: string }) => img.url)
+);
   // Delete from database
   await prisma.image.deleteMany({
     where: {
