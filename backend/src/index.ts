@@ -9,8 +9,24 @@ import mapRouter from "./routes/map/mapRoutes.js"
 import googleAuthRoute from "./routes/auth/googleAuth.js";
 import multer from 'multer';
 import { configure } from '@vendia/serverless-express';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 const app=express();
-
+app.use((req: Request, res: Response, next: NextFunction) => {
+  console.log(`Incoming ${req.method} request to: ${req.path}`);
+  console.log('Registered routes:');
+  
+  app._router.stack.forEach((layer: { route?: { path: string, methods: Record<string, boolean> } }) => {
+    if (layer.route) {
+      const methods = Object.keys(layer.route.methods)
+        .filter(method => layer.route?.methods[method])
+        .map(method => method.toUpperCase())
+        .join(', ');
+      console.log(`${methods} ${layer.route.path}`);
+    }
+  });
+  
+  next();
+});
 app.use(express.json());
 app.use(express.text());
 app.use('/webhook', express.raw({ type: 'application/json' }));
@@ -67,4 +83,4 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-export const handler = configure({ app })
+module.exports = app;
