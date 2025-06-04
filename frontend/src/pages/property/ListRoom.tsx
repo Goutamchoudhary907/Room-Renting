@@ -148,6 +148,60 @@ export const ListRoom: React.FC<ListRoomProps> = ({
  });
  const { geocodeAddress } = useMap();
 
+ useEffect(() => {
+  const fetchLatLng = async () => {
+    if ((!RoomFormData.latitude || !RoomFormData.longitude) && RoomFormData.formattedAddress) {
+      const coords = await  geocodeAddress(RoomFormData.formattedAddress);
+      if (coords) {
+        setRoomFormData((prev) => ({
+          ...prev,
+          latitude: coords.lat,
+          longitude: coords.lng,
+        }));
+
+        if (map && marker) {
+          const latLng = new google.maps.LatLng(coords.lat, coords.lng);
+          map.panTo(latLng);
+          marker.setPosition(latLng);
+        }
+      }
+    }
+  };
+
+  fetchLatLng();
+}, [RoomFormData.formattedAddress, geocodeAddress, map, marker]);
+
+
+useEffect(() => {
+if (isLoaded && propInitialFormData?.formattedAddress) {
+  const initializeMapPosition = async () => {
+    // Use existing coordinates if available
+    if (propInitialFormData.latitude && propInitialFormData.longitude) {
+      return;
+    }
+    
+    // Geocode if coordinates are missing
+    const coords = await geocodeAddress(propInitialFormData.formattedAddress ?? "");
+    if (coords && map) {
+      map.panTo(coords);
+      if (marker) {
+        marker.setPosition(coords);
+      }
+      
+      // Update form data with coordinates
+      setRoomFormData(prev => ({
+        ...prev,
+        latitude: coords.lat,
+        longitude: coords.lng
+      }));
+    }
+  };
+  
+  initializeMapPosition();
+}
+}, [isLoaded, propInitialFormData, geocodeAddress, map, marker]);
+
+
  const fetchAutocompleteSuggestions = async (input: string) => {
   try {
     const response = await axios.get(`${BACKEND_URL}/map/autocomplete?input=${encodeURIComponent(input)}`);
@@ -541,25 +595,6 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
     { value: "both", label: "Both" },
   ];
 
-
-  // const parseAddressComponents = (components: any[]) => {
-  //   const getComponent = (type: string) => 
-  //     components.find(c => c.types.includes(type))?.long_name || undefined;
-  
-  //   return {
-  //     country: getComponent('country') || 'India',
-  //     flatOrHouse: [getComponent('premise'), getComponent('subpremise')]
-  //       .filter(Boolean).join(' ') || undefined,
-  //     street: [getComponent('street_number'), getComponent('route')]
-  //       .filter(Boolean).join(' ') || undefined,
-  //     landmark: getComponent('point_of_interest') || getComponent('establishment') || undefined,
-  //     locality: getComponent('sublocality') || getComponent('neighborhood') || undefined,
-  //     city: getComponent('locality') || getComponent('postal_town') || undefined,
-  //     state: getComponent('administrative_area_level_1') || undefined,
-  //     postalCode: getComponent('postal_code') || undefined
-  //   };
-  // };
-
   const reverseGeocode = async ({ lat, lng }: Location): Promise<AddressComponents> => {
     try {
       // Use the address-components endpoint for reverse geocoding
@@ -591,12 +626,6 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
       };
     }
   };
-
-
-  if(isLoading|| isAuthLoading){
-    return <ListRoomSkeleton/>
-  }
-
   const handleMarkerDragEnd = async (e: google.maps.MapMouseEvent) => {
     if (!e.latLng) return;
   
@@ -617,59 +646,10 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
       setGeneralErrors(["Failed to update address from marker position"]);
     }
   };
-
-  useEffect(() => {
-    const fetchLatLng = async () => {
-      if ((!RoomFormData.latitude || !RoomFormData.longitude) && RoomFormData.formattedAddress) {
-        const coords = await  geocodeAddress(RoomFormData.formattedAddress);
-        if (coords) {
-          setRoomFormData((prev) => ({
-            ...prev,
-            latitude: coords.lat,
-            longitude: coords.lng,
-          }));
-
-          if (map && marker) {
-            const latLng = new google.maps.LatLng(coords.lat, coords.lng);
-            map.panTo(latLng);
-            marker.setPosition(latLng);
-          }
-        }
-      }
-    };
-  
-    fetchLatLng();
-  }, [RoomFormData.formattedAddress, geocodeAddress, map, marker]);
-  
-
-useEffect(() => {
-  if (isLoaded && propInitialFormData?.formattedAddress) {
-    const initializeMapPosition = async () => {
-      // Use existing coordinates if available
-      if (propInitialFormData.latitude && propInitialFormData.longitude) {
-        return;
-      }
-      
-      // Geocode if coordinates are missing
-      const coords = await geocodeAddress(propInitialFormData.formattedAddress ?? "");
-      if (coords && map) {
-        map.panTo(coords);
-        if (marker) {
-          marker.setPosition(coords);
-        }
-        
-        // Update form data with coordinates
-        setRoomFormData(prev => ({
-          ...prev,
-          latitude: coords.lat,
-          longitude: coords.lng
-        }));
-      }
-    };
-    
-    initializeMapPosition();
+  if(isLoading|| isAuthLoading){
+    return <ListRoomSkeleton/>
   }
-}, [isLoaded, propInitialFormData, geocodeAddress, map, marker]);
+
   return (
     <div className="flex justify-center items-center bg-[#E6E6E6]">
       <div className="h-full pt-4 lg:pt-20 p-4 lg:p-15 w-full lg:w-auto">
@@ -1020,7 +1000,7 @@ useEffect(() => {
             }))}
             placeholder="e.g. Flat 301, Bldg A"
           />
-          {fieldErrors.street && (
+          {fieldErrors.flatOrHouse && (
     <ErrorMessage message={fieldErrors.flatOrHouse[0]} className="mt-1" />
   )}
         </div>
@@ -1066,7 +1046,7 @@ useEffect(() => {
             }))}
             placeholder="e.g. Near City Mall"
           />
-          {fieldErrors.street && (
+          {fieldErrors.landmark && (
     <ErrorMessage message={fieldErrors.landmark[0]} className="mt-1" />
   )}
         </div>
@@ -1090,7 +1070,7 @@ useEffect(() => {
             }))}
             placeholder="e.g. Andheri East"
           />
-          {fieldErrors.street && (
+          {fieldErrors.locality && (
     <ErrorMessage message={fieldErrors.locality[0]} className="mt-1" />
   )}
         </div>
@@ -1134,7 +1114,7 @@ useEffect(() => {
             }))}
             placeholder="e.g. Maharashtra"
           />
-          {fieldErrors.street && (
+          {fieldErrors.state && (
     <ErrorMessage message={fieldErrors.state[0]} className="mt-1" />
   )}
         </div>
@@ -1159,7 +1139,7 @@ useEffect(() => {
             placeholder="e.g. 400001"
             maxLength={6}
           />
-          {fieldErrors.street && (
+          {fieldErrors.postal_code && (
     <ErrorMessage message={fieldErrors.postal_code[0]} className="mt-1" />
   )}
         </div>
@@ -1176,7 +1156,7 @@ useEffect(() => {
 </div>
 
       <div className="h-96 rounded-lg overflow-hidden mb-4 border relative">
-        <GoogleMap
+        {/* <GoogleMap
          options={{
               streetViewControl: false,
               mapTypeControl: false,
@@ -1227,8 +1207,59 @@ useEffect(() => {
             draggable={true}
             onDragEnd={handleMarkerDragEnd}
           />
-        </GoogleMap>
-
+        </GoogleMap> */}
+<GoogleMap
+  options={{
+    streetViewControl: false,
+    mapTypeControl: false,
+    fullscreenControl: false,
+    gestureHandling: "greedy",
+  }}
+  mapContainerStyle={MAP_CONTAINER_STYLE}
+  center={
+    RoomFormData.latitude && RoomFormData.longitude
+      ? { 
+          lat: RoomFormData.latitude, 
+          lng: RoomFormData.longitude 
+        }
+      : DEFAULT_CENTER
+  }
+  zoom={15}
+  onLoad={(mapInstance) => {
+    setMap(mapInstance);
+    // Center to initial position if coordinates exist
+    if (RoomFormData.latitude && RoomFormData.longitude) {
+      mapInstance.panTo({ 
+        lat: RoomFormData.latitude, 
+        lng: RoomFormData.longitude 
+      });
+    }
+  }}
+  onClick={handleMapClick}
+>
+  <Marker
+    position={
+      RoomFormData.latitude && RoomFormData.longitude
+        ? { 
+            lat: RoomFormData.latitude, 
+            lng: RoomFormData.longitude 
+          }
+        : DEFAULT_CENTER
+    }
+    onLoad={(markerInstance) => {
+      setMarker(markerInstance);
+      // Set to initial position if coordinates exist
+      if (RoomFormData.latitude && RoomFormData.longitude) {
+        markerInstance.setPosition({ 
+          lat: RoomFormData.latitude, 
+          lng: RoomFormData.longitude 
+        });
+      }
+    }}
+    draggable={true}
+    onDragEnd={handleMarkerDragEnd}
+  />
+</GoogleMap>
     
       </div>
 

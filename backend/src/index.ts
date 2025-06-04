@@ -36,7 +36,7 @@ const corsOptions = {
   origin: [
     'http://localhost:5173',
     'https://rentpy.vercel.app', 
-    'https://rentpy-frontend.vercel.app/' ,
+    'https://rentpy-frontend.vercel.app' ,
     'https://rentpy-git-main-goutamchoudhary907s-projects.vercel.app',
     /\.vercel\.app$/ // Allow all Vercel preview URLs
   ],

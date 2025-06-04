@@ -8,7 +8,11 @@ interface Property {
   title: string;
   pricePerNight?: number;
   pricePerMonth?: number;
-  address: string;
+  address: string | null; // Old format (string)
+  street?: string | null;
+  city?: string | null;
+  state?: string | null;
+  locality?: string | null;
   property: string;
   images?: { url: string }[];
 }
@@ -84,6 +88,25 @@ const PropertyCard = ({
         return type;
     }
   };
+  const formatAddress = (): string => {
+    if (property.locality || property.city) {
+  
+      if (property.locality && property.city) {
+        return property.locality !== property.city 
+          ? `${property.locality}, ${property.city}`
+          : property.locality;
+      }
+      
+      return property.locality || property.city || '';
+    }
+    
+    if (property.address) {
+      return property.address;
+    }
+    
+    return 'Address not available';
+  };
+
 
   return (
     <div
@@ -149,7 +172,7 @@ const PropertyCard = ({
         <p className="text-[#2563EB] text-sm mb-1">
           {formatRentalType(property.rentalType)}
         </p>
-        <p className="text-[#4B5563] pt-1">{property.address}</p>
+        <p className="text-[#4B5563] pt-1">{formatAddress()}</p>
 
         <div className="pt-1 pb-4 md:pb-4">
           {property.rentalType === "short-term" &&

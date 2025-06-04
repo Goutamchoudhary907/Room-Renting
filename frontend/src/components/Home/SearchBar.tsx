@@ -97,8 +97,10 @@ export const SearchBar = () => {
           </h4>
         </div>
 
-        <SearchFields onSearch={handleSearch} />
+      <div className="relative">
+      <SearchFields onSearch={handleSearch} />
 
+      </div>
         <div
           className="w-full md:w-[500px] lg:w-90 xl:w-90 grid grid-cols-1 sm:grid-cols-2
              gap-3 sm:gap-4 md:gap-0 pt-0 lg:pt-0 sm:pt-8

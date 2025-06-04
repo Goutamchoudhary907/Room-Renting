@@ -31,6 +31,9 @@ useEffect(() => {
     setRouteKey(location.pathname); // Update routeKey whenever location changes
 }, [location]);                     // Run this effect when location changes
 
+useEffect(() => {
+  document.title = "Rentpy"; 
+}, []);
   return (
     <LoadingProvider>
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ''}>

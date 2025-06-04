@@ -2,9 +2,16 @@ import IndoreImage from "../../assets/IndoreImage.png"
 import PuneImage from "../../assets/PuneImage.png"
 import BangloreImage from "../../assets/BangloreImage.jpg"
 import DelhiImage from "../../assets/DelhiImage.png"
+import { useNavigate } from "react-router-dom"
 
 
 export const PopularDestinations =() =>{
+   const navigate=useNavigate();
+
+   const handleLocationClick = (location: string) => {
+    navigate(`/property/all-rooms?location=${encodeURIComponent(location)}`);
+  };
+
     return(
         <div> 
             <div className=" flex justify-center items-center font-medium text-xl mt-6 sm:mt-10 md:font-bold md:text-3xl md:mt-10
@@ -19,14 +26,22 @@ export const PopularDestinations =() =>{
            ">
             <PropertyCard image={IndoreImage}
             name="Indore"
+            onClick={() => handleLocationClick("Indore")}
             />
 
           <PropertyCard image={PuneImage}
             name="Pune"
-            /><PropertyCard image={BangloreImage}
+            onClick={() => handleLocationClick("Pune")}
+            />
+            
+            <PropertyCard image={BangloreImage}
             name="Banglore"
-            /><PropertyCard image={DelhiImage}
+            onClick={() => handleLocationClick("Bengaluru")}
+            />
+            
+            <PropertyCard image={DelhiImage}
             name="Delhi"
+            onClick={() => handleLocationClick("Delhi")}
             />
             </div>
         </div>
@@ -36,12 +51,15 @@ export const PopularDestinations =() =>{
 interface PropertyCardProps{
     name:string;
     image:string;
+    onClick: () => void;
 }
-const PropertyCard = ({name,image }: PropertyCardProps) => {
+const PropertyCard = ({name,image,onClick  }: PropertyCardProps) => {
      return(
        <div className="mt-5  sm:mt-8 md:mt-0 lg:mt-15">
-         <button className="relative rounded-lg p-4 shadow-md text-left w-full transition-all duration-300 ease-out overflow-hidden
-        hover:shadow-lg hover:scale-[1.008] active:scale-100 focus:outline-none">
+         <div
+           onClick={onClick}
+         className="relative rounded-lg p-4 shadow-md text-left w-full transition-all duration-300 ease-out overflow-hidden
+        hover:shadow-lg hover:scale-[1.008] active:scale-100 focus:outline-none cursor-pointer">
 
           <div className="relative pt-1 pb-3  overflow-hidden rounded-md cursor-pointer">
             <img
@@ -55,7 +73,7 @@ const PropertyCard = ({name,image }: PropertyCardProps) => {
         </div>
         </div>
 
-        </button>
+        </div>
        </div>
      )
   };

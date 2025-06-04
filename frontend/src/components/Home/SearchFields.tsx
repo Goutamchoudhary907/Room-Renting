@@ -76,7 +76,7 @@ export const SearchFields = ({ onSearch, initialLocation, initialCheckin, initia
         <div className="p-4 bg-gray-50">
           <button
             onClick={() => onSearch(location, checkinDate, checkoutDate)}
-            className="w-full py-3 bg-red-500 hover:bg-red-600 rounded-lg text-white font-medium flex items-center justify-center"
+            className="w-full py-3 bg-red-500 hover:bg-red-600 rounded-lg text-white font-medium flex items-center justify-center cursor-pointer"
           >
             <img src={SearchIcon} alt="" className="h-5 w-5 mr-2" />
             Search

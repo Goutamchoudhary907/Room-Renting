@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+
 interface RecommendationProps {
   recommendedProperties: Property[];
 }
@@ -38,10 +40,17 @@ interface PropertyCardProps{
     property:Property
 }
 const PropertyCard = ({ property }: PropertyCardProps) => {
+  const navigte=useNavigate();
+
+   const handleCardClick=() =>{
+    navigte(`/property/room-detail/${property.id}`);
+   }
+
   return (
-    <button
+    <div
+    onClick={handleCardClick}
       className="relative rounded-lg p-3 sm:p-4 shadow-md text-left w-full transition-all duration-300 ease-out overflow-hidden
-      hover:shadow-lg hover:scale-[1.015] active:scale-100 focus:outline-none"
+      hover:shadow-lg hover:scale-[1.015] active:scale-100 focus:outline-none cursor-pointer"
     >
       <div className="pt-1 pb-3 overflow-hidden rounded-md">
         {property.images && property.images.length > 0 && property.images[0].url ? (
@@ -90,7 +99,7 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
           )}
         </div>
       </div>
-    </button>
+    </div>
   );
 };
 
