@@ -23,7 +23,12 @@ export const calculateShortTermTotal = (
   const nights = calculateNights(checkinDate, checkoutDate);
   const subTotal = nights * property.pricePerNight;
   const serviceCharge = Math.ceil(subTotal * 0.05);
-  return { subTotal, serviceCharge, total: subTotal + serviceCharge };
+  return { 
+    subTotal,
+     serviceCharge, 
+    //  total: subTotal + serviceCharge
+     total: subTotal,
+    };
 };
 
 export const calculateLongTermTotal = (

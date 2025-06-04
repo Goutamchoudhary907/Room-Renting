@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { RoomFormData } from "../../components/Property/ListRoom/types";
 import axios from "axios";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -42,7 +42,7 @@ export const RoomDetails = () => {
   // const [showBookingForm, setShowBookingForm] = useState(false);
   const [moveInDate, setMoveInDate] = useState<Date | null>(null);
   const [leaseDuration, setLeaseDuration] = useState<number>(1); //Default one month
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const { isLoading,setLoading } = useLoading();
    const { isLoading: isAuthLoading } = useAuth();
 
@@ -106,26 +106,26 @@ export const RoomDetails = () => {
   };
   
 
-  const handleBooking = () => {
-    if (rentalType === "short-term") {
-      if (!checkinDate || !checkoutDate) {
-        alert("Please select both check-in and check-out dates");
-        return;
-      }
-      navigate(
-        `/book/${id}?rentalType=short-term&checkinDate=${checkinDate.toISOString()}&checkoutDate=${checkoutDate.toISOString()}`
-      );
-    } else if (rentalType === "long-term") {
-      if (!moveInDate) {
-        alert("Please select a move-in date");
-        return;
-      }
-      navigate(
-        `/book/${id}?rentalType=long-term&moveInDate=${moveInDate.toISOString()}&leaseDuration=${leaseDuration}`
-      );
-    }
-    // setShowBookingForm(true);
-  };
+  // const handleBooking = () => {
+  //   if (rentalType === "short-term") {
+  //     if (!checkinDate || !checkoutDate) {
+  //       alert("Please select both check-in and check-out dates");
+  //       return;
+  //     }
+  //     navigate(
+  //       `/book/${id}?rentalType=short-term&checkinDate=${checkinDate.toISOString()}&checkoutDate=${checkoutDate.toISOString()}`
+  //     );
+  //   } else if (rentalType === "long-term") {
+  //     if (!moveInDate) {
+  //       alert("Please select a move-in date");
+  //       return;
+  //     }
+  //     navigate(
+  //       `/book/${id}?rentalType=long-term&moveInDate=${moveInDate.toISOString()}&leaseDuration=${leaseDuration}`
+  //     );
+  //   }
+  //   // setShowBookingForm(true);
+  // };
 
   if(isLoading || isAuthLoading){
     return <RoomDetailsSkeleton/>
@@ -435,7 +435,7 @@ export const RoomDetails = () => {
                         }
                       </span>
                     </div>
-                    <div className="flex justify-between text-gray-600 text-sm">
+                    {/* <div className="flex justify-between text-gray-600 text-sm">
                       <span>Service charge (5%)</span>
                       <span>
                         ₹
@@ -447,7 +447,7 @@ export const RoomDetails = () => {
                           )?.serviceCharge
                         }
                       </span>
-                    </div>
+                    </div> */}
                   </>
                 ) : (
                   <>
@@ -500,7 +500,7 @@ export const RoomDetails = () => {
               </div>
               <button
                 className="mt-4 bg-blue-600 text-white py-2 px-6 rounded-lg w-full"
-                onClick={handleBooking}
+                onClick={() => alert("Payment integration is not implemented yet.")}
               >
                 {rentalType === "short-term" ? "Book Now" : "Request Lease"}
               </button>
