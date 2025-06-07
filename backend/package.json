@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "type": "module",
- "scripts": { 
-   "build": "tsc && cpx \"prisma/**/*\" dist/prisma && cpx \"schema/**/*\" dist/schema && cpx \"src/routes/**/*\" dist/src/routes",
-  "start": "node dist/api/index.js",
-  "dev": "nodemon --exec \"npm run build && npm start\""
-},
+  "scripts": {
+    "build": "tsc && cpx \"prisma/**/*\" dist/prisma && cpx \"schema/**/*\" dist/schema && cpx \"src/routes/**/*\" dist/src/routes",
+    "start": "node dist/api/index.js",
+    "dev": "nodemon --exec \"npm run build && npm start\""
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -31,6 +31,7 @@
     "multer-storage-cloudinary": "^4.0.0",
     "path": "^0.12.7",
     "pg": "^8.13.3",
+    "razorpay": "^2.9.6",
     "standardwebhooks": "^1.0.0",
     "uuid": "^11.1.0",
     "zod": "^3.24.2"

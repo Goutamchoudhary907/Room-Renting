@@ -2,11 +2,8 @@
 
 import express from 'express';
 const router = express.Router();
-import { initiateBookingHandler, chargeBookingPaymentHandler, getPaymentDetailsHandler } from '../../controller/paymentController.js';
 import { authMiddleware } from '../../middleware/middleware.js'; 
+import { checkout } from '@/controller/paymentController.js';
 
-router.post('/initiate-payment', authMiddleware, initiateBookingHandler);
-router.post('/charge-payment', authMiddleware, chargeBookingPaymentHandler);
-router.get('/payments/:paymentId', authMiddleware, getPaymentDetailsHandler);
-
+router.post("/checkout", checkout)
 export default router;
