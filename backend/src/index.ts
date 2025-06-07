@@ -3,7 +3,6 @@ import authRoutes from './routes/auth.js';
 import forgotPasswordRoutes from './routes/ForgotPassword.js';
 import propertyRoutes from './routes/properties/propertyRoutes.js'
 import savedPropertyRoute from "./routes/SavedProperty/savedProperties.js"
-import paymentRoutes from './routes/Payment/paymentRoutes.js'
 import mapRouter from "./routes/map/mapRoutes.js"
 // import dodoWebhookHandler from './services/webhook'; 
 import googleAuthRoute from "./routes/auth/googleAuth.js";
@@ -74,7 +73,7 @@ app.use("/",savedPropertyRoute);
 
 app.use("/map",mapRouter);
 
-app.use("/booking",paymentRoutes);
+// app.use("/booking",paymentRoutes);
 // app.post('/webhook', dodoWebhookHandler);
 
 app.get('/', (req, res) => {
