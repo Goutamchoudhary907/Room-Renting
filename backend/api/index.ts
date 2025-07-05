@@ -1,2 +1,4 @@
 import {app} from '../src/index.js';
-export default app;
+import { configure } from '@vendia/serverless-express';
+
+export default configure({ app }); 
