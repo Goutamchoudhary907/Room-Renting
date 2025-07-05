@@ -15,7 +15,6 @@ import { Request, Response, NextFunction, RequestHandler } from 'express';
 const app=express();
 app.use(express.json());
 app.use(express.text());
-app.use('/webhook', express.raw({ type: 'application/json' }));
 const upload = multer();
 import cors from "cors";
 const corsOptions = {
