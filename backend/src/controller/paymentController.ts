@@ -251,16 +251,16 @@ try{
       where: { bookingId },
       select: { propertyId: true }
     });
-    await prisma.$transaction([
-      prisma.booking.update({
-        where: { bookingId },
-        data: { paymentStatus: 'FAILED' }
-      }),
-      prisma.payment.updateMany({
-        where: { razorpayOrderId: razorpay_order_id },
-        data: { status: 'FAILED' }
-      })
-    ]);
+   await prisma.$transaction(async (tx) => {
+  await tx.booking.update({
+    where: { bookingId },
+    data: { paymentStatus: 'FAILED' }
+  });
+  await tx.payment.updateMany({
+    where: { razorpayOrderId: razorpay_order_id },
+    data: { status: 'FAILED' }
+  });
+});
 
      res.status(400).json({ 
       success: false, 
@@ -355,16 +355,16 @@ const dates = isShort
 
  // Attempt to mark as failed in database
  try {
-  await prisma.$transaction([
-    prisma.booking.update({
-      where:{bookingId},
-      data:{paymentStatus:"FAILED"}
-    }),
-    prisma.payment.updateMany({
-      where:{razorpayOrderId:razorpay_order_id},
-      data:{status:"FAILED"}
-    })
-  ]);
+await prisma.$transaction(async (tx) => {
+  await tx.booking.update({
+    where: { bookingId },
+    data: { paymentStatus: 'FAILED' }
+  });
+  await tx.payment.updateMany({
+    where: { razorpayOrderId: razorpay_order_id },
+    data: { status: 'FAILED' }
+  });
+});
 
  } catch (dbError) {
   console.error('Failed to update failed status:', dbError);
