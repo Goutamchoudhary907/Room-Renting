@@ -1,11 +1,10 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from "../middleware/middleware.js";
-import { PaymentStatus, PrismaClient } from "@prisma/client";
+import {PrismaClient } from "@prisma/client";
 import {propertySchema, PropertySchema} from '../../schema/src/propertySchema.js'
 const prisma = new PrismaClient();
 import { ZodError, ZodIssue } from 'zod'; 
 import multer, { MulterError } from 'multer';
-import dotenv from "dotenv";
 const JWT_SECRET = process.env.JWT_SECRET;
 import jwt from "jsonwebtoken"
 import { deleteFromCloudinary, upload } from '../utils/cloudinary.js';

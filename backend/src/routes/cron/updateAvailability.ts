@@ -31,7 +31,7 @@ router.post("/update-availability", verifyCronAuth, async (req: Request, res: Re
       },
     });
 
-    const propertyIdsToUpdate = bookingsToRelease.map(b => b.propertyId);
+   const propertyIdsToUpdate = bookingsToRelease.map((b: { propertyId: number }) => b.propertyId);
 
     const updated = await prisma.property.updateMany({
       where: {

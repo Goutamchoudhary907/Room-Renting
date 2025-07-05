@@ -1,7 +1,7 @@
 // controllers/paymentController.ts
 
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient,Prisma } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { authMiddleware, AuthenticatedRequest } from '../middleware/middleware.js';
 import razorpayInstance from '../services/razorpayInstance.js';
@@ -112,7 +112,7 @@ export const checkout= async (req:AuthenticatedRequest, res:Response) =>{
      await updatePropertyAvailability(propertyId, dates, 'block');
 
        // Create records in a transaction
-     await prisma.$transaction(async (tx) => {
+     await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
 
      // Create preliminary booking record
        booking= await prisma.booking.create({
@@ -251,7 +251,7 @@ try{
       where: { bookingId },
       select: { propertyId: true }
     });
-   await prisma.$transaction(async (tx) => {
+   await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
   await tx.booking.update({
     where: { bookingId },
     data: { paymentStatus: 'FAILED' }
@@ -272,10 +272,8 @@ try{
   }
 
    // Update records with actual payment details
-   const [booking, payment] = await prisma.$transaction(async (tx) => {
-    console.log('Starting transaction for booking:', bookingId);
-
-    const updatedBooking = await tx.booking.update({
+const [updatedBooking] = await prisma.$transaction(async (tx) => {
+  const updatedBooking = await tx.booking.update({
     where: { bookingId },
     data: {
       razorpayPaymentId: razorpay_payment_id,
@@ -285,7 +283,7 @@ try{
     },
     include: { property: true, user: true }
   });
-  console.log('Updated booking status:', updatedBooking.paymentStatus);
+
   const updatedPayment = await tx.payment.updateMany({
     where: { booking: { bookingId } },
     data: {
@@ -296,11 +294,9 @@ try{
       updatedAt: new Date()
     }
   });
-  console.log('Updated payments count:', updatedPayment.count);
-  
-  return [updatedBooking, updatedPayment];
-  });
 
+ return [updatedBooking];
+});
   // After transaction completes
 const verifiedBooking = await prisma.booking.findUnique({
   where: { bookingId },
@@ -310,8 +306,8 @@ console.log('Verified booking status:', verifiedBooking?.paymentStatus);
 
   // Update property availability
 
- await prisma.property.update({
-  where: { id: booking.propertyId },
+await prisma.property.update({
+  where: { id: updatedBooking.property.id },
   data: { bookingStatus: 'BOOKED' }
 });
 
@@ -355,7 +351,7 @@ const dates = isShort
 
  // Attempt to mark as failed in database
  try {
-await prisma.$transaction(async (tx) => {
+await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
   await tx.booking.update({
     where: { bookingId },
     data: { paymentStatus: 'FAILED' }
