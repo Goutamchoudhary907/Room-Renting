@@ -272,7 +272,7 @@ try{
   }
 
    // Update records with actual payment details
-const [updatedBooking] = await prisma.$transaction(async (tx) => {
+const [updatedBooking] = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
   const updatedBooking = await tx.booking.update({
     where: { bookingId },
     data: {
