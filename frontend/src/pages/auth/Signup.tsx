@@ -9,7 +9,6 @@ import appleLogo from '../../assets/Apple-logo.png'
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
 import { SigninSkeleton } from '../skeletons/auth/SigninSkeleton';
-import { useLoading } from '../../context/LoadingContext';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 export const Signup =() =>{
@@ -25,17 +24,18 @@ export const Signup =() =>{
  const { signup } = useAuth();
  
  const [errors, setErrors] = useState<{ [key: string]: string }>({});
- const { isLoading,setLoading } = useLoading();
    const { isLoading: isAuthLoading } = useAuth();
+ const [isSubmitting, setIsSubmitting] = useState(false); 
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false); 
+
  useEffect(() => {
 }, [errors]);
 
   async function sendRequest(){
-    setLoading(true);
+   setIsSubmitting(true);
     try {
        await signup(signupInputs)
-         alert("Signup successful.Please sign in");
-         navigate("/auth/signin");
+         navigate("/");
     }  catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response) {
@@ -52,7 +52,7 @@ export const Signup =() =>{
         console.error('Non-Axios error:', error);
       }
     }finally {
-      setLoading(false);
+     setIsSubmitting(false);
     }
   }
 
@@ -66,7 +66,7 @@ export const Signup =() =>{
   
 const login = useGoogleLogin({
   onSuccess: async (tokenResponse) => {
-    setLoading(true);
+     setIsGoogleLoading(true);
     try {
       const res = await axios.post(`${BACKEND_URL}/auth/google`, {
         accessToken: tokenResponse.access_token,
@@ -78,17 +78,18 @@ const login = useGoogleLogin({
       console.error("Backend signup error:", err);
       setErrors({ general: "Google signup failed. Try again." });
     }finally{
-      setLoading(false);
+      setIsGoogleLoading(false);
     }
   },
   onError: () => console.log("Google Signup Failed"),
 });
 
-if (isLoading || isAuthLoading) {
+if (isAuthLoading) {
   return <SigninSkeleton />;
 }
   return (
-    <div className="min-h-screen flex justify-center items-start pt-4 md:pt-8 bg-gray-200 p-4">  <div className="w-[1000px] h-[600px] lg:w-full lg:max-w-[1000px] lg:h-auto lg:min-h-[600px] flex rounded-lg bg-white lg:flex-row flex-col max-lg:h-full max-lg:w-full max-lg:rounded-none ">
+    <div className="min-h-screen flex justify-center items-start pt-4 md:pt-8 bg-gray-200 p-4"> 
+     <div className="w-[1000px] h-[600px] lg:w-full lg:max-w-[1000px] lg:h-auto lg:min-h-[600px] flex rounded-lg bg-white lg:flex-row flex-col max-lg:h-full max-lg:w-full max-lg:rounded-none ">
     <div className="w-[40%] lg:flex justify-center items-center hidden max-lg:hidden">
     <img  className="max-w-full object-contain"  src={logo} alt="" />
 </div>
@@ -103,17 +104,29 @@ if (isLoading || isAuthLoading) {
         Sign up
         </div>
         <div className="mt-3 flex flex-col space-y-1 items-center">
-        <button
-              onClick={() => login()}
-              className="flex items-center justify-center border border-[#dadce0] rounded-md bg-white text-[#3c4043] hover:shadow-md w-[280px] lg:w-[320px] h-[40px] font-medium text-sm transition-all duration-200"
-            >
-              <img
-                src={googleLogo}
-                alt="Google Logo"
-                className="w-5 h-5 mr-3"
-              />
-              <span>Sign up with Google</span>
-            </button>
+      <button
+      onClick={() => login()}
+      disabled={isGoogleLoading}
+      className={`flex items-center justify-center border border-[#dadce0] rounded-md bg-white text-[#3c4043] hover:shadow-md w-[280px] lg:w-[320px] h-[40px] font-medium text-sm transition-all duration-200 ${
+        isGoogleLoading ? 'opacity-75 cursor-not-allowed' : ''
+      }`}
+    >
+      {isGoogleLoading ? (
+        <span className="flex items-center justify-center">
+          <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-[#3c4043]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Signing up...
+        </span>
+      ) : (
+        <>
+          <img src={googleLogo} alt="Google Logo" className="w-5 h-5 mr-3" />
+          <span>Sign up with Google</span>
+        </>
+      )}
+    </button>
+
             <button className="flex items-center border rounded bg-[#335ca6] justify-center text-white w-full h-10 md:h-[28px] lg:w-[320px] lg:mt-3 max-lg:h-10 max-lg:text-sm">
               <div className="w-5 h-5 md:w-6 md:h-6">
                 <img src={facebookLogo} alt="Facebook Logo" />
@@ -157,6 +170,17 @@ if (isLoading || isAuthLoading) {
          errorMessage={errors.password}
          />
         </div>
+
+        <div className="w-full mt-4">
+        <InputField 
+          label="Phone Number" 
+          id="phoneNumber" 
+          placeholder="+91 1234567890"
+          onChange={handleChange}
+          errorMessage={errors.phoneNumber}
+        />
+      </div>
+
         {errors.general && <p className="text-red-500">{errors.general}</p>}
        
         <div className="flex items-center mt-4">
@@ -167,9 +191,26 @@ if (isLoading || isAuthLoading) {
         </div>
 
         <div>
-          <button onClick={sendRequest}className="bg-[#636ae8] hover:bg-[#000000] text-white font-bold py-2 px-4 rounded mt-4 w-full cursor-pointer transition-colors duration-300 max-lg:text-sm max-lg:py-2"
-          >  Create an account
-            </button>
+          <button
+      onClick={sendRequest}
+      disabled={isSubmitting}
+      className={`bg-[#636ae8] hover:bg-[#000000] text-white font-bold py-2 mb-2 px-4 rounded mt-4 w-full cursor-pointer transition-colors duration-300 max-lg:text-sm max-lg:py-2 ${
+        isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
+      }`}
+    >
+      {isSubmitting ? (
+        <span className="flex items-center justify-center">
+          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Creating account...
+        </span>
+      ) : (
+        'Create an account'
+      )}
+    </button>
+
         </div>
 
        </div>

@@ -8,11 +8,9 @@ import axios from 'axios';
 import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
 import { SigninSkeleton } from '../skeletons/auth/SigninSkeleton';
-import { useLoading } from '../../context/LoadingContext';
 
 export const Signin =()=>{
    const { login,loginWithGoogle  } = useAuth();
-   const { isLoading,setLoading } = useLoading();
    const { isLoading: isAuthLoading } = useAuth();
     const navigate= useNavigate();
 
@@ -20,11 +18,12 @@ export const Signin =()=>{
        email:"" ,
        password:""
     })
-    
+
+     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
     async function sendRequest(){
-      setLoading(true);
+        setIsSubmitting(true);
         try {
           await login(signinInputs.email, signinInputs.password); 
             navigate("/");
@@ -44,7 +43,7 @@ export const Signin =()=>{
               console.error('Non-Axios error:', error);
             }
           }finally{
-            setLoading(false);
+             setIsSubmitting(false);
           }
       }
     
@@ -55,7 +54,7 @@ export const Signin =()=>{
         })
       };
 
-      if(isLoading || isAuthLoading){
+      if(isAuthLoading){
         return <SigninSkeleton/>
       }
     return (
@@ -140,12 +139,25 @@ export const Signin =()=>{
                </button>
             </div>
     
-            <button
-  onClick={sendRequest}
-  className="bg-[#636ae8] hover:bg-[#000000] text-white font-bold py-2 px-4 rounded mt-4 w-full cursor-pointer transition-colors duration-300 max-lg:text-sm max-lg:py-2"
->
-  Login
-</button>
+          <button
+      onClick={sendRequest}
+      disabled={isSubmitting}
+      className={`bg-[#636ae8] hover:bg-[#000000] text-white font-bold py-2 px-4 rounded mt-4 w-full cursor-pointer transition-colors duration-300 max-lg:text-sm max-lg:py-2 ${
+        isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
+      }`}
+    >
+      {isSubmitting ? (
+        <span className="flex items-center justify-center">
+          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Logging in...
+        </span>
+      ) : (
+        'Login'
+      )}
+    </button>
 
     
            </div>

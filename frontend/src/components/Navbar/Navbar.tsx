@@ -65,7 +65,7 @@ export const Navbar = () => {
             <Link to="/property/create" className="hover:text-blue-600">
               List Property
             </Link>
-            <Link to="/bookings" className="hover:text-blue-600">
+            <Link to="/booking/my-bookings" className="hover:text-blue-600">
               My Bookings
             </Link>
             <button

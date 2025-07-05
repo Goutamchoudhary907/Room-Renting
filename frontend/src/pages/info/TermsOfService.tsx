@@ -129,7 +129,7 @@ export const TermsOfService = () => {
             <p className="text-gray-600">
               For questions about these Terms: <br />
               <strong>Email:</strong> goutamchoudhary907@gmail.com <br />
-              <strong>Address:</strong>  J 55 , Gayatri Mandir, Gayatri nagar,Siroliya , Dewas Madhya Pradesh
+              <strong>Address:</strong> Indore Madhya Pradesh
             </p>
           </section>
         </div>

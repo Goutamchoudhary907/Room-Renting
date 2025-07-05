@@ -14,7 +14,6 @@ import { AuthProvider } from './context/AuthContext'
 import { AllRooms } from './pages/property/AllRooms'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { RoomDetails } from './pages/property/RoomDetails'
-import { Booking } from './components/Booking/Booking'
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { Navbar } from './components/Navbar/Navbar'
 import { Footer } from './components/Footer/Footer'
@@ -23,6 +22,21 @@ import { ContactUs } from './pages/info/ContactUs'
 import { PrivacyPolicy } from './pages/info/PrivacyPolicy'
 import { TermsOfService } from './pages/info/TermsOfService'
 import { LoadingProvider } from './context/LoadingContext';
+import { BookingSuccess } from './pages/booking/BookingSuccess'
+import { BookingFailed } from './pages/booking/BookingFailed'
+import MyBookings from './pages/booking/MyBookings'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes cache
+    },
+  },
+});
+
+console.log = () => {};
+console.error = () => {};
 function App() {
 const location=useLocation();
 const [routeKey, setRouteKey] = useState(location.pathname); // Initialize with current pathname
@@ -34,10 +48,12 @@ useEffect(() => {
 useEffect(() => {
   document.title = "Rentpy"; 
 }, []);
+
   return (
+      <QueryClientProvider client={queryClient}>
     <LoadingProvider>
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ''}>
-<AuthProvider>
+ <AuthProvider>
   <Navbar/>
     <Routes location={location} key={routeKey}>
 
@@ -62,7 +78,9 @@ useEffect(() => {
       <Route path="/property/edit/:id" element={<EditRoom/>}/>
       <Route path="/property/my/properties" element={<MyProperties/>}/>
 
-      <Route path="/book/:id" element={<Booking />} />
+      <Route path="/booking/:bookingId/success" element={<BookingSuccess />} />
+      <Route path="/booking/:bookingId/failed" element={<BookingFailed />} />
+      <Route path="/booking/my-bookings" element={<MyBookings />} />
       </Route>
 
      </Routes>
@@ -70,7 +88,7 @@ useEffect(() => {
      </AuthProvider>
       </GoogleOAuthProvider>
       </LoadingProvider>
-    
+    </QueryClientProvider>
   )
 }
 

@@ -213,7 +213,6 @@ if (isLoaded && propInitialFormData?.formattedAddress) {
 };
 const handlePlaceSelect = async (prediction: any) => {
   try { 
-    // Use the address-components endpoint with placeId
     const addressResponse = await axios.get(`${BACKEND_URL}/map/address-components?placeId=${prediction.place_id}`);
     
     setRoomFormData(prev => ({
@@ -318,7 +317,6 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Clear previous errors
     setFieldErrors((prev) => ({ ...prev, images: [] }));
   
     if (!e.target.files || e.target.files.length === 0) {
@@ -451,9 +449,9 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
       };
 
     if (RoomFormData.rentalType === "short-term") {
-      dataToValidate.pricePerMonth = undefined;      // Explicitly remove for short-term
+      dataToValidate.pricePerMonth = undefined;      
     } else if (RoomFormData.rentalType === "long-term") {
-      dataToValidate.pricePerNight = undefined;      // Explicitly remove for long-term
+      dataToValidate.pricePerNight = undefined;     
     }
 
     const validationResult = propertySchema.safeParse(dataToValidate); // Use the modified copy
@@ -1156,58 +1154,6 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
 </div>
 
       <div className="h-96 rounded-lg overflow-hidden mb-4 border relative">
-        {/* <GoogleMap
-         options={{
-              streetViewControl: false,
-              mapTypeControl: false,
-              fullscreenControl: false,
-              gestureHandling: "greedy",
-            }}
-          mapContainerStyle={MAP_CONTAINER_STYLE}
-          center={
-            RoomFormData.latitude && RoomFormData.longitude
-              ? { 
-                  lat: RoomFormData.latitude, 
-                  lng: RoomFormData.longitude 
-                }
-              : DEFAULT_CENTER
-          }
-          zoom={15}
-          onLoad={(mapInstance) => {
-            setMap(mapInstance);
-            // Center to initial position if coordinates exist
-            if (RoomFormData.latitude && RoomFormData.longitude) {
-              mapInstance.panTo({ 
-                lat: RoomFormData.latitude, 
-                lng: RoomFormData.longitude 
-              });
-            }
-          }}
-          onClick={handleMapClick}
-        >
-          <Marker
-            position={
-              RoomFormData.latitude && RoomFormData.longitude
-                ? { 
-                    lat: RoomFormData.latitude, 
-                    lng: RoomFormData.longitude 
-                  }
-                : DEFAULT_CENTER
-            }
-            onLoad={(markerInstance) => {
-              setMarker(markerInstance);
-              // Set to initial position if coordinates exist
-              if (RoomFormData.latitude && RoomFormData.longitude) {
-                markerInstance.setPosition({ 
-                  lat: RoomFormData.latitude, 
-                  lng: RoomFormData.longitude 
-                });
-              }
-            }}
-            draggable={true}
-            onDragEnd={handleMarkerDragEnd}
-          />
-        </GoogleMap> */}
 <GoogleMap
   options={{
     streetViewControl: false,

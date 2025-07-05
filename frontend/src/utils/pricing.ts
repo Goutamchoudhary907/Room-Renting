@@ -1,6 +1,6 @@
 import { RoomDetailsData } from '../pages/property/RoomDetails';
 
-export interface ShortTermTotal {
+export interface RentalTotal  {
   subTotal: number;
   serviceCharge: number;
   total: number;
@@ -16,7 +16,7 @@ export const calculateShortTermTotal = (
   property: Pick<RoomDetailsData, 'pricePerNight'> | null,
   checkinDate: Date | null,
   checkoutDate: Date | null
-): ShortTermTotal => {
+): RentalTotal  => {
   if (!property?.pricePerNight || !checkinDate || !checkoutDate) {
     return { subTotal: 0, serviceCharge: 0, total: 0 };
   }
@@ -26,17 +26,19 @@ export const calculateShortTermTotal = (
   return { 
     subTotal,
      serviceCharge, 
-    //  total: subTotal + serviceCharge
-     total: subTotal,
+     total: subTotal + serviceCharge
     };
 };
 
 export const calculateLongTermTotal = (
   property: Pick<RoomDetailsData, 'pricePerMonth'> | null,
   leaseDuration: number
-): number => {
+): RentalTotal  => {
   if (!property?.pricePerMonth) {
-    return 0;
+    return { subTotal: 0, serviceCharge: 0, total: 0 };
   }
-  return leaseDuration * property.pricePerMonth;
+  const subTotal=leaseDuration * property.pricePerMonth;
+  const serviceCharge= Math.ceil(subTotal * 0.05);
+  const total=subTotal+serviceCharge;
+  return {subTotal, serviceCharge, total}; 
 };

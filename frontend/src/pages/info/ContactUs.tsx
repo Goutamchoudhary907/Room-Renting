@@ -59,7 +59,7 @@ export const ContactUs = () => {
               </div>
               <h3 className="font-semibold text-gray-700 mb-1">Address</h3>
               <address className="not-italic text-gray-600 text-sm">
-              J 55 , Gayatri Mandir, Gayatri nagar,Siroliya , Dewas
+             Indore
               <br />
                 Madhya Pradesh
               </address>

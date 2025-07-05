@@ -8,13 +8,16 @@ interface Property {
   title: string;
   pricePerNight?: number;
   pricePerMonth?: number;
-  address: string | null; // Old format (string)
+  address: string | null;
   street?: string | null;
   city?: string | null;
   state?: string | null;
   locality?: string | null;
   property: string;
   images?: { url: string }[];
+  landmark?: string;
+  formattedAddress?: string;
+  hasBooked?: boolean;
 }
 interface PropertyDisplayProps {
   properties: Property[];
@@ -72,7 +75,6 @@ const PropertyCard = ({
 }: PropertyCardProps) => {
   const navigate = useNavigate();
   const handleCardClick = () => {
-    console.log("Card clicked");
     navigate(`/property/room-detail/${property.id}`);
   };
 
@@ -88,24 +90,15 @@ const PropertyCard = ({
         return type;
     }
   };
-  const formatAddress = (): string => {
-    if (property.locality || property.city) {
+const formatLocation = (): string => {
+  if (!property.city) return "Location available";
   
-      if (property.locality && property.city) {
-        return property.locality !== property.city 
-          ? `${property.locality}, ${property.city}`
-          : property.locality;
-      }
-      
-      return property.locality || property.city || '';
-    }
-    
-    if (property.address) {
-      return property.address;
-    }
-    
-    return 'Address not available';
-  };
+  if (property.landmark && property.city) {
+    return `Near ${property.landmark}, ${property.city}`;
+  }
+  
+  return property.city;
+};
 
 
   return (
@@ -134,10 +127,10 @@ const PropertyCard = ({
       <div>
       <button
   className="mt-4 mr-4 cursor-pointer absolute top-2 right-2 bg-white rounded-full p-1 shadow-md focus:outline-none"
-  onClick={async (e) => { // Add async here
+  onClick={async (e) => { 
     e.stopPropagation();
     try {
-      await onSave(property.id); // Add await
+      await onSave(property.id);
     } catch (error) {
       console.error("Save failed:", error);
     }
@@ -172,7 +165,7 @@ const PropertyCard = ({
         <p className="text-[#2563EB] text-sm mb-1">
           {formatRentalType(property.rentalType)}
         </p>
-        <p className="text-[#4B5563] pt-1">{formatAddress()}</p>
+        <p className="text-[#4B5563] pt-1">{formatLocation()}</p>
 
         <div className="pt-1 pb-4 md:pb-4">
           {property.rentalType === "short-term" &&

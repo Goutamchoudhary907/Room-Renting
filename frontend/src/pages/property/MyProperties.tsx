@@ -1,94 +1,109 @@
 import ProperyIcon from "../../assets/PropertyIcon.png";
 import ActiveListingIcon from "../../assets/ActiveListingIcon.png"
-import { useEffect, useState } from "react";
+import { useState } from "react";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 import axios from 'axios';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import EditIcon from "../../assets/EditIcon.png"
 import CalenderIcon from "../../assets/CalendarIcon2.png"
 import DeleteIcon from "../../assets/DeleteIcon2.png"
 import { useNavigate } from "react-router-dom";
-import { useLoading } from "../../context/LoadingContext";
 import MyPropertiesSkeleton from "../skeletons/property/MyPropertiesSkeleton";
 import { useAuth } from "../../context/AuthContext";
+import { HostAvailabilityCalendar } from "../../components/Availability/HostAvailabilityCalendar";
+import * as Popover from '@radix-ui/react-popover';
+
 export const MyProperties =() =>{
 
     const navigate=useNavigate();
-    const [properties, setProperties] = useState<Property[]>([]);
     const [searchQuery, setSearchQuery]=useState("");
     const [filteredStatus, setFilteredStatus]=useState<string | null>(null);
+ 
     const [activeButton, setActiveButton]=useState<string | null>(null);
-     const { isLoading,setLoading } = useLoading();
      const { isLoading: isAuthLoading } = useAuth();
-   useEffect(() =>{
-    const fetchProperties= async()=>{
-      setLoading(true);
-        try {
-           const token=localStorage.getItem('token');
-           if(!token){
-            throw new Error ("Unauthorised");
-           }
 
-            const response=await axios.get(`${BACKEND_URL}/property/my/properties`, {
-                headers:{
-                    Authorization: `Bearer ${token}` ,
-                }
-            });
-            console.log(response);
-            
-         setProperties(response.data);
-        } catch (error:any) {
-            // setError(error)
-        }finally{
-          setLoading(false);
-        }
+  const queryClient = useQueryClient();
+
+const { 
+  data: properties = [], 
+  isLoading: isPropertiesLoading, 
+  error: propertiesError 
+} = useQuery({
+  queryKey: ['myProperties'],
+  queryFn: async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error("Unauthorized");
     }
-    fetchProperties();
-   },[]);
+    const response = await axios.get(`${BACKEND_URL}/property/my/properties`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      }
+    });
+    return response.data;
+  },
+  staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  refetchOnWindowFocus: false
+});
 
    // Calculate active listings
    const activeListingsCount=properties.filter(
-    (property) => property.bookingStatus === "AVAILABLE"
+    (property:Property) => property.bookingStatus === "AVAILABLE"
    ).length;
 
      // Filter properties based on search query
      const normalizedSearchQuery=searchQuery.toLowerCase().replace(/\s/g, '');
 
-     const filteredProperties=properties.filter((property) =>
+     const filteredProperties=properties.filter((property:Property) =>
     property.title.toLowerCase().replace(/\s/g,'') .includes(normalizedSearchQuery)
     );
 
-     const statusFilteredProperties=filteredStatus ? properties.filter((property) =>
+     const statusFilteredProperties=filteredStatus ? properties.filter((property:Property) =>
      property.bookingStatus===filteredStatus
     ):properties;
 
-    const displayProperties=searchQuery ? statusFilteredProperties.filter((property) =>
-    filteredProperties.some((filteredProperty) => filteredProperty.id === property.id)
+    const displayProperties=searchQuery ? statusFilteredProperties.filter((property:Property) =>
+    filteredProperties.some((filteredProperty:Property) => filteredProperty.id === property.id)
     ):statusFilteredProperties;
     
 
-    const handleDelete=async (propertyId:number) =>{
-        try {
-            const token=localStorage.getItem('token');
-            await axios.delete(`${BACKEND_URL}/property/delete/${propertyId}`, {
-                    headers:{
-                    Authorization:`Bearer ${token}`,
-                }
-            })
-            setProperties(properties.filter(property => property.id !== propertyId)); 
-        } catch (error) {
-            alert("Error deleting property");
-        }
-    }
+   const { mutate: deleteProperty } = useMutation({
+  mutationFn: async (propertyId: number) => {
+    const token = localStorage.getItem('token');
+    await axios.delete(`${BACKEND_URL}/property/delete/${propertyId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      }
+    });
+    return propertyId;
+  },
+  onSuccess: (deletedId) => {
+    queryClient.setQueryData(['myProperties'], (old: Property[]) => 
+      old.filter(property => property.id !== deletedId)
+    );
+  },
+  onError: () => {
+    alert("Error deleting property");
+  }
+});
+
+const handleDelete = (propertyId: number) => {
+  deleteProperty(propertyId);
+};
      const handleEdit= (propertyId:number) =>{
         navigate(`/property/edit/${propertyId}`);
      }
 
-     if(isLoading || isAuthLoading ){
-      return <MyPropertiesSkeleton/>
-     }
+     if (isPropertiesLoading || isAuthLoading) {
+  return <MyPropertiesSkeleton/>
+}
     return(
         <div className="min-h-screen w-screen bg-[#F9FAFB]">
-
+        {propertiesError && (
+             <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mx-8 mt-4">
+               <p>Error loading properties: {propertiesError.message}</p>
+             </div>
+           )}
         {/* Header */}
         <div className="flex justify-between items-center pt-8 pl-8 pr-8
                         max-[639px]:flex-col max-[639px]:items-start max-[639px]:gap-4">
@@ -191,16 +206,18 @@ export const MyProperties =() =>{
         </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-17 px-8">
-                {displayProperties.map((property) =>(
-                    <PropertyCard key={property.id} property={property}
-                    onDelete={handleDelete}
-                    onEdit={handleEdit}
-                    />
+                {displayProperties.map((property:Property) =>(
+                   <PropertyCard 
+                        key={property.id} 
+                        property={property}
+                        onDelete={handleDelete}
+                        onEdit={handleEdit}
+                        />
                 ))}
             </div>
         </div>
-    )
-} 
+    );
+}
 
 interface ButtonProps {
     children: string;
@@ -242,12 +259,19 @@ interface PropertyCardProps {
     onDelete: (propertyId: number) => void;
     onEdit:(propertyId:number) => void;
   }
-const PropertyCard= ({property,onDelete,onEdit}:PropertyCardProps) =>{
+const PropertyCard= ({property,onDelete,onEdit }:PropertyCardProps) =>{
     const navigate = useNavigate();
  return(
     <div
     className="cursor-pointer transition-transform duration-300 hover:scale-[1.01]"
-    onClick={() => navigate(`/property/room-detail/${property.id}`)}
+    onClick={(e) => {
+    const isButtonClick =
+      (e.target as HTMLElement).closest("button") !== null;
+
+    if (!isButtonClick) {
+      navigate(`/property/room-detail/${property.id}`);
+    }
+  }}
   >
     <div className="rounded-2xl p-4 sm:p-5 shadow-lg bg-white border border-gray-100">
       
@@ -313,30 +337,50 @@ const PropertyCard= ({property,onDelete,onEdit}:PropertyCardProps) =>{
   
       {/* Action Buttons */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-sm font-medium">
-        <button
-          className="flex items-center justify-center gap-2 h-10 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 transition"
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit(property.id);
-          }}
-        >
-          <img src={EditIcon} alt="Edit" className="w-4 h-4" />
-          Edit
-        </button>
-  
-        <button className="flex items-center justify-center gap-2 h-10 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition">
-          <img src={CalenderIcon} alt="Calendar" className="w-5 h-5" />
-          Availability
-        </button>
-  
-        <button
-          className="flex items-center justify-center gap-2 h-10 rounded-xl border border-gray-300 hover:bg-red-100 text-red-600 transition"
-          onClick={() => onDelete(property.id)}
-        >
-          <img src={DeleteIcon} alt="Delete" className="w-6 h-6" />
-          Delete
-        </button>
-      </div>
+
+  <button
+    className="flex items-center justify-center gap-2 h-10 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 transition"
+    onClick={(e) => {
+      e.stopPropagation();
+      onEdit(property.id);
+    }}
+  >
+    <img src={EditIcon} alt="Edit" className="w-4 h-4" />
+    Edit
+  </button>
+
+  <Popover.Root>
+    <Popover.Trigger asChild>
+      <button 
+        className="flex items-center justify-center gap-2 h-10 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img src={CalenderIcon} alt="Calendar" className="w-5 h-5" />
+        Availability
+      </button>
+    </Popover.Trigger>
+
+    <Popover.Content
+      className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 z-50 w-[350px]"
+      side="bottom"
+      sideOffset={8}
+      align="center"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <HostAvailabilityCalendar propertyId={property.id} />
+    </Popover.Content>
+  </Popover.Root>
+
+  <button
+    className="flex items-center justify-center gap-2 h-10 rounded-xl border border-gray-300 hover:bg-red-100 text-red-600 transition"
+    onClick={() => onDelete(property.id)}
+  >
+    <img src={DeleteIcon} alt="Delete" className="w-6 h-6" />
+    Delete
+  </button>
+
+</div>
+
   
     </div>
   </div>

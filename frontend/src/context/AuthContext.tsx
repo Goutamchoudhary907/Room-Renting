@@ -47,7 +47,6 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
                 setUser(JSON.parse(storedUser));
             }
             if(storedToken){
-                console.log("Attempting to verify token with backend...");
                 try{
                    const response=await axios.get(`${BACKEND_URL}/auth/me`, {
                     headers:{
@@ -55,12 +54,11 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
                     }
                    }) ;
                    
-                   if (JSON.stringify(response.data.user) !== storedUser) {
-                    localStorage.setItem('user', JSON.stringify(response.data.user));
-                    setUser(response.data.user);
-                }
+                  const backendUser = response.data.user;
+                 setUser(backendUser);
+                 localStorage.setItem('user', JSON.stringify(backendUser));
+
                 setToken(storedToken);
-                   console.log("User and token set successfully.");
                 }catch(error){
                     console.error("Token verification failed:", error);
                 }
@@ -68,7 +66,6 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
                 console.log("No token found in localStorage.");
             }
             setIsLoading(false);
-            console.log("isLoading set to false.");
         };
         initAuth();
     },[]);
@@ -108,6 +105,7 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
 
             const {token, user}=response.data;
             localStorage.setItem('token', token);
+            localStorage.setItem('user', JSON.stringify(user));
             setToken(token);
             setUser(user);
             navigate('/')

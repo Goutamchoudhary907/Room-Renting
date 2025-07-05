@@ -123,7 +123,7 @@ export const PrivacyPolicy = () => {
             <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-3 sm:mb-4">8. Contact Us</h2>
             <div className="bg-blue-50 rounded-lg p-4">
               <p className="text-gray-600 mb-2"><strong>Email:</strong> goutamchoudhary907@gmail.com</p>
-              <p className="text-gray-600 mb-2"><strong>Address:</strong>   J 55 , Gayatri Mandir, Gayatri nagar,Siroliya , Dewas- 455001, Madhya Pradesh, India</p>
+              <p className="text-gray-600 mb-2"><strong>Address:</strong>   Indore, Madhya Pradesh, India</p>
               <p className="text-gray-600"><strong>Phone:</strong> +91 96305 94507</p>
             </div>
             <p className="text-gray-500 text-sm mt-4 text-center">
