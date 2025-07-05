@@ -6,7 +6,8 @@
   "scripts": {
     "build": "npx prisma generate && tsc && cpx \"prisma/**/*\" dist/prisma && cpx \"schema/**/*\" dist/schema && cpx \"src/routes/**/*\" dist/src/routes",
     "start": "node dist/api/index.js",
-    "dev": "nodemon --exec \"npx prisma generate && npm run build && npm start\""
+    "dev": "nodemon --exec \"npx prisma generate && npm run build && npm start\"",
+      "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "",
