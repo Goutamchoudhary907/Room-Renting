@@ -33,6 +33,18 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
+
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end(); 
+});
+
+app.use((req, res, next) => {
+  if (req.path.match(/\.(ico|png|jpg|jpeg|svg|css|js)$/)) {
+     res.status(404).end();
+     return
+  }
+  next();
+});
 app.use((req, res, next) => {
   if (req.is('multipart/form-data')) {
     // Convert all numeric fields from strings to numbers
