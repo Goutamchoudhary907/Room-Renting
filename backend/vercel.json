@@ -6,13 +6,13 @@
       "use": "@vercel/node"
     }
   ],
- "routes": [
+  "routes": [
     {
-      "src": "/favicon.ico",
-      "status": 404
+      "src": "/(favicon.ico|.*\\.(png|jpg|jpeg|svg|css|js|txt))",
+      "status": 204
     },
     {
-      "src": "/(.*)", 
+      "src": "/(.*)",
       "dest": "/api/index.ts"
     }
   ]
