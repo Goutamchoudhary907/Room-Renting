@@ -3,29 +3,16 @@ import authRoutes from './routes/auth.js';
 import forgotPasswordRoutes from './routes/ForgotPassword.js';
 import propertyRoutes from './routes/properties/propertyRoutes.js'
 import savedPropertyRoute from "./routes/SavedProperty/savedProperties.js"
+import paymentRoutes from "./routes/Payment/paymentRoutes.js"
 import mapRouter from "./routes/map/mapRoutes.js"
-// import dodoWebhookHandler from './services/webhook'; 
+import bookingRoute from "./routes/booking/bookingRoutes.js"
+import availabilityRoutes from './routes/availability/availabilityRoutes.js';
 import googleAuthRoute from "./routes/auth/googleAuth.js";
 import multer from 'multer';
+import updateAvailabilityRoute from './routes/cron/updateAvailability.js';
 import { configure } from '@vendia/serverless-express';
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 const app=express();
-app.use((req: Request, res: Response, next: NextFunction) => {
-  console.log(`Incoming ${req.method} request to: ${req.path}`);
-  console.log('Registered routes:');
-  
-  app._router.stack.forEach((layer: { route?: { path: string, methods: Record<string, boolean> } }) => {
-    if (layer.route) {
-      const methods = Object.keys(layer.route.methods)
-        .filter(method => layer.route?.methods[method])
-        .map(method => method.toUpperCase())
-        .join(', ');
-      console.log(`${methods} ${layer.route.path}`);
-    }
-  });
-  
-  next();
-});
 app.use(express.json());
 app.use(express.text());
 app.use('/webhook', express.raw({ type: 'application/json' }));
@@ -73,7 +60,10 @@ app.use("/",savedPropertyRoute);
 
 app.use("/map",mapRouter);
 
-// app.use("/booking",paymentRoutes);
+app.use("/payment",paymentRoutes);
+app.use("/booking", bookingRoute)
+app.use("/availability", availabilityRoutes);
+app.use("/cron",updateAvailabilityRoute);
 // app.post('/webhook', dodoWebhookHandler);
 
 app.get('/', (req, res) => {

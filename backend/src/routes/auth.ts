@@ -26,16 +26,27 @@ router.post("/signup", async (req: Request, res: Response): Promise<any> => {
     });
   }
   try {
-    const { email } = result.data;
-    const existingUser = await prisma.user.findUnique({
+    const { email,phoneNumber } = result.data;
+
+    const existingUser = await prisma.user.findFirst({
       where: {
-        email: email,
-      },
+        OR: [
+          { email: email },
+          { phoneNumber: phoneNumber }
+        ]
+      }
     });
     if (existingUser) {
-      return res.status(409).json({
-        message: "This email is already registered.",
-      });
+      if (existingUser.email === email) {
+        return res.status(409).json({
+          message: "This email is already registered.",
+        });
+      }
+      if (existingUser.phoneNumber === phoneNumber) {
+        return res.status(409).json({
+          message: "This phone number is already registered.",
+        });
+      }
     }
     const hashedPassword = await bcrypt.hash(result.data.password, 10);
 
@@ -45,6 +56,7 @@ router.post("/signup", async (req: Request, res: Response): Promise<any> => {
         lastName: result.data.lastName,
         email: result.data.email,
         password: hashedPassword,
+        phoneNumber: result.data.phoneNumber
       },
     });
 
@@ -59,7 +71,17 @@ router.post("/signup", async (req: Request, res: Response): Promise<any> => {
       JWT_SECRET
     );
 
-    res.status(201).json({ message: "Signup successful", token });
+    res.status(201).json({ 
+      message: "Signup successful", 
+      token,
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        phoneNumber: newUser.phoneNumber
+      }
+    });
   } catch (error: unknown) {
     console.error("Error during signup:", error);
 
@@ -165,9 +187,11 @@ router.get("/me", authMiddleware, async (req:AuthenticatedRequest, res:Response)
         email:req.user.email
       },
       select:{
+         id: true,
         email:true,
         firstName:true,
-        lastName:true
+        lastName:true,
+        phoneNumber:true
       }
     });
     if(!user){

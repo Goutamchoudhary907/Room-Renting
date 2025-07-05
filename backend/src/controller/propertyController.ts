@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from "../middleware/middleware.js";
-import { PrismaClient } from "@prisma/client";
+import { PaymentStatus, PrismaClient } from "@prisma/client";
 import {propertySchema, PropertySchema} from '../../schema/src/propertySchema.js'
 const prisma = new PrismaClient();
 import { ZodError, ZodIssue } from 'zod'; 
@@ -241,68 +241,182 @@ const otherData = { ...validatedData, address: undefined };
 
 export async function getFilteredProperties(req:Request, res:Response):Promise<void>{
  try {
-  const {rentalType,bedrooms,minPrice, maxPrice, address,amenities,availability} = req.query;
+  const {rentalType,bedrooms,minPrice, maxPrice, address,amenities,checkin, checkout,moveInDate, leaseDuration, excludeHostId} = req.query;
+const where: any = {
+  AND: [],
+};
 
-  const where: any={};
-
-  if(rentalType){
-    where.rentalType=rentalType as string
-  }
-  if(bedrooms){
-    where.bedrooms=Number(bedrooms);
-  }
-
- // Price Filter: handled separately
-const priceFilter: any[] = [];
-
-if (minPrice && maxPrice) {
-  priceFilter.push({
-    pricePerMonth: {
-      gte: Number(minPrice),
-      lte: Number(maxPrice),
-    },
+console.log("excludeHostId from query:", excludeHostId);
+if (excludeHostId) {
+  where.AND.push({
+    hostId: { not: Number(excludeHostId) }
   });
-  priceFilter.push({
-    pricePerNight: {
-      gte: Number(minPrice),
-      lte: Number(maxPrice),
-    },
-  });
-} else if (minPrice) {
-  priceFilter.push(
-    { pricePerMonth: { gte: Number(minPrice) } },
-    { pricePerNight: { gte: Number(minPrice) } }
-  );
-} else if (maxPrice) {
-  priceFilter.push(
-    { pricePerMonth: { lte: Number(maxPrice) } },
-    { pricePerNight: { lte: Number(maxPrice) } }
-  );
 }
 
-// Apply price filter with OR if needed
-if (priceFilter.length > 0) {
-  where.OR = priceFilter;
-}
+    if (rentalType) {
+      where.AND.push({
+        rentalType: rentalType as string
+      });
+    }
 
-  if(address){
-    where.address= {contains:address as string, mode:'insensitive'};
-  }
+    if (bedrooms) {
+      where.AND.push({
+        bedrooms: Number(bedrooms)
+      });
+    }
 
-  if(amenities){
-    // assuming amenities are stored as comma-seperated in query
-    const amenityList= Array.isArray(amenities) ? amenities : [amenities];
-    where.amenities={hasEvery:amenityList}
-  }
-  if(availability){
-    where.availability=new Date(availability as string);
-  }
-   const properties=await prisma.property.findMany({
-    where:where,
-    include:{
-      images:true,
-    },
-   })
+    // Price Filter: handled separately
+    const priceFilter: any[] = [];
+
+    if (minPrice && maxPrice) {
+      priceFilter.push({
+        pricePerMonth: {
+          gte: Number(minPrice),
+          lte: Number(maxPrice)
+        }
+      });
+      priceFilter.push({
+        pricePerNight: {
+          gte: Number(minPrice),
+          lte: Number(maxPrice)
+        }
+      });
+    } else if (minPrice) {
+      priceFilter.push(
+        { pricePerMonth: { gte: Number(minPrice) } },
+        { pricePerNight: { gte: Number(minPrice) } }
+      );
+    } else if (maxPrice) {
+      priceFilter.push(
+        { pricePerMonth: { lte: Number(maxPrice) } },
+        { pricePerNight: { lte: Number(maxPrice) } }
+      );
+    }
+
+    if (priceFilter.length > 0) {
+      where.AND.push({
+        OR: priceFilter
+      });
+    }
+
+    if (address) {
+      where.AND.push({
+        address: {
+          contains: address as string,
+          mode: 'insensitive'
+        }
+      });
+    }
+
+    if (amenities) {
+      const amenityList = Array.isArray(amenities) ? amenities : [amenities];
+      where.AND.push({
+        amenities: {
+          hasEvery: amenityList
+        }
+      });
+    }
+
+    const checkinDate = checkin ? new Date(checkin as string) : new Date();
+
+    // Booking status availability logic
+    where.AND.push({
+      OR: [
+        { bookingStatus: 'AVAILABLE' },
+        {
+          AND: [
+            { bookingStatus: { not: 'AVAILABLE' } },
+            {
+              bookings: {
+                none: {
+                  release_after: {
+                    gt: checkinDate
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    });
+
+    if (checkin && checkout) {
+      const startDate = new Date(checkin as string);
+      const endDate = new Date(checkout as string);
+
+      where.AND.push({
+        NOT: {
+          bookings: {
+            some: {
+              paymentStatus: 'SUCCESSFUL',
+              OR: [
+                {
+                  checkinDate: { lt: endDate },
+                  checkoutDate: { gt: startDate }
+                },
+                {
+                  moveInDate: { lt: endDate },
+                  OR: [
+                    { leaseDuration: null },
+                    {
+                      leaseDuration: {
+                        gte: calculateMonthDifference(new Date(moveInDate as string), endDate)
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      });
+    } else if (moveInDate) {
+      const startDate = new Date(moveInDate as string);
+      const endDate = leaseDuration
+        ? new Date(new Date(moveInDate as string).setMonth(startDate.getMonth() + Number(leaseDuration)))
+        : new Date('9999-12-31');
+
+      where.AND.push({
+        NOT: {
+          bookings: {
+            some: {
+              paymentStatus: 'SUCCESSFUL',
+              OR: [
+                {
+                  checkinDate: { lt: endDate },
+                  checkoutDate: { gt: startDate }
+                },
+                {
+                  moveInDate: { lt: endDate },
+                  OR: [
+                    { leaseDuration: null },
+                    {
+                      moveInDate: { lte: endDate }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      });
+    }
+
+
+
+   const properties = await prisma.property.findMany({
+    where,
+    include: {
+      images: { take: 1 },
+      host: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true
+        }
+      }
+    }
+  });
    res.status(200).json(properties);
 
  } catch (error:any) {
@@ -320,14 +434,25 @@ if (priceFilter.length > 0) {
     return
   }
  }
+ function calculateMonthDifference(startDate: Date, endDate: Date): number {
+  return (endDate.getFullYear() - startDate.getFullYear()) * 12 + 
+         (endDate.getMonth() - startDate.getMonth());
+}
 }
 
 
 export async function getAllProperties(req:Request, res:Response):Promise<void>{
   try {
+    const userId = req.query.excludeHostId as string | undefined;
+
     const properties=await prisma.property.findMany({
-      include:{
-        images:true,
+        where: userId ? {
+        NOT: {
+          hostId: Number(userId)
+        }
+      } : {},
+      include: {
+        images: true,
       }
     })
     res.status(200).json(properties);

@@ -25,7 +25,6 @@ if(token == null){
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-      
         req.user = decoded;
         next();
       } catch (err: any) {

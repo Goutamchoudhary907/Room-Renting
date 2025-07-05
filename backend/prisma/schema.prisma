@@ -7,114 +7,164 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User{
-  id               Int @id @default(autoincrement())
-  firstName        String
-  lastName         String
-  email            String   @unique
-  password         String?
-  googleId        String?  @unique
-  phoneNumber      String?
-  createdAt        DateTime @default(now())
-  reset            String?
-  Properties       Property[]
-  @@map("user")         // name the table user
-  
-  savedProperties SavedProperty[]
-  Booking Booking[]
-}
-
-model Property{
-  id   Int @id @default(autoincrement())
-  title           String
-  description     String
-  images          Image[]   @relation("PropertyImages")
-  bedrooms        Int
-  bathrooms       Int
-  rentalType      String
-  propertyType    String   @default("apartment")
-  pricePerNight   Int?
-  pricePerMonth   Int?
-  depositAmount   Int?
-
-  street          String?
-  city            String?
-  state           String?
-  postalCode      String?
-  country         String?
-  formattedAddress String?
-  flatOrHouse    String?
-  landmark       String?
-  locality       String?
-  address         String?
-  latitude        Decimal?  
-  longitude       Decimal?
-  amenities       String[]
-  availability    Json?
-  maxGuests       Int?
-  hostId          Int
-  host            User            @relation(fields: [hostId], references: [id])
+model User {
+  id              Int             @id @default(autoincrement())
+  firstName       String
+  lastName        String
+  email           String          @unique
+  password        String?
   createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  bookingStatus  BookingStatusEnum @default(AVAILABLE)
-  savedBy       SavedProperty[]
-  @@map("properties")
-  Booking Booking[]
+  reset           String?
+  phoneNumber     String?
+  googleId        String?         @unique
+  Payment         Payment[]
+  savedProperties SavedProperty[]
+  bookings        Booking[]
+  Properties      Property[]
+
+  @@map("user")
 }
 
+model Property {
+  id               Int               @id @default(autoincrement())
+  title            String
+  description      String
+  bedrooms         Int
+  bathrooms        Int
+  rentalType       String
+  pricePerNight    Int?
+  pricePerMonth    Int?
+  depositAmount    Int?
+  address          String?
+  latitude         Decimal?
+  longitude        Decimal?
+  amenities        String[]
+  maxGuests        Int?
+  hostId           Int
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  availability     Json?
+  bookingStatus    BookingStatusEnum @default(AVAILABLE)
+  propertyType     String            @default("apartment")
+  city             String?
+  country          String?
+  postalCode       String?
+  state            String?
+  street           String?
+  flatOrHouse      String?
+  formattedAddress String?
+  landmark         String?
+  locality         String?
+  Payment          Payment[]
+  savedBy          SavedProperty[]
+  bookings         Booking[]
+  images           Image[]           @relation("PropertyImages")
+  host             User              @relation(fields: [hostId], references: [id])
 
-model SavedProperty{
- id             Int    @id @default(autoincrement())
- userId         Int
- propertyId     Int
+  @@map("properties")
+}
+
+model SavedProperty {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  propertyId Int
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
- @@unique([userId, propertyId], name: "unique_user_property") // Prevent duplicate saves
+
+  @@unique([userId, propertyId], name: "unique_user_property")
   @@index([userId])
   @@index([propertyId])
 }
 
-model Image{
-  id              Int  @id @default(autoincrement())
-  url             String
-  propertyId      Int
+model Image {
+  id         Int      @id @default(autoincrement())
+  url        String
+  propertyId Int
   property   Property @relation("PropertyImages", fields: [propertyId], references: [id], onDelete: Cascade)
+
   @@map("images")
 }
 
 model Booking {
-  id                Int       @id @default(autoincrement())
-  bookingId         String    @unique
+  id                Int           @id @default(autoincrement())
+  bookingId         String        @unique
   userId            Int
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   propertyId        Int
-  property          Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   rentalType        String
   checkinDate       DateTime?
   checkoutDate      DateTime?
   moveInDate        DateTime?
   leaseDuration     Int?
   paymentStatus     PaymentStatus @default(PENDING)
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  totalAmount       Decimal?  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  totalAmount       Decimal?
   guestCount        Int?
-  bookingDate       DateTime  @default(now())
+  bookingDate       DateTime      @default(now())
   specialRequests   String?
-  paymentMethodUsed String?
-  transactionId     String?   @unique // Unique ID from the payment gateway
-  dodoSubscriptionId String?
+  razorpayOrderId   String?
+  razorpayPaymentId String?       @unique
+  razorpaySignature String?
+  release_after     DateTime?
+  Payment           Payment[]
+  property          Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([razorpayOrderId])
+  @@index([razorpayPaymentId])
   @@map("bookings")
 }
-enum BookingStatusEnum{
+
+model Payment {
+  id                Int           @id @default(autoincrement())
+  razorpayOrderId   String        @unique
+  razorpayPaymentId String        @unique
+  razorpaySignature String
+  amount            Decimal
+  currency          String        @default("INR")
+  status            PaymentStatus
+  userId            Int
+  propertyId        Int
+  bookingId         Int?
+  paymentMethod     String?
+  refundAmount      Decimal?
+  refundId          String?
+  refundNotes       String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  booking           Booking?      @relation(fields: [bookingId], references: [id])
+  property          Property      @relation(fields: [propertyId], references: [id])
+  user              User          @relation(fields: [userId], references: [id])
+  Refund            Refund[]
+
+  @@index([userId])
+  @@index([propertyId])
+  @@index([bookingId])
+}
+
+model Refund {
+  id               Int      @id @default(autoincrement())
+  razorpayRefundId String   @unique
+  paymentId        Int
+  amount           Decimal
+  currency         String   @default("INR")
+  reason           String?
+  status           String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  payment          Payment  @relation(fields: [paymentId], references: [id])
+}
+
+enum BookingStatusEnum {
   AVAILABLE
   BOOKED
   UNAVAILABLE
 }
+
 enum PaymentStatus {
   PENDING
   SUCCESSFUL
   FAILED
-  SUBSCRIPTION_ACTIVE
-  SUBSCRIPTION_ACTIVATION_FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
 }
