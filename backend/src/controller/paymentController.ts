@@ -402,7 +402,7 @@ export const getPaymentDetails=async (req:AuthenticatedRequest, res:Response) =>
             email:true
           }
         },
-        Payment:true
+        payment:true
       }
     });
 

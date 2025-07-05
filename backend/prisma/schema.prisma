@@ -106,7 +106,7 @@ model Booking {
   razorpayPaymentId String?       @unique
   razorpaySignature String?
   release_after     DateTime?
-  Payment           Payment[]
+  payment           Payment[]
   property          Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 

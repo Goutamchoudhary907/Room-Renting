@@ -6,8 +6,8 @@ import { json } from 'body-parser';
 const prisma = new PrismaClient();
 
 export const myBooking= async(req:AuthenticatedRequest , res:Response) =>{
-   const userId = req.user?.['userId'] || req.user?.['id'] || req.user?.['sub'];
-        
+    const userId = req.user?.['userId'] || req.user?.['id']; 
+
 
     if(!userId){
         res.status(400).json({error:"user ID required"});
@@ -124,7 +124,7 @@ export const getProperyStatus=async (req:Request, res:Response) =>{
 export const checkBookingStatus = async ( req: AuthenticatedRequest , res: Response) => {
   try {
     const { propertyId } = req.params;
-     const userId = req.user?.['userId'] || req.user?.['id'] || req.user?.['sub'];
+    const userId = req.user?.['userId'] || req.user?.['id'];
 
     if (!propertyId || isNaN(parseInt(propertyId))) {
        res.status(400).json({ error: "Invalid property ID" });
