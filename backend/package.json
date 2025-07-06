@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "npx prisma generate && tsc && cpx \"prisma/**/*\" dist/prisma && cpx \"schema/**/*\" dist/schema && cpx \"src/routes/**/*\" dist/src/routes",
-    "vercel-build": "npm run build && cpx \"api/**/*\" dist/api",
-   "start": "node dist/src/index.js",
+      "start": "node dist/src/index.js",
     "dev": "nodemon --exec \"npx prisma generate && npm run build && npm start\"",
     "postinstall": "prisma generate"
   },
