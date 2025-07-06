@@ -76,7 +76,6 @@ app.use("/payment",paymentRoutes);
 app.use("/booking", bookingRoute)
 app.use("/availability", availabilityRoutes);
 app.use("/cron",updateAvailabilityRoute);
-// app.post('/webhook', dodoWebhookHandler);
 
 app.get('/', (req, res) => {
   res.json({ message: 'API is working' });
