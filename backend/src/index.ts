@@ -32,7 +32,6 @@ const corsOptions = {
   maxAge: 3600,
 };
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 
 app.use((req, res, next) => {
   if (req.path.match(/(favicon\.ico|\.(png|jpg|jpeg|svg|css|js|txt))$/i)) {
@@ -41,6 +40,8 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+app.options('*', cors(corsOptions));
 
 app.use((req, res, next) => {
   if (req.is('multipart/form-data')) {
