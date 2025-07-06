@@ -11,7 +11,8 @@ const router = express.Router();
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 router.post("/auth/google", async (req, res) => {
-
+ res.header('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  res.header('Cross-Origin-Embedder-Policy', 'unsafe-none');
     const {credential} =req.body;
     if(!credential) {
          res.status(400).json({ message: "No credential provided" });

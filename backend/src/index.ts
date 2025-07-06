@@ -22,7 +22,6 @@ const corsOptions = {
   origin: [
     'http://localhost:5173',
     'https://rentpy.vercel.app',
-    'https://rentpy-frontend.vercel.app'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
   credentials: true,
@@ -33,6 +32,12 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
+app.use('/auth', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://rentpy.vercel.app');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Expose-Headers', 'Authorization');
+  next();
+});
 app.use((req, res, next) => {
   if (req.is('multipart/form-data')) {
     // Convert all numeric fields from strings to numbers
