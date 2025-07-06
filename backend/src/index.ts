@@ -75,4 +75,12 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
+app.use((err:any, req:Request, res:Response, next:NextFunction) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ 
+    error: 'Internal server error',
+    message: err.message 
+  });
+});
+
 export { app }; 
