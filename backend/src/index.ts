@@ -40,6 +40,12 @@ const corsOptions: cors.CorsOptions = {
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log("Headers:", req.headers);
+  console.log("Body:", req.body);
+  next();
+});
+app.use((req, res, next) => {
   if (req.is('multipart/form-data')) {
     // Convert all numeric fields from strings to numbers
     const numericFields = ['bedrooms', 'bathrooms', 'pricePerNight', 'pricePerMonth', 'maxGuests'];
@@ -57,8 +63,9 @@ app.use((req, res, next) => {
   }
   next();
 });
+
 app.use("/auth", authRoutes);
-app.use("/", googleAuthRoute);
+app.use("/auth", googleAuthRoute);
 app.use("", forgotPasswordRoutes)
 app.use("/property", propertyRoutes)
 app.use("/",savedPropertyRoute);
