@@ -18,26 +18,27 @@ app.use(express.text());
 const upload = multer();
 import cors from "cors";
 
-const corsOptions = {
-  origin: [
-    'http://localhost:5173',
-    'https://rentpy.vercel.app',
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
+const corsOptions: cors.CorsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, origin?: string | boolean) => void) => {
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'https://rentpy.vercel.app'
+    ];
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, origin); 
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'credentials'],
-  optionsSuccessStatus: 200,
-  preflightContinue: false 
+  exposedHeaders: ['Authorization'],
+  optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
-app.use('/auth', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://rentpy.vercel.app');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Expose-Headers', 'Authorization');
-  next();
-});
 app.use((req, res, next) => {
   if (req.is('multipart/form-data')) {
     // Convert all numeric fields from strings to numbers
