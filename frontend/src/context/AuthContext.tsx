@@ -51,7 +51,8 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
                    const response=await axios.get(`${BACKEND_URL}/auth/me`, {
                     headers:{
                         Authorization: `Bearer ${storedToken}`
-                    }
+                    },
+                  withCredentials: true 
                    }) ;
                    
                   const backendUser = response.data.user;
@@ -82,7 +83,8 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
         try {
             const response=await axios.post(`${BACKEND_URL}/auth/signin`,{
                 email,password
-            });
+            },
+      { withCredentials: true });
             const { token, user } = response.data;
         
         localStorage.setItem('token', token);
@@ -101,7 +103,8 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
         password: string;
     }) =>{
         try {
-            const response=await axios.post(`${BACKEND_URL}/auth/signup`, inputs);
+            const response=await axios.post(`${BACKEND_URL}/auth/signup`, inputs,
+      { withCredentials: true });
 
             const {token, user}=response.data;
             localStorage.setItem('token', token);
@@ -121,7 +124,8 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
-                    }
+                    },
+       withCredentials: true 
                 }
             );
             
