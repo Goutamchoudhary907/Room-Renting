@@ -35,8 +35,6 @@ const queryClient = new QueryClient({
   },
 });
 
-console.log = () => {};
-console.error = () => {};
 function App() {
 const location=useLocation();
 const [routeKey, setRouteKey] = useState(location.pathname); // Initialize with current pathname
