@@ -90,7 +90,7 @@ export const Signin =()=>{
                      console.log("Google Login Failed");
                    }}
                     useOneTap 
-                    ux_mode="redirect" 
+                    ux_mode="popup" 
                   />
               <button className="flex items-center border rounded bg-[#335ca6] justify-center text-white w-full h-10 md:h-[28px] lg:w-[320px] lg:mt-3 max-lg:h-10 max-lg:text-sm">
               <div className="w-5 h-5 md:w-6 md:h-6">
