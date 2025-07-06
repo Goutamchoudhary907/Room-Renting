@@ -17,20 +17,18 @@ app.use(express.json());
 app.use(express.text());
 const upload = multer();
 import cors from "cors";
+
 const corsOptions = {
   origin: [
     'http://localhost:5173',
-    'https://rentpy-backend.vercel.app', 
-    'https://rentpy.vercel.app', 
-    'https://rentpy-frontend.vercel.app' ,
-    'https://rentpy-git-main-goutamchoudhary907s-projects.vercel.app',
-    /\.vercel\.app$/ // Allow all Vercel preview URLs
+    'https://rentpy.vercel.app',
+    'https://rentpy-frontend.vercel.app'
   ],
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-  credentials: true, 
-  allowedHeaders: 'Content-Type,Authorization', 
-  maxAge: 3600,
+  methods: ['GET', 'POST', 'OPTIONS'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
 };
+
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
@@ -50,11 +48,6 @@ app.use((req, res, next) => {
       }
     });
   }
-  next();
-});
-app.use((req, res, next) => {
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
-  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
   next();
 });
 app.use("/auth", authRoutes);
