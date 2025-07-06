@@ -78,7 +78,7 @@ export const Signin =()=>{
                      if (credentialResponse.credential) {
                        try {
                         await loginWithGoogle(credentialResponse.credential);
-                         navigate("/");
+                         window.location.href = "/"; 
                        } catch (err) {
                          console.error("Backend login error:", err);
                        }

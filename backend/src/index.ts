@@ -31,7 +31,13 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
-
+app.use((req, res, next) => {
+  if (req.path.includes('/auth/google')) {
+    res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+  }
+  next();
+});
 app.use((req, res, next) => {
   if (req.is('multipart/form-data')) {
     // Convert all numeric fields from strings to numbers
