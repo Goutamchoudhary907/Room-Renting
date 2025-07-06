@@ -24,14 +24,20 @@ const corsOptions = {
     'https://rentpy.vercel.app',
     'https://rentpy-frontend.vercel.app'
   ],
-  methods: ['GET', 'POST', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
   credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization', 'credentials'],
-  optionsSuccessStatus: 200
+  allowedHeaders: ['Content-Type', 'Authorization', 'credentials'],
+  optionsSuccessStatus: 200,
+  preflightContinue: false 
 };
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
+app.use('/auth', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || corsOptions.origin[0]);
+  res.header('Access-Control-Allow-Credentials', 'true');
+  next();
+});
 app.use((req, res, next) => {
   if (req.path.includes('/auth/google')) {
     res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
