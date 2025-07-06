@@ -65,7 +65,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/auth", authRoutes);
-app.use("/auth", googleAuthRoute);
+app.use("/login", googleAuthRoute);
 app.use("", forgotPasswordRoutes)
 app.use("/property", propertyRoutes)
 app.use("/",savedPropertyRoute);

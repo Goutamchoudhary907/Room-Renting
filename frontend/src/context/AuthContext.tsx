@@ -146,7 +146,7 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
 
     const loginWithGoogle = async (credential: string) => {
       try {
-        const response = await axios.post(`${BACKEND_URL}/auth/google`, {
+        const response = await axios.post(`${BACKEND_URL}/login/google`, {
           credential
         });
     
