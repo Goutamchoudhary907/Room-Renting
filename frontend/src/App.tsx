@@ -41,7 +41,7 @@ const [routeKey, setRouteKey] = useState(location.pathname); // Initialize with 
 
 useEffect(() => {
     setRouteKey(location.pathname); // Update routeKey whenever location changes
-}, [location]);                     // Run this effect when location changes
+}, [location]);                     
 
 useEffect(() => {
   document.title = "Rentpy"; 

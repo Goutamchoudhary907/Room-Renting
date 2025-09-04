@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { RoomFormData } from "../../components/Property/ListRoom/types";
 import axios from "axios";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -52,7 +52,8 @@ export const RoomDetails = () => {
   const [showAllImages, setShowAllImages] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [rentalType, setRentalType] = useState<"short-term" | "long-term">( "short-term" );
-  
+   const navigate= useNavigate();
+
   const [checkinDate, setCheckinDate] = useState<Date | null>(null);
   const [checkoutDate, setCheckoutDate] = useState<Date | null>(null);
   const [moveInDate, setMoveInDate] = useState<Date | null>(null);
@@ -616,8 +617,15 @@ if (propertyError) return <div>Error: {propertyError.message}</div>;
       : 'bg-blue-600 hover:bg-blue-700 text-white'
   }`}
   onClick={async () => {
-    if (!property || !user || isAuthLoading || !availability.available) return;
-    
+    // if (!property || !user || isAuthLoading || !availability.available) return;
+     if (!property) return;
+       if (!user) {
+    alert("You need to login to book this property.");
+  navigate(`/auth/signin?redirect=/property/room-detail/${property.id}`);
+    return;
+  }
+
+  if (isAuthLoading || !availability.available) return;
     setIsProcessingPayment(true);
     try {
       await checkoutHandler({
@@ -647,7 +655,7 @@ if (propertyError) return <div>Error: {propertyError.message}</div>;
       setIsProcessingPayment(false);
     }
   }}
-  disabled={isAuthLoading || !user || !availability.available || availability.loading || isProcessingPayment}
+  disabled={isAuthLoading|| !availability.available || availability.loading || isProcessingPayment}
 >
   {availability.loading ? (
     'Checking availability...'

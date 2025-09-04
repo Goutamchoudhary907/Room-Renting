@@ -91,7 +91,6 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
         localStorage.setItem('user', JSON.stringify(user));
             setToken(token);
             setUser(user);
-            navigate("/")
         } catch (error) {
           throw error;            
         }
@@ -111,7 +110,6 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
             localStorage.setItem('user', JSON.stringify(user));
             setToken(token);
             setUser(user);
-            navigate('/')
         } catch (error) {
             throw error;
         }
@@ -159,8 +157,7 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
           setToken(token);
           setUser(user);
         });
-    
-        navigate("/");
+
     
       } catch (error) {
         console.error('Google login failed:', error);

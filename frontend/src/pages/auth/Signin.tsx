@@ -1,8 +1,6 @@
 import { ChangeEvent, useState } from 'react';
 import {useNavigate} from 'react-router-dom'
 import logo from "../../assets/Signup-image.png"
-import facebookLogo from '../../assets/Facebook-logo.png'
-import appleLogo from '../../assets/Apple-logo.png'
 import { SigninInput } from '../../../schema/src/authSchema.js';
 import axios from 'axios';
 import { GoogleLogin } from '@react-oauth/google';
@@ -26,7 +24,9 @@ export const Signin =()=>{
         setIsSubmitting(true);
         try {
           await login(signinInputs.email, signinInputs.password); 
-            navigate("/");
+            const params = new URLSearchParams(window.location.search);
+            const redirect = params.get("redirect") || "/";
+            navigate(redirect);
         } catch (error) {
             if (axios.isAxiosError(error)) {
               if (error.response) {
@@ -57,16 +57,22 @@ export const Signin =()=>{
       if(isAuthLoading){
         return <SigninSkeleton/>
       }
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get("redirect") || "/";
     return (
-      <div className="min-h-screen flex justify-center items-start pt-4 md:pt-8 bg-gray-200 p-4">  <div className="w-[1000px] h-[600px] lg:w-full lg:max-w-[1000px] lg:h-auto lg:min-h-[600px] flex rounded-lg bg-white lg:flex-row flex-col max-lg:h-full max-lg:w-full max-lg:rounded-none ">
-      <div className="w-[40%] lg:flex justify-center items-center hidden max-lg:hidden">
+      <div className="min-h-screen flex justify-center items-start pt-4 md:pt-18 bg-gray-200 p-4"> 
+     <div className="w-[900px] lg:w-full lg:max-w-[900px] h-[500px] lg:h-auto lg:min-h-[500px] flex rounded-lg bg-white lg:flex-row flex-col max-lg:h-full max-lg:w-full max-lg:rounded-none ">
+ <div className="w-[40%] lg:flex justify-center items-center hidden max-lg:hidden">
       <img  className="max-w-full object-contain"  src={logo} alt="" />
   </div>
   <div className="w-[60%] lg:w-[60%] flex justify-center lg:py-0 py-8 max-lg:w-full max-lg:px-4 max-lg:py-6">
   <div className="w-[350px] mx-auto lg:mt-10 mt-0 max-lg:w-full max-lg:max-w-[350px]">
   <div className='flex justify-center items-center text-[12px] text-[#101011] w-full lg:ml-35 max-lg:flex-wrap max-lg:text-center max-lg:gap-1'>
   <div> Don't have an account ?</div>
-       <button onClick={ () => navigate("/auth/signup")} className='text-red-400 cursor-pointer'>Sign up</button>
+  
+<button onClick={() => navigate(`/auth/signup?redirect=${redirect}`)} className='text-red-400 cursor-pointer'>
+  Sign up
+</button>
     </div>
     <div className="flex flex-col ">
       <div className="text-[25px] text-[#636AE8] font-bold mt-5 lg:mt-0 lg:text-left text-center">
@@ -74,11 +80,13 @@ export const Signin =()=>{
     </div>
     <div className="mt-3 flex flex-col space-y-1 items-center">
               <GoogleLogin
-   onSuccess={async (credentialResponse) => {
+                    onSuccess={async (credentialResponse) => {
                      if (credentialResponse.credential) {
                        try {
                         await loginWithGoogle(credentialResponse.credential);
-                         window.location.href = "/"; 
+                         const params = new URLSearchParams(window.location.search);
+                         const redirect = params.get("redirect") || "/";
+                         navigate(redirect);
                        } catch (err) {
                          console.error("Backend login error:", err);
                        }
@@ -90,18 +98,6 @@ export const Signin =()=>{
                      console.log("Google Login Failed");
                    }} 
                   />
-              <button className="flex items-center border rounded bg-[#335ca6] justify-center text-white w-full h-10 md:h-[28px] lg:w-[320px] lg:mt-3 max-lg:h-10 max-lg:text-sm">
-              <div className="w-5 h-5 md:w-6 md:h-6">
-                <img src={facebookLogo} alt="Facebook Logo" />
-                </div>
-                <span className="text-xs md:text-[12px]">Login with Facebook</span>
-                </button>
-                <button className="flex items-center border rounded bg-[#9095a0] justify-center text-white w-full h-10 md:h-[28px] lg:w-[320px] max-lg:h-10 max-lg:text-sm">
-                <div className="w-5 h-5 md:w-6 md:h-6">
-              <img src={appleLogo} alt="Apple Logo"/>
-              </div>
-              <span className="text-xs md:text-[12px] ml-2">Login with Apple</span>
-                </button>
             </div>
 
             <div className="relative mt-4 flex items-center justify-center max-lg:mt-6">
@@ -188,7 +184,7 @@ function InputField ({label,placeholder, id, className,onChange, errorMessage}:I
   type="text"
   id={id}
   placeholder={placeholder}
-  className={`p-2 rounded-md text-xs md:text-[13.5px] bg-[#f6f6f8] placeholder-[#bcc1ca] ${className || ''} w-full max-lg:text-sm max-lg:p-2`}
+className={`p-3 h-12 rounded-md text-sm md:text-[15px] bg-[#f6f6f8] placeholder-[#bcc1ca] ${className || ''} w-full max-w-[400px]`}
 />
 
       <span
