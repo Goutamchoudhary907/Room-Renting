@@ -89,5 +89,5 @@ app.use((err:any, req:Request, res:Response, next:NextFunction) => {
 });
 
 app.listen(3000, () => {
-  console.log(`✅ Server started on port ${3000}`);
+  console.log(`✅ Server started on http://localhost:3000`);
 });

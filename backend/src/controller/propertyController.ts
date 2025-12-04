@@ -477,14 +477,27 @@ export async function getUserProperties(req:Request, res:Response):Promise<void>
     const userId=decodedToken.userId;
 
     // fetch properties 
-    const properties=await prisma.property.findMany({
-      where:{
-        hostId:userId ,
+ const properties = await prisma.property.findMany({
+  where: { hostId: userId },
+  include: {
+    images: true,
+    bookings: {
+      where: {
+        paymentStatus: 'SUCCESSFUL'
       },
-      include:{
-        images:true ,
+      select: {
+        id: true,
+        checkinDate: true,
+        checkoutDate: true,
+        moveInDate: true,
+        paymentStatus: true
+      },
+      orderBy: {
+        checkinDate: 'asc'
       }
-    })
+    }
+  }
+});
 
     res.status(200).json(properties);
   } catch (error) {

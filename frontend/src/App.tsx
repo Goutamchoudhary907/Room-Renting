@@ -26,7 +26,7 @@ import { BookingSuccess } from './pages/booking/BookingSuccess'
 import { BookingFailed } from './pages/booking/BookingFailed'
 import MyBookings from './pages/booking/MyBookings'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
+import { Analytics } from "@vercel/analytics/react"
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -82,6 +82,7 @@ useEffect(() => {
       </Route>
 
      </Routes>
+       <Analytics />
      <Footer/>
      </AuthProvider>
       </GoogleOAuthProvider>

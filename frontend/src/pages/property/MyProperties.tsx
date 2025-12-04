@@ -205,8 +205,8 @@ const handleDelete = (propertyId: number) => {
           </div>
         </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-17 px-8">
-                {displayProperties.map((property:Property) =>(
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-8">
+            {displayProperties.map((property:Property) =>(
                    <PropertyCard 
                         key={property.id} 
                         property={property}
@@ -235,7 +235,13 @@ const Button = ({children, className='', onClick}:ButtonProps) =>{
                   
     )
 }
-
+interface Booking {
+  id: number;
+  checkinDate: string | null;
+  checkoutDate: string | null;
+  moveInDate: string | null;
+  paymentStatus: string;
+}
 interface Property{
   id: number;
   title: string;
@@ -247,6 +253,7 @@ interface Property{
   hostId: number;
   images: Image[];
   bookingStatus:'AVAILABLE' | 'BOOKED' | 'UNAVAILABLE';
+   bookings: Booking[]; 
 }
 
 interface Image {
@@ -259,8 +266,38 @@ interface PropertyCardProps {
     onDelete: (propertyId: number) => void;
     onEdit:(propertyId:number) => void;
   }
+
 const PropertyCard= ({property,onDelete,onEdit }:PropertyCardProps) =>{
     const navigate = useNavigate();
+   const getNextBookingDate = (bookings: Booking[]): string | null => {
+  if (!bookings || bookings.length === 0) return null;
+  
+  const now = new Date();
+  // Set to start of today for comparison
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  const futureBookings = bookings
+    .filter(booking => 
+      booking.paymentStatus === 'SUCCESSFUL' && 
+      (booking.checkinDate || booking.moveInDate)
+    )
+    .map(booking => {
+      const bookingDate = booking.checkinDate || booking.moveInDate;
+      return {
+        date: new Date(bookingDate!),
+        type: booking.checkinDate ? 'short-term' : 'long-term'
+      };
+    })
+    .filter(booking => booking.date >= startOfToday) // Include today and future dates
+    .sort((a, b) => a.date.getTime() - b.date.getTime()); // Sort ascending
+
+  if (futureBookings.length === 0) return null;
+  return futureBookings[0].date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+};
  return(
     <div
     className="cursor-pointer transition-transform duration-300 hover:scale-[1.01]"
@@ -273,7 +310,7 @@ const PropertyCard= ({property,onDelete,onEdit }:PropertyCardProps) =>{
     }
   }}
   >
-    <div className="rounded-2xl p-4 sm:p-5 shadow-lg bg-white border border-gray-100">
+     <div className="rounded-2xl p-4 sm:p-5 shadow-lg bg-white border border-gray-100 h-full flex flex-col">
       
       {/* Image */}
       <div className="pb-4">
@@ -283,11 +320,11 @@ const PropertyCard= ({property,onDelete,onEdit }:PropertyCardProps) =>{
           className="w-full h-48 sm:h-52 object-cover rounded-xl"
         />
       </div>
-  
-      {/* Title & Status */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 pb-4">
-        <h3 className="font-semibold text-lg sm:text-xl text-gray-800">{property.title}</h3>
-        <div className="rounded-full px-3 py-1 text-xs sm:text-sm font-medium bg-green-100 text-green-700 capitalize w-fit">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 pb-4 min-h-[4rem]">
+        <h3 className="font-semibold text-lg sm:text-xl text-gray-800 line-clamp-2 flex-1">
+          {property.title}
+        </h3>
+        <div className="rounded-full px-3 py-1 text-xs sm:text-sm font-medium bg-green-100 text-green-700 capitalize w-fit mt-1 sm:mt-0">
           {property.bookingStatus?.charAt(0).toUpperCase() + property.bookingStatus.slice(1).toLowerCase()}
         </div>
       </div>
@@ -324,19 +361,20 @@ const PropertyCard= ({property,onDelete,onEdit }:PropertyCardProps) =>{
 
   
       {/* Rental Info */}
-      <div className="flex flex- sm:flex-row justify-between text-sm text-gray-600 gap-4 pb-6">
+      <div className="flex flex-col sm:flex-row justify-between text-sm text-gray-600 gap-4 pb-6">
         <div>
           <p>Rental Type</p>
           <p className="font-semibold text-base sm:text-lg text-gray-800">{property.rentalType}</p>
         </div>
         <div>
           <p>Next Booking</p>
-          <p className="font-semibold text-base sm:text-lg text-gray-800">Apr 1, 2025</p>
-        </div>
+         <p className="font-semibold text-base sm:text-lg text-gray-800">
+              {getNextBookingDate(property.bookings) || 'No upcoming bookings'}
+            </p>
+            </div>
       </div>
   
-      {/* Action Buttons */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-sm font-medium">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-sm font-medium mt-auto">
 
   <button
     className="flex items-center justify-center gap-2 h-10 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 transition"
@@ -380,8 +418,6 @@ const PropertyCard= ({property,onDelete,onEdit }:PropertyCardProps) =>{
   </button>
 
 </div>
-
-  
     </div>
   </div>
   
