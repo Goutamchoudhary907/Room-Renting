@@ -12,11 +12,7 @@ export const PrivacyPolicy = () => {
         </h1>
         <div className="w-24 h-1.5 bg-gradient-to-r from-blue-400 to-teal-300 mx-auto rounded-full mb-4"></div>
         <p className="text-gray-600">
-          Last updated: {new Date().toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          })}
+          Last updated: 20th December 2025
         </p>
       </div>
 

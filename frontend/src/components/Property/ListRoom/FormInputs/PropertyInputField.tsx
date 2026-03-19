@@ -9,6 +9,7 @@ export const PropertyInputField = ({
   value,
   className = '',
   onChange,
+  inputProps,
 }: InputFieldType) => {
   return (
     <div className="flex flex-col">
@@ -25,6 +26,7 @@ export const PropertyInputField = ({
           onChange={onChange}
           className={`border border-[#ccced3] placeholder-black placeholder-opacity-100 rounded-2xl p-3 text-long ${className}`}
           rows={4}
+          {...inputProps}
         />
       ) : (
         <input
@@ -35,6 +37,7 @@ export const PropertyInputField = ({
           value={value}
           onChange={onChange}
           className={`border border-[#ccced3] placeholder-black placeholder-opacity-100 rounded-2xl p-3 h-12 ${className}`}
+          {...inputProps} 
         />
       )}
     </div>

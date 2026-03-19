@@ -10,11 +10,7 @@ export const TermsOfService = () => {
         </h1>
         <div className="w-24 h-1.5 bg-gradient-to-r from-blue-400 to-teal-300 mx-auto rounded-full mb-4"></div>
         <p className="text-gray-600">
-          Effective from: {new Date().toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          })}
+            Effective from: 20th October 2025
         </p>
       </div>
 

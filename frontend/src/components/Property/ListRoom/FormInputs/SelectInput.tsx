@@ -8,6 +8,7 @@ interface SelectInputType {
   options: { value: string | number; label: string }[];
   value: string | number;
   error?: string;
+  inputProps?: React.SelectHTMLAttributes<HTMLSelectElement>;
 }
 
 export function SelectInput({
@@ -18,6 +19,7 @@ export function SelectInput({
   options,
   value,
   error,
+  inputProps
 }: SelectInputType) {
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     let parsedValue: string | number = event.target.value;
@@ -44,6 +46,7 @@ export function SelectInput({
         className={`w-full border ${error ? "border-red-500" : "border-[#ccced3]"} rounded p-2 focus:outline-none`}
         value={value}
         onChange={handleSelectChange}
+        {...inputProps}
       >
         {options.map((option) => (
           <option value={option.value} key={option.value}>

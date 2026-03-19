@@ -42,6 +42,7 @@ export interface InputFieldType {
   value: string;
   onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   className?: string;
+  inputProps?: React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement>;
 }
 
 export interface SelectInputType {

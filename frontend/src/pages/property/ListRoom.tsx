@@ -111,14 +111,14 @@ export const ListRoom: React.FC<ListRoomProps> = ({
     pricePerNight: undefined,
     pricePerMonth: undefined,
     address: {
-      country: undefined,
-      flatOrHouse: undefined,
-      street: undefined,
-      landmark: undefined,
-      locality: undefined,
-      city: undefined,
-      state: undefined,
-      postalCode: undefined,
+      country: '',
+      flatOrHouse: '',
+      street: '',
+      landmark: '',
+      locality: '',
+      city: '',
+      state: '',
+      postalCode: '',
     },
     formattedAddress: undefined,
     amenities: [],
@@ -147,7 +147,16 @@ export const ListRoom: React.FC<ListRoomProps> = ({
    libraries,
  });
  const { geocodeAddress } = useMap();
-
+ const [isSubmitting, setIsSubmitting] = useState(false);
+ const scrollToFirstError = () => {
+  setTimeout(() => {
+    const firstErrorField = document.querySelector('[data-error="true"]');
+    if (firstErrorField) {
+      firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      (firstErrorField as HTMLElement).focus();
+    }
+  }, 100);
+};
  useEffect(() => {
   const fetchLatLng = async () => {
     if ((!RoomFormData.latitude || !RoomFormData.longitude) && RoomFormData.formattedAddress) {
@@ -406,15 +415,6 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
   const handleSubmit = async () => {
     setFieldErrors({});
     setGeneralErrors([]);
-
-    if (RoomFormData.amenities.length === 0) {
-      setFieldErrors((prevErrors) => ({
-        ...prevErrors,
-        amenities: ["Select at least one amenity"],
-      }));
-      return;
-    }
-    setLoading(true);
     const formDataToSend = new FormData();
 
   // Append address components with proper nesting
@@ -454,17 +454,47 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
       dataToValidate.pricePerNight = undefined;     
     }
 
-    const validationResult = propertySchema.safeParse(dataToValidate); // Use the modified copy
-    console.log('[5] Validation result:', validationResult.success)
+    const validationResult = propertySchema.safeParse(dataToValidate);
+    console.log('[5] Validation result:', validationResult.success);
+    
+    let combinedErrors: Record<string, string[]> = {};
+    
     if (!validationResult.success) {
-      console.log('[X] Validation errors:', validationResult.error);
-      setFieldErrors(validationResult.error.formErrors.fieldErrors);
+      const rawErrors = validationResult.error.formErrors.fieldErrors;
+      Object.entries(rawErrors).forEach(([key, value]) => {
+        if (key.startsWith('address.')) {
+          const fieldName = key.replace('address.', '');
+          combinedErrors[fieldName] = value;
+        } else if (key === 'address' && Array.isArray(value)) {
+          const addressFields = ['street', 'city', 'state', 'postalCode'];
+          value.forEach((msg, index) => {
+            if (index < addressFields.length) {
+              const field = addressFields[index];
+              if (!combinedErrors[field]) combinedErrors[field] = [];
+              combinedErrors[field].push(msg);
+            }
+          });
+        } else {
+          combinedErrors[key] = value;
+        }
+      });
+    }
+    
+    if (images.length === 0) {
+      combinedErrors.images = ["At least one image is required"];
+    }
+    
+    if (Object.keys(combinedErrors).length > 0) {
+      setFieldErrors(combinedErrors);
+      setLoading(false);
+      scrollToFirstError();
       return;
     }
 
    if(isEditMode && onSubmit){
     console.log('[3] Using onSubmit prop')
     try {
+      setIsSubmitting(true)
       await onSubmit(RoomFormData,images);
       console.log('[4] onSubmit completed successfully');
       if(!isEditMode){
@@ -491,6 +521,7 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
             });
             setFieldErrors(fieldErrors);
             setGeneralErrors(general || []);
+            scrollToFirstError();  
           } else {
             let fieldErrors: Record<string, string[]> = {};
             let generalErrors: string[] = [];
@@ -505,13 +536,18 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
             setFieldErrors(fieldErrors);
             setGeneralErrors(generalErrors);
           }
+        } else if (error.response.data.error) {
+          setGeneralErrors([error.response.data.error]);
+        } else if (error.response.data.message) {
+          setGeneralErrors([error.response.data.message]);
         } else {
-          setGeneralErrors([error.response.data.message || "Something went wrong."]);
+          setGeneralErrors(["Something went wrong."]);
         }
       } else {
         setGeneralErrors(["An unexpected error occurred. Please try again."]);
       }
     }finally{
+      setIsSubmitting(false)
       setLoading(false);
     }
     }else{
@@ -543,6 +579,7 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
       return;
     }
     try {
+      setIsSubmitting(true); 
       const response = await axios.post(
         `${BACKEND_URL}/property/create`,
         formData,
@@ -568,10 +605,13 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
           const { general, ...fieldErrors } = error.response.data.errors;
           setFieldErrors(fieldErrors);
           setGeneralErrors(general || []);
+          scrollToFirstError();  
+        } else if (error.response.data.error) {
+          setGeneralErrors([error.response.data.error]);
+        } else if (error.response.data.message) {
+          setGeneralErrors([error.response.data.message]);
         } else {
-          setGeneralErrors([
-            error.response.data.message || "Something went wrong.",
-          ]);
+          setGeneralErrors(["Something went wrong."]);
         }
       } else {
         setGeneralErrors(["An unexpected error occurred. Please try again."]);
@@ -579,6 +619,7 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
       }
     }finally{
       setLoading(false);
+      setIsSubmitting(false);
     }
   };
 }
@@ -686,6 +727,7 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
                 value={RoomFormData.title}
                 className="mt-1 lg:mt-2"
                 onChange={handleChange}
+                inputProps={{ 'data-error': fieldErrors.title ? 'true' : undefined } as any}
               />
               {fieldErrors.title && (
                 <ErrorMessage message={fieldErrors.title[0]} className="mt-1" />
@@ -702,6 +744,7 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
                 value={RoomFormData.description}
                 className="mt-1 lg:mt-2"
                 onChange={handleChange}
+                inputProps={{ 'data-error': fieldErrors.description ? 'true' : undefined } as any}
               />
               {fieldErrors.description && (
                 <ErrorMessage message={fieldErrors.description[0]} className="mt-1" />
@@ -716,9 +759,12 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
                 onClear={clearImages}
                 fileInputRef={fileInputRef}
               />
-              {fieldErrors.images && (
-                <ErrorMessage message={fieldErrors.images[0]} className="mt-1" />
-              )}
+             {fieldErrors.images && (
+               <>
+                 <div tabIndex={-1} data-error="true" style={{ height: 0, overflow: 'hidden' }} />
+                 <ErrorMessage message={fieldErrors.images[0]} className="mt-1" />
+               </>
+             )}
             </div>
           </RoomDetailsSection>
 
@@ -747,6 +793,7 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
             checked={isChecked === type.value}
             name="rentalType"
             readOnly
+            data-error={fieldErrors.rentalType ? 'true' : undefined}
           />
           <span className="rounded-full w-4 h-4 border-2 border-blue-500 inline-flex items-center justify-center mr-2">
             {isChecked === type.value && (
@@ -795,6 +842,7 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
                   value={RoomFormData.bedrooms}
                   onChange={handleChange}
                   error={fieldErrors.bedrooms?.[0]}
+                  inputProps={{ 'data-error': fieldErrors.bedrooms ? 'true' : undefined } as any}
                 />
               </div>
 
@@ -807,6 +855,7 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
                   value={RoomFormData.bathrooms}
                   onChange={handleChange}
                   error={fieldErrors.bathrooms?.[0]}
+                  inputProps={{ 'data-error': fieldErrors.bathrooms ? 'true' : undefined } as any}
                 />
               </div>
             </div>
@@ -821,6 +870,7 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
                   value={RoomFormData.kitchen}
                   onChange={handleChange}
                   error={fieldErrors.kitchen?.[0]}
+                  inputProps={{ 'data-error': fieldErrors.kitchen ? 'true' : undefined } as any}
                 />
               </div>
 
@@ -833,6 +883,7 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
                   value={RoomFormData.livingRoom}
                   onChange={handleChange}
                   error={fieldErrors.livingRoom?.[0]}
+                  inputProps={{ 'data-error': fieldErrors.livingRoom ? 'true' : undefined } as any}
                 />
               </div>
             </div>
@@ -857,7 +908,10 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
               }}
             />
             {fieldErrors.amenities && (
-              <ErrorMessage message={fieldErrors.amenities[0]} className="mt-2" />
+              <>
+                <div tabIndex={-1} data-error="true" style={{ height: 0, overflow: 'hidden' }} />
+                <ErrorMessage message={fieldErrors.amenities[0]} className="mt-2" />
+              </>
             )}
           </AmenitiesSection>
 
@@ -884,6 +938,7 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
                     aria-label="Price Per Night (INR)"
                     value={RoomFormData.pricePerNight === undefined ? "" : RoomFormData.pricePerNight}
                     onChange={handleChange}
+                    data-error={fieldErrors.pricePerNight ? 'true' : undefined}
                   />
                   {fieldErrors.pricePerNight && (
                     <ErrorMessage message={fieldErrors.pricePerNight[0]} className="mt-1" />
@@ -904,15 +959,10 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
                     id="pricePerMonth"
                     name="pricePerMonth"
                     step="1"
-                    onBlur={(e) => {
-                      const value = e.target.value;
-                      if (value) {
-                        e.target.value = Math.round(parseFloat(value)).toString();
-                      }
-                    }}
                     aria-label="Price Per Month (INR)"
                     value={RoomFormData.pricePerMonth === undefined ? "" : RoomFormData.pricePerMonth}
                     onChange={handleChange}
+                    data-error={fieldErrors.pricePerMonth ? 'true' : undefined}
                   />
                   {fieldErrors.pricePerMonth && (
                     <ErrorMessage message={fieldErrors.pricePerMonth[0]} className="mt-1" />
@@ -997,6 +1047,7 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
               }
             }))}
             placeholder="e.g. Flat 301, Bldg A"
+            data-error={fieldErrors.flatOrHouse ? 'true' : undefined}
           />
           {fieldErrors.flatOrHouse && (
     <ErrorMessage message={fieldErrors.flatOrHouse[0]} className="mt-1" />
@@ -1021,6 +1072,7 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
               }
             }))}
             placeholder="e.g. MG Road"
+            data-error={fieldErrors.street ? 'true' : undefined}
           />
           {fieldErrors.street && (
     <ErrorMessage message={fieldErrors.street[0]} className="mt-1" />
@@ -1043,6 +1095,7 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
               }
             }))}
             placeholder="e.g. Near City Mall"
+            data-error={fieldErrors.landmark ? 'true' : undefined}
           />
           {fieldErrors.landmark && (
     <ErrorMessage message={fieldErrors.landmark[0]} className="mt-1" />
@@ -1067,6 +1120,7 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
               }
             }))}
             placeholder="e.g. Andheri East"
+            data-error={fieldErrors.locality ? 'true' : undefined}
           />
           {fieldErrors.locality && (
     <ErrorMessage message={fieldErrors.locality[0]} className="mt-1" />
@@ -1089,6 +1143,7 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
               }
             }))}
             placeholder="e.g. Mumbai"
+            data-error={fieldErrors.city ? 'true' : undefined}
           />
            {fieldErrors.city && (
             <ErrorMessage message={fieldErrors.city[0]} className="mt-1" />
@@ -1111,6 +1166,7 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
               }
             }))}
             placeholder="e.g. Maharashtra"
+            data-error={fieldErrors.state ? 'true' : undefined}
           />
           {fieldErrors.state && (
     <ErrorMessage message={fieldErrors.state[0]} className="mt-1" />
@@ -1136,10 +1192,11 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
             }))}
             placeholder="e.g. 400001"
             maxLength={6}
+            data-error={fieldErrors.postalCode ? 'true' : undefined}
           />
-          {fieldErrors.postal_code && (
-    <ErrorMessage message={fieldErrors.postal_code[0]} className="mt-1" />
-  )}
+       {fieldErrors.postalCode && (
+        <ErrorMessage message={fieldErrors.postalCode[0]} className="mt-1" />
+         )}
         </div>
       </div>
       <div className="mb-4">
@@ -1234,13 +1291,24 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
             </div>
           )}
 
-          <button
-            onClick={handleSubmit}
-            type={isEditMode ? "button" : "submit"}
-            className="mt-3 lg:mt-4 px-4 py-2 text-white bg-[#2563EB] rounded-lg text-sm lg:text-base font-medium cursor-pointer w-full lg:w-auto"
-          >
-            {isEditMode ? 'Save Changes' : 'Submit'}
-          </button>
+       <button
+         onClick={handleSubmit}
+         type={isEditMode ? "button" : "submit"}
+         disabled={isSubmitting}
+         className="mt-3 lg:mt-4 px-4 py-2 text-white bg-[#2563EB] rounded-lg text-sm lg:text-base font-medium cursor-pointer w-full lg:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
+       >
+         {isSubmitting ? (
+           <span className="flex items-center justify-center">
+             <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+             </svg>
+             {isEditMode ? 'Saving...' : 'Creating...'}
+           </span>
+         ) : (
+           isEditMode ? 'Save Changes' : 'Submit'
+         )}
+       </button>
         </div>
       </div>
     </div>

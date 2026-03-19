@@ -28,13 +28,13 @@ if(token == null){
         req.user = decoded;
         next();
       } catch (err: any) {
-        console.error('JWT Verification Error:', err);       // Log full error object
+        console.error('JWT Verification Error:', err);
         if (err.name === 'TokenExpiredError') {
-          res.status(403).json({ message: 'Forbidden: Token expired' });
+          res.status(401).json({ message: 'Unauthorized: Token expired' });
         } else if (err.name === 'JsonWebTokenError') {
-          res.status(403).json({ message: 'Forbidden: Invalid token' });
+          res.status(401).json({ message: 'Unauthorized: Invalid token' });
         } else {
-          res.status(403).json({ message: 'Forbidden: Token verification failed' });
+          res.status(401).json({ message: 'Unauthorized: Token verification failed' });
         }
       }
 }

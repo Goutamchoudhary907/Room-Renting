@@ -29,14 +29,31 @@ interface MappedErrors{
 }
 
 
-export async function createProperty(req:AuthenticatedRequest, res:Response):Promise<void>{
+export async function createProperty(req: AuthenticatedRequest, res: Response): Promise<void> {
   console.log("req.body:", req.body);
   const errors: Record<string, string[]> = {};
   const { address, ...rest } = req.body;
 
+  const addressRequiredFields = ['street', 'city', 'state', 'postalCode'];
+
   if (!address) {
-     res.status(400).json({ error: "Address is required" });
-     return
+    addressRequiredFields.forEach(field => {
+      if (!errors[field]) errors[field] = [];
+      errors[field].push(`${field} is required`);
+    });
+  } else {
+    addressRequiredFields.forEach(field => {
+      const value = address[field];
+      if (!value || value.trim() === '') {
+        if (!errors[field]) errors[field] = [];
+        errors[field].push(`${field} is required`);
+      }
+    });
+  }
+
+  if (Object.keys(errors).length > 0) {
+    res.status(400).json({ errors });
+    return;
   }
 
   try {
@@ -300,7 +317,7 @@ if (excludeHostId) {
 
     if (address) {
       where.AND.push({
-        address: {
+        city: {
           contains: address as string,
           mode: 'insensitive'
         }

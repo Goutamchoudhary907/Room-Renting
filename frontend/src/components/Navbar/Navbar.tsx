@@ -130,7 +130,7 @@ export const Navbar = () => {
                   List Property
                 </Link>
                 <Link 
-                  to="/bookings" 
+                  to="/booking/my-bookings" 
                   className="text-gray-900 hover:text-blue-600"
                   onClick={() => setIsMenuOpen(false)}
                 >

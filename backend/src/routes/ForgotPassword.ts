@@ -9,7 +9,10 @@ const JWT_SECRET = process.env.JWT_SECRET;
 import { sendEmail } from "./email-service.js";
 import bcrypt from "bcrypt";
 import { forgotPasswordInput, resetPasswordInput } from "../../schema/src/authSchema.js";
-
+const FRONTEND_URL = process.env.FRONTEND_URL;
+if(!FRONTEND_URL){
+  throw new Error("FRONTEND_URL is not defined in the env");
+}
 router.post("/auth/forgot-password", async (req: Request, res: Response):Promise<any> => {
   const email = req.body;
   const result=forgotPasswordInput.safeParse(email);
@@ -53,7 +56,7 @@ router.post("/auth/forgot-password", async (req: Request, res: Response):Promise
       data: { reset: resetToken },
     });
 
-    const resetLink = `http://localhost:5173/auth/reset-password?token=${resetToken}`;
+    const resetLink = `${FRONTEND_URL}/auth/reset-password?token=${resetToken}`;
     await sendEmail({
       to: email,
       subject: "Reset password requested",
@@ -212,7 +215,7 @@ router.get("/auth/reset-password", async (req: Request, res: Response) => {
     }
 
     // If token is valid, redirect to frontend with the token
-    const redirectURL = `http://localhost:5173/auth/reset-password?token=${token}`;
+    const redirectURL = `${FRONTEND_URL}/auth/reset-password?token=${token}`;
     console.log("Redirecting to:", redirectURL);
     res.redirect(redirectURL);
     return

@@ -1,10 +1,10 @@
 import {z} from 'zod';
 
 const addressSchema = z.object({
-  street: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  postalCode: z.string().optional(),
+  street: z.string({ required_error: "Street is required" }).min(1, { message: "Street is required" }),
+  city: z.string({ required_error: "City is required" }).min(1, { message: "City is required" }),
+  state: z.string({ required_error: "State is required" }).min(1, { message: "State is required" }),
+  postalCode: z.string({ required_error: "Postal code is required" }).min(1, { message: "Postal code is required" }),
   country: z.string().optional(),
   formattedAddress: z.string().optional(),
   flatOrHouse: z.string().optional(),
@@ -25,11 +25,11 @@ export const propertySchema=z.object({
   pricePerMonth: z.number().int().positive().nullable().optional(),
  depositAmount: z.number().int().positive().optional(),
  maxGuests: z.number().min(1).default(1),
- address:addressSchema.optional() ,
+ address:addressSchema ,
  formattedAddress: z.string().optional(),
   latitude: z.coerce.number().optional(),
   longitude: z.coerce.number().optional(),
-  amenities: z.string().array(),
+  amenities: z.array(z.string()).min(1, { message: "Select at least one amenity" }),
   availability: z.any().optional(),
   })
   .refine(

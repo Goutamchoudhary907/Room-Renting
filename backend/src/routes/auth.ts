@@ -80,7 +80,8 @@ router.post("/signup", async (req: Request, res: Response): Promise<any> => {
         userId: newUser.id,
         email: newUser.email,
       },
-      JWT_SECRET
+      JWT_SECRET,
+      {expiresIn:"7d"}
     );
     console.log('Auth Signup: JWT token generated'); 
 
@@ -166,7 +167,8 @@ router.post("/signin", async (req: Request, res: Response): Promise<any> => {
         userId: user.id,
         email: user.email,
       },
-      JWT_SECRET
+      JWT_SECRET,
+      {expiresIn:"7d"}
     );
     console.log('Auth Signin: JWT token generated'); 
 

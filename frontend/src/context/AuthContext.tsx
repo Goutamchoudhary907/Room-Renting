@@ -47,22 +47,24 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
                 setUser(JSON.parse(storedUser));
             }
             if(storedToken){
-                try{
-                   const response=await axios.get(`${BACKEND_URL}/auth/me`, {
-                    headers:{
-                        Authorization: `Bearer ${storedToken}`
-                    },
-                  withCredentials: true 
-                   }) ;
-                   
-                  const backendUser = response.data.user;
-                 setUser(backendUser);
-                 localStorage.setItem('user', JSON.stringify(backendUser));
-
-                setToken(storedToken);
-                }catch(error){
+                try {
+                    const response = await axios.get(`${BACKEND_URL}/auth/me`, {
+                      headers: { Authorization: `Bearer ${storedToken}` },
+                      withCredentials: true 
+                    });
+                    const backendUser = response.data.user;
+                    setUser(backendUser);
+                    localStorage.setItem('user', JSON.stringify(backendUser));
+                    setToken(storedToken);
+                  } catch (error) {
                     console.error("Token verification failed:", error);
-                }
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    setToken(null);
+                    setUser(null);
+                  } finally {
+                    setIsLoading(false);
+                  }
             }else {
                 console.log("No token found in localStorage.");
             }
@@ -70,6 +72,29 @@ export const AuthProvider=({children}:{children:ReactNode}) =>{
         };
         initAuth();
     },[]);
+    useEffect(() => {
+        const requestInterceptor = axios.interceptors.request.use(
+          (config) => {
+            return config;
+          },
+          (error) => Promise.reject(error)
+        );
+      
+        const responseInterceptor = axios.interceptors.response.use(
+          (response) => response,
+          (error) => {
+            if (error.response?.status === 401 || error.response?.status === 403) {
+              logout();
+            }
+            return Promise.reject(error);
+          }
+        );
+      
+        return () => {
+          axios.interceptors.request.eject(requestInterceptor);
+          axios.interceptors.response.eject(responseInterceptor);
+        };
+      }, []);
 
     useEffect(() => {
         if (!isLoading) {

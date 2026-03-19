@@ -29,7 +29,7 @@ export const ForgotPassword= () =>{
     );
     if (response.status >= 200 && response.status < 300) {
         alert("Password reset email sent!");
-        navigate("/home"); 
+        navigate("/"); 
     } else {
         setErrors({ general: `Request failed with status: ${response.status}` });
     }
