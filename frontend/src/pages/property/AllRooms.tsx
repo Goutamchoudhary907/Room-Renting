@@ -23,6 +23,7 @@ export const AllRooms = () => {
     null
   );
   const isMobile = useMediaQuery({ maxWidth: 767 });
+  const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = isMobile ? 10 : 20;
   const queryClient = useQueryClient();
@@ -78,16 +79,12 @@ export const AllRooms = () => {
     setFilters(newFilters);
   }, [searchParams]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filters]);
-
   const {
-    data: properties = [],
+    data:paginatedResponse,
     isLoading: isPropertiesLoading,
     error: fetchError,
   } = useQuery({
-    queryKey: ["properties", filters, user?.id],
+   queryKey: ["properties", filters, user?.id, currentPage, itemsPerPage],
     queryFn: async () => {
       const params = {
         address: filters.location,
@@ -101,6 +98,8 @@ export const AllRooms = () => {
         bedrooms: filters.bedrooms,
         excludeHostId: user?.id?.toString(),
         bookingStatus: "AVAILABLE",
+        page:currentPage,
+        limit:itemsPerPage,
       };
 
       const cleanParams = Object.fromEntries(
@@ -116,6 +115,21 @@ export const AllRooms = () => {
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
+
+  const properties = paginatedResponse?.data || [];
+const pagination = paginatedResponse?.pagination;
+
+// Update totalPages when pagination changes
+useEffect(() => {
+  if (pagination?.totalPages) {
+    setTotalPages(pagination.totalPages);
+  }
+}, [pagination]);
+
+useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
 
   const { data: savedPropertyIds = [], isLoading: isSavedPropertiesLoading } =
     useQuery({
@@ -204,11 +218,6 @@ onSuccess: (_data, _propertyId, context) => {
     [mutate]
   );
 
-  const totalPages = Math.ceil(properties.length / itemsPerPage);
-  const paginatedProperties = properties.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
   if (isPropertiesLoading || authLoading || isSavedPropertiesLoading) {
     return <AllRoomsSkeleton />;
   }
@@ -245,7 +254,7 @@ onSuccess: (_data, _propertyId, context) => {
         )}{" "}
         {saveError && <p className="text-red-500">{saveError}</p>}
         <PropertyDisplay
-          properties={paginatedProperties}
+          properties={properties}
           onSave={handleSaveProperty}
           savedPropertyIds={savedPropertyIds}
           savingError={savingError}

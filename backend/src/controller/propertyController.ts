@@ -257,6 +257,10 @@ const otherData = { ...validatedData, address: undefined };
 
 export async function getFilteredProperties(req:Request, res:Response):Promise<void>{
  try {
+   const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;  // default 20
+    const skip = (page - 1) * limit;
+
   const {rentalType,bedrooms,minPrice, maxPrice, address,amenities,checkin, checkout,moveInDate, leaseDuration, excludeHostId} = req.query;
 const where: any = {
   AND: [],
@@ -420,20 +424,29 @@ if (excludeHostId) {
 
 
 
-   const properties = await prisma.property.findMany({
-    where,
-    include: {
-      images: { take: 1 },
-      host: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true
-        }
+   const [properties, totalCount] = await Promise.all([
+      prisma.property.findMany({
+        where,
+        skip,           // ← OFFSET
+        take: limit,    // ← LIMIT
+        include: {
+          images: { take: 1 },
+          host: { select: { id: true, firstName: true, lastName: true } }
+        },
+        orderBy: { id: 'asc' }
+      }),
+      prisma.property.count({ where })
+    ]);
+
+    res.status(200).json({
+      data: properties,
+      pagination: {
+        currentPage: page,
+        limit: limit,
+        totalItems: totalCount,
+        totalPages: Math.ceil(totalCount / limit)
       }
-    }
-  });
-   res.status(200).json(properties);
+    });
 
  } catch (error:any) {
   console.error("Error getting propertis: ", error);
