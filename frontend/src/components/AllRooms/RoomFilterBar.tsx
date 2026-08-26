@@ -1,74 +1,105 @@
 import { useEffect, useState } from "react";
 import { amenityOptions, bedroomOptions, propertyOptions } from "../Property/ListRoom/constants";
-import Select, { components } from 'react-select';
-import { FiFilter, FiX } from 'react-icons/fi';
-import { Filters } from '../Property/ListRoom/types';
+import { Filters } from "../Property/ListRoom/types";
+import { CalendarIcon, ClockIcon, FilterIcon, XIcon } from "../Home/icons";
 
 interface RoomFilterBarProps {
   onFilterChange: (filterData: Filters) => void;
   currentFilters?: Filters;
 }
 
-const CheckboxOption = (props: any) => {
-  return (
-    <components.Option {...props}>
-      <input
-        type="checkbox"
-        checked={props.isSelected}
-        onChange={() => {}}
-        className="mr-2 accent-blue-600"
-      />
-      <label>{props.label}</label>
-    </components.Option>
-  );
-};
-
-const ValueDisplay = ({ selectProps }: any) => {
-  const count = selectProps.value.length;
-  return <div className="px-2 text-gray-700">{count} selected</div>;
-};
+const RENTAL_TYPES = [
+  { value: "short-term", label: "Short-term", icon: <ClockIcon size={13} /> },
+  { value: "long-term", label: "Long-term", icon: <CalendarIcon size={13} /> },
+];
 
 export const RoomFilterBar: React.FC<RoomFilterBarProps> = ({
   onFilterChange,
-  currentFilters = {}
+  currentFilters = {},
 }) => {
-  const [minPrice, setMinPrice] = useState(currentFilters.minPrice || '');
-  const [maxPrice, setMaxPrice] = useState(currentFilters.maxPrice || '');
+  const [minPrice, setMinPrice] = useState(currentFilters.minPrice || "");
+  const [maxPrice, setMaxPrice] = useState(currentFilters.maxPrice || "");
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>(currentFilters.amenities || []);
-  const [propertyType, setPropertyType] = useState(currentFilters.propertyType || '');
-  const [rentalType, setRentalType] = useState(currentFilters.rentalType || '');
-  const [bedrooms, setBedrooms] = useState(currentFilters.bedrooms || '');
+  const [propertyType, setPropertyType] = useState(currentFilters.propertyType || "");
+  const [rentalType, setRentalType] = useState(currentFilters.rentalType || "");
+  const [bedrooms, setBedrooms] = useState(currentFilters.bedrooms || "");
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
   useEffect(() => {
-    setMinPrice(currentFilters.minPrice || '');
-    setMaxPrice(currentFilters.maxPrice || '');
+    setMinPrice(currentFilters.minPrice || "");
+    setMaxPrice(currentFilters.maxPrice || "");
     setSelectedAmenities(currentFilters.amenities || []);
-    setPropertyType(currentFilters.propertyType || '');
-    setRentalType(currentFilters.rentalType || '');
-    setBedrooms(currentFilters.bedrooms || '');
+    setPropertyType(currentFilters.propertyType || "");
+    setRentalType(currentFilters.rentalType || "");
+    setBedrooms(currentFilters.bedrooms || "");
   }, [currentFilters]);
 
-  const handleApplyFilters = () => {
-    const filters: Filters = {
-      minPrice: minPrice || undefined,
-      maxPrice: maxPrice || undefined,
-      amenities: selectedAmenities.length > 0 ? selectedAmenities : undefined,
-      propertyType: propertyType || undefined,
-      rentalType: rentalType || undefined,
-      bedrooms: bedrooms || undefined,
+  // Filters apply live as you interact (the design has no separate "Apply" button) —
+  // every handler below builds the next full filter snapshot and emits it immediately.
+  type Snapshot = {
+    minPrice: string;
+    maxPrice: string;
+    amenities: string[];
+    propertyType: string;
+    rentalType: string;
+    bedrooms: string;
+  };
+  const emit = (patch: Partial<Snapshot>) => {
+    const next: Snapshot = {
+      minPrice,
+      maxPrice,
+      amenities: selectedAmenities,
+      propertyType,
+      rentalType,
+      bedrooms,
+      ...patch,
     };
-    onFilterChange(filters);
+    onFilterChange({
+      minPrice: next.minPrice || undefined,
+      maxPrice: next.maxPrice || undefined,
+      amenities: next.amenities.length > 0 ? next.amenities : undefined,
+      propertyType: next.propertyType || undefined,
+      rentalType: next.rentalType || undefined,
+      bedrooms: next.bedrooms || undefined,
+    });
   };
 
+  const togglePropertyType = (value: string) => {
+    const next = propertyType === value ? "" : value;
+    setPropertyType(next);
+    emit({ propertyType: next });
+  };
+
+  const toggleBedrooms = (value: string) => {
+    const next = bedrooms === value ? "" : value;
+    setBedrooms(next);
+    emit({ bedrooms: next });
+  };
+
+  const toggleRentalType = (value: string) => {
+    const next = rentalType === value ? "" : value;
+    setRentalType(next);
+    emit({ rentalType: next });
+  };
+
+  const toggleAmenity = (value: string) => {
+    const next = selectedAmenities.includes(value)
+      ? selectedAmenities.filter((a) => a !== value)
+      : [...selectedAmenities, value];
+    setSelectedAmenities(next);
+    emit({ amenities: next });
+  };
+
+  const commitMinPrice = () => emit({ minPrice });
+  const commitMaxPrice = () => emit({ maxPrice });
+
   const handleClearFilters = () => {
-    setMinPrice('');
-    setMaxPrice('');
+    setMinPrice("");
+    setMaxPrice("");
     setSelectedAmenities([]);
-    setPropertyType('');
-    setRentalType('');
-    setBedrooms('');
-    
+    setPropertyType("");
+    setRentalType("");
+    setBedrooms("");
     onFilterChange({
       minPrice: undefined,
       maxPrice: undefined,
@@ -77,294 +108,220 @@ export const RoomFilterBar: React.FC<RoomFilterBarProps> = ({
       rentalType: undefined,
       bedrooms: undefined,
     });
-
     setIsMobileFiltersOpen(false);
   };
 
-  const amenitiesOption = amenityOptions.map(option => ({
-    value: option.value,
-    label: option.label
-  }));
+  const activeCount =
+    (propertyType ? 1 : 0) + (rentalType ? 1 : 0) + (bedrooms ? 1 : 0) + selectedAmenities.length + (minPrice ? 1 : 0) + (maxPrice ? 1 : 0);
 
-  const customStyles = {
-    control: (provided: any) => ({
-      ...provided,
-      minHeight: '2.5rem',
-      cursor: 'pointer',
-    }),
-    valueContainer: (provided: any) => ({
-      ...provided,
-      padding: '0 0.5rem',
-    }),
-    placeholder: (provided: any) => ({
-      ...provided,
-      color: '#6B7280',
-    }),
-    menu: (provided: any) => ({
-      ...provided,
-      maxHeight: '200px',
-      overflowY: 'auto',
-    }),
-  };
-
-  return (
-    <div className="w-full bg-white shadow-sm">
-      <div className="hidden lg:block">
-        <div className="w-full border-t border-gray-200" />
-        <div className="flex flex-wrap items-center gap-4 px-6 py-4">
-      
-          <div className="flex items-center gap-2">
-            <div className="grid gap-1">
-              <label className="text-sm font-medium text-gray-700">Min Price</label>
-              <input
-                type="number"
-                value={minPrice}
-                onChange={(e) => setMinPrice(e.target.value)}
-                placeholder="₹ Min"
-                className="h-9 w-32 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <div className="grid gap-1">
-              <label className="text-sm font-medium text-gray-700">Max Price</label>
-              <input
-                type="number"
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(e.target.value)}
-                placeholder="₹ Max"
-                className="h-9 w-32 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-
-        
-          <div className="grid gap-1">
-            <label className="text-sm font-medium text-gray-700">Property Type</label>
-            <select
-              value={propertyType}
-              onChange={(e) => setPropertyType(e.target.value)}
-              className="h-9 w-40 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Any</option>
-              {propertyOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-         
-          <div className="grid gap-1">
-            <label className="text-sm font-medium text-gray-700">Bedrooms</label>
-            <select
-              value={bedrooms}
-              onChange={(e) => setBedrooms(e.target.value)}
-              className="h-9 w-28 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Any</option>
-              {bedroomOptions.map((option) => (
-                <option value={option.value} key={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-       
-          <div className="grid gap-1">
-            <label className="text-sm font-medium text-gray-700">Rental Type</label>
-            <select
-              value={rentalType}
-              onChange={(e) => setRentalType(e.target.value)}
-              className="h-9 w-44 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Any</option>
-              <option value="short-term">Short Term</option>
-              <option value="long-term">Long Term</option>
-              <option value="both">Both</option>
-            </select>
-          </div>
-
-         
-          <div className="grid gap-1">
-            <label className="text-sm font-medium text-gray-700">Amenities</label>
-            <Select
-              isMulti
-              options={amenitiesOption}
-              closeMenuOnSelect={false}
-              hideSelectedOptions={false}
-              value={amenitiesOption.filter(opt => selectedAmenities.includes(opt.value))}
-              onChange={(selected) => setSelectedAmenities(selected.map(item => item.value))}
-              placeholder="Select Amenities"
-              className="w-56 text-sm"
-              styles={customStyles}
-              components={{
-                Option: CheckboxOption,
-                MultiValue: () => null,
-                ValueContainer: ValueDisplay,
-              }}
-            />
-          </div>
-
-          
-          <div className="self-end flex gap-2">
-            <button
-              onClick={handleClearFilters}
-              className="h-9 px-6 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium"
-            >
-              Clear All
-            </button>
-            <button
-              onClick={handleApplyFilters}
-              className="h-9 px-6 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
-            >
-              Apply Filters
-            </button>
-          </div>
-        </div>
-        <div className="w-full border-t border-gray-200" />
-      </div>
-
-     
-      <div className="lg:hidden p-4">
+  const content = (
+    <>
+      <div className="mb-6 flex items-center justify-between">
+        <h3 className="m-0 font-serif text-xl font-semibold text-ink">Filters</h3>
         <button
-          onClick={() => setIsMobileFiltersOpen(true)}
-          className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-lg"
+          onClick={handleClearFilters}
+          className="cursor-pointer border-none bg-transparent font-sans text-xs font-semibold text-amber"
         >
-          <span className="text-gray-700">Filters</span>
-          <div className="flex items-center gap-2">
-            {selectedAmenities.length > 0 && (
-              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
-                {selectedAmenities.length} selected
-              </span>
-            )}
-            <FiFilter className="text-gray-600 h-5 w-5" />
-          </div>
+          Clear all
         </button>
       </div>
 
-      
+      {/* Property type */}
+      <div className="mb-6">
+        <label className="mb-3 block font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-ink-soft">
+          Property type
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {propertyOptions.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => togglePropertyType(opt.value)}
+              className={`rounded-full border-[1.5px] px-3.5 py-2 font-sans text-xs font-semibold transition-all ${
+                propertyType === opt.value
+                  ? "border-ink bg-ink text-gold"
+                  : "border-cream-border bg-white text-taupe hover:border-amber hover:text-amber"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Price range */}
+      <div className="mb-6">
+        <label className="mb-3 block font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-ink-soft">
+          Price range
+        </label>
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-10 flex-1 items-center rounded-[10px] border-[1.5px] border-cream-border bg-white px-3">
+            <span className="mr-1 font-sans text-[13px] text-taupe-light">₹</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+              onBlur={commitMinPrice}
+              onKeyDown={(e) => e.key === "Enter" && commitMinPrice()}
+              placeholder="Min"
+              className="w-full min-w-0 border-none bg-transparent p-0 font-sans text-[13px] text-ink focus:outline-none focus:ring-0"
+            />
+          </div>
+          <span className="text-taupe-light">—</span>
+          <div className="flex h-10 flex-1 items-center rounded-[10px] border-[1.5px] border-cream-border bg-white px-3">
+            <span className="mr-1 font-sans text-[13px] text-taupe-light">₹</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              onBlur={commitMaxPrice}
+              onKeyDown={(e) => e.key === "Enter" && commitMaxPrice()}
+              placeholder="Max"
+              className="w-full min-w-0 border-none bg-transparent p-0 font-sans text-[13px] text-ink focus:outline-none focus:ring-0"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Bedrooms */}
+      <div className="mb-6">
+        <label className="mb-3 block font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-ink-soft">
+          Bedrooms
+        </label>
+        <div className="flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onClick={() => toggleBedrooms("")}
+            className={`flex h-10 min-w-10 items-center justify-center rounded-[10px] border-[1.5px] px-2 font-sans text-[13px] font-semibold transition-all ${
+              bedrooms === ""
+                ? "border-ink bg-ink text-gold"
+                : "border-cream-border bg-white text-taupe hover:border-amber hover:text-amber"
+            }`}
+          >
+            Any
+          </button>
+          {bedroomOptions.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => toggleBedrooms(String(opt.value))}
+              className={`flex h-10 w-10 items-center justify-center rounded-[10px] border-[1.5px] font-sans text-[13px] font-semibold transition-all ${
+                bedrooms === String(opt.value)
+                  ? "border-ink bg-ink text-gold"
+                  : "border-cream-border bg-white text-taupe hover:border-amber hover:text-amber"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Rental type */}
+      <div className="mb-6">
+        <label className="mb-3 block font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-ink-soft">
+          Rental type
+        </label>
+        <div className="flex gap-2">
+          {RENTAL_TYPES.map((rt) => (
+            <button
+              key={rt.value}
+              type="button"
+              onClick={() => toggleRentalType(rt.value)}
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-[10px] border-[1.5px] py-2.5 font-sans text-xs font-semibold transition-all ${
+                rentalType === rt.value
+                  ? "border-ink bg-ink text-gold"
+                  : "border-cream-border bg-white text-taupe hover:border-amber hover:text-amber"
+              }`}
+            >
+              {rt.icon}
+              {rt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Amenities */}
+      <div>
+        <label className="mb-3 block font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-ink-soft">
+          Amenities
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {amenityOptions.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => toggleAmenity(opt.value)}
+              className={`rounded-full border-[1.5px] px-3 py-[7px] font-sans text-[11px] font-semibold transition-all ${
+                selectedAmenities.includes(opt.value)
+                  ? "border-ink bg-ink text-gold"
+                  : "border-cream-border bg-white text-taupe hover:border-amber hover:text-amber"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <div className="hidden lg:sticky lg:top-[88px] lg:block lg:w-[260px] lg:shrink-0">
+        <div className="rounded-[20px] border border-cream-border bg-white p-6 shadow-[0_1px_3px_rgba(28,25,23,0.04)]">
+          {content}
+        </div>
+      </div>
+
+      {/* Mobile trigger */}
+      <div className="px-6 pb-4 lg:hidden">
+        <button
+          onClick={() => setIsMobileFiltersOpen(true)}
+          className="flex w-full cursor-pointer items-center justify-between rounded-2xl border border-cream-border bg-white px-4 py-3 font-sans text-sm text-ink"
+        >
+          <span className="flex items-center gap-2">
+            <FilterIcon size={16} className="text-amber" />
+            Filters
+          </span>
+          {activeCount > 0 && (
+            <span className="rounded-full bg-amber/10 px-2.5 py-1 text-xs font-bold text-amber">{activeCount}</span>
+          )}
+        </button>
+      </div>
+
+      {/* Mobile drawer */}
       {isMobileFiltersOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-white p-4 overflow-y-auto">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Filters</h2>
+        <div className="fixed inset-0 z-[200] flex flex-col bg-cream lg:hidden">
+          <div className="flex items-center justify-between border-b border-cream-border px-6 py-4">
+            <h2 className="m-0 font-serif text-xl font-semibold text-ink">Filters</h2>
             <button
               onClick={() => setIsMobileFiltersOpen(false)}
-              className="p-2 text-gray-500 hover:text-gray-700"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-[10px] border-none bg-cream-border-soft"
             >
-              <FiX className="text-2xl" />
+              <XIcon size={18} className="text-ink" />
             </button>
           </div>
-
-          <div className="space-y-6">
-            
-            <div className="space-y-2">
-              <h3 className="font-medium">Price Range</h3>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  value={minPrice}
-                  onChange={(e) => setMinPrice(e.target.value)}
-                  placeholder="Min Price"
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                />
-                <input
-                  type="number"
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(e.target.value)}
-                  placeholder="Max Price"
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                />
-              </div>
-            </div>
-
-             <div className="space-y-2">
-              <h3 className="font-medium">Property Type</h3>
-              <select
-                value={propertyType}
-                onChange={(e) => setPropertyType(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
-              >
-                <option value="">Any</option>
-                {propertyOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            
-            <div className="space-y-2">
-              <h3 className="font-medium">Bedrooms</h3>
-              <select
-                value={bedrooms}
-                onChange={(e) => setBedrooms(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
-              >
-                <option value="">Any</option>
-                {bedroomOptions.map((option) => (
-                  <option value={option.value} key={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            
-            <div className="space-y-2">
-              <h3 className="font-medium">Rental Type</h3>
-              <select
-                value={rentalType}
-                onChange={(e) => setRentalType(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
-              >
-                <option value="">Any</option>
-                <option value="short-term">Short Term</option>
-                <option value="long-term">Long Term</option>
-                <option value="both">Both</option>
-              </select>
-            </div>
-
-        
-            <div className="space-y-2">
-              <h3 className="font-medium">Amenities</h3>
-              <Select
-                isMulti
-                options={amenitiesOption}
-                closeMenuOnSelect={false}
-                hideSelectedOptions={false}
-                value={amenitiesOption.filter(opt => selectedAmenities.includes(opt.value))}
-                onChange={(selected) => setSelectedAmenities(selected.map(item => item.value))}
-                placeholder="Select Amenities"
-                className="w-full text-sm"
-                styles={customStyles}
-                components={{
-                  Option: CheckboxOption,
-                  MultiValue: () => null,
-                  ValueContainer: ValueDisplay,
-                }}
-              />
-            </div>
-          </div>
-
-         
-          <div className="fixed bottom-0 left-0 right-0 bg-white p-4 border-t border-gray-200 flex gap-2">
+          <div className="flex-1 overflow-y-auto px-6 py-6">{content}</div>
+          <div className="flex gap-3 border-t border-cream-border bg-white p-4">
             <button
               onClick={handleClearFilters}
-              className="flex-1 py-2 px-4 border border-gray-300 rounded-md text-gray-700"
+              className="flex-1 cursor-pointer rounded-xl border-[1.5px] border-cream-border bg-white py-3 font-sans text-sm font-semibold text-ink"
             >
-              Clear All
+              Clear all
             </button>
             <button
-              onClick={handleApplyFilters}
-              className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-md"
+              onClick={() => setIsMobileFiltersOpen(false)}
+              className="flex-1 cursor-pointer rounded-xl border-none bg-ink py-3 font-sans text-sm font-semibold text-cream"
             >
-              Apply
+              Show results
             </button>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };

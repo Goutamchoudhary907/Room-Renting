@@ -1,6 +1,6 @@
 import { useSearchParams } from "react-router-dom";
 import { SearchFields } from "../../components/Home/SearchFields";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 import { PropertyDisplay } from "../../components/AllRooms/PropertyDisplay";
@@ -11,6 +11,10 @@ import { Filters } from "../../components/Property/ListRoom/types";
 import { useMediaQuery } from "react-responsive";
 import { AllRoomsSkeleton } from "../skeletons/property/AllRoomsSkeleton";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ChevronLeftIcon, ChevronRightIcon } from "../../components/Home/icons";
+
+type SortOption = "recommended" | "price-asc" | "price-desc" | "newest";
+
 export const AllRooms = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -25,6 +29,7 @@ export const AllRooms = () => {
   const isMobile = useMediaQuery({ maxWidth: 767 });
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState<SortOption>("recommended");
   const itemsPerPage = isMobile ? 10 : 20;
   const queryClient = useQueryClient();
 
@@ -130,6 +135,18 @@ useEffect(() => {
     setCurrentPage(1);
   }, [filters]);
 
+  // Sort applies to the currently-loaded page only (the search API has no
+  // sort param), so this is a real but page-scoped enhancement, not a fake one.
+  const sortedProperties = useMemo(() => {
+    if (sortBy === "recommended") return properties;
+    const priceOf = (p: any) => p.pricePerNight ?? p.pricePerMonth ?? Number.POSITIVE_INFINITY;
+    const copy = [...properties];
+    if (sortBy === "price-asc") copy.sort((a, b) => priceOf(a) - priceOf(b));
+    if (sortBy === "price-desc") copy.sort((a, b) => priceOf(b) - priceOf(a));
+    if (sortBy === "newest") copy.sort((a, b) => Number(b.id) - Number(a.id));
+    return copy;
+  }, [properties, sortBy]);
+
 
   const { data: savedPropertyIds = [], isLoading: isSavedPropertiesLoading } =
     useQuery({
@@ -218,70 +235,137 @@ onSuccess: (_data, _propertyId, context) => {
     [mutate]
   );
 
+  const getPageNumbers = () => {
+    const maxButtons = 5;
+    let start = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+    let end = start + maxButtons - 1;
+    if (end > totalPages) {
+      end = totalPages;
+      start = Math.max(1, end - maxButtons + 1);
+    }
+    const pages: number[] = [];
+    for (let i = start; i <= end; i++) pages.push(i);
+    return pages;
+  };
+
+  const resultCount = pagination?.totalItems ?? properties.length;
+
   if (isPropertiesLoading || authLoading || isSavedPropertiesLoading) {
     return <AllRoomsSkeleton />;
   }
   return (
-    <div>
-      <div className="">
-        <SearchFields
-          onSearch={(location, checkin, checkout) =>
-            updateFilters({ location, checkin, checkout })
-          }
-          initialLocation={filters.location}
-          initialCheckin={filters.checkin}
-          initialCheckout={filters.checkout}
-        />
-      </div>
-      <div>
-        <RoomFilterBar
-          onFilterChange={(filterData) => updateFilters(filterData)}
-          currentFilters={filters}
-        />
+    <div className="min-h-screen bg-cream">
+      {/* Page header + search */}
+      <div className="border-b border-cream-border bg-white px-6 py-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-6">
+            <div className="mb-2 flex items-center gap-2">
+              <div className="h-0.5 w-5 bg-amber" />
+              <span className="font-sans text-[11px] font-bold uppercase tracking-[0.18em] text-amber">Browse</span>
+            </div>
+            <h1 className="m-0 font-serif text-[clamp(28px,4vw,40px)] font-semibold tracking-tight text-ink">
+              All Rooms
+            </h1>
+          </div>
+          <SearchFields
+            onSearch={(location, checkin, checkout) =>
+              updateFilters({ location, checkin, checkout })
+            }
+            initialLocation={filters.location}
+            initialCheckin={filters.checkin}
+            initialCheckout={filters.checkout}
+          />
+        </div>
       </div>
 
-      <div>
-        <div
-          className="ml-10 pb-5 font-medium text-xl mt-6 sm:mt-10 md:font-bold md:text-3xl md:mt-10
-            lg:font-bold lg:text-3xl lg:mt-10"
-        >
-          <h2>Available Properties</h2>
-        </div>
-        {fetchError && (
-          <p className="text-red-500">
-            Error loading properties: {fetchError.message}
-          </p>
-        )}{" "}
-        {saveError && <p className="text-red-500">{saveError}</p>}
-        <PropertyDisplay
-          properties={properties}
-          onSave={handleSaveProperty}
-          savedPropertyIds={savedPropertyIds}
-          savingError={savingError}
-          loadingSavedProperties={isSavedPropertiesLoading}
-        />
-        {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-4 mt-4 mb-6">
-            <button
-              onClick={handlePrev}
-              disabled={currentPage === 1}
-              className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <span className="font-medium">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={handleNext}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-            >
-              Next
-            </button>
+      {/* Main content */}
+      <div className="mx-auto max-w-6xl px-6 py-8">
+        <div className="flex flex-col items-start gap-8 lg:flex-row">
+          <RoomFilterBar
+            onFilterChange={(filterData) => updateFilters(filterData)}
+            currentFilters={filters}
+          />
+
+          <div className="min-w-0 flex-1">
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+              <p className="m-0 font-sans text-sm text-taupe">
+                <span className="font-semibold text-ink">{resultCount}</span>{" "}
+                {resultCount === 1 ? "room" : "rooms"} found
+              </p>
+              <div className="flex items-center gap-2">
+                <span className="font-sans text-xs text-taupe-light">Sort by</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  className="cursor-pointer rounded-[10px] border-[1.5px] border-cream-border bg-white px-3 py-2 font-sans text-[13px] text-ink focus:outline-none"
+                >
+                  <option value="recommended">Recommended</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
+                  <option value="newest">Newest</option>
+                </select>
+              </div>
+            </div>
+
+            {fetchError && (
+              <p className="mb-4 font-sans text-sm text-red-500">
+                Error loading properties: {fetchError.message}
+              </p>
+            )}
+            {saveError && <p className="mb-4 font-sans text-sm text-red-500">{saveError}</p>}
+
+            {sortedProperties.length === 0 ? (
+              <div className="rounded-[20px] border border-cream-border bg-white px-6 py-16 text-center">
+                <p className="m-0 font-serif text-xl font-semibold text-ink">No rooms match your filters</p>
+                <p className="mx-auto mt-2 max-w-sm font-sans text-sm text-taupe">
+                  Try adjusting your filters or search a different location.
+                </p>
+              </div>
+            ) : (
+              <PropertyDisplay
+                properties={sortedProperties}
+                onSave={handleSaveProperty}
+                savedPropertyIds={savedPropertyIds}
+                savingError={savingError}
+                loadingSavedProperties={isSavedPropertiesLoading}
+              />
+            )}
+
+            {totalPages > 1 && (
+              <div className="mt-10 flex items-center justify-center gap-2">
+                <button
+                  onClick={handlePrev}
+                  disabled={currentPage === 1}
+                  className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-[10px] border-[1.5px] border-cream-border bg-white transition-colors hover:border-amber disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <ChevronLeftIcon className="text-taupe" />
+                </button>
+                {getPageNumbers().map((num) => (
+                  <button
+                    key={num}
+                    onClick={() => setCurrentPage(num)}
+                    className={`flex h-10 w-10 items-center justify-center rounded-[10px] border-[1.5px] font-sans text-sm font-semibold transition-colors ${
+                      num === currentPage
+                        ? "border-ink bg-ink text-gold"
+                        : "border-cream-border bg-white text-taupe hover:border-amber"
+                    }`}
+                  >
+                    {num}
+                  </button>
+                ))}
+                <button
+                  onClick={handleNext}
+                  disabled={currentPage === totalPages}
+                  className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-[10px] border-[1.5px] border-cream-border bg-white transition-colors hover:border-amber disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <ChevronRightIcon className="text-taupe" />
+                </button>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
+
       <Notification
         message={notificationMessage}
         onClose={handleCloseNotification}

@@ -1,0 +1,5 @@
+{
+  "watch": ["src", "prisma", "schema"],
+  "ext": "ts,json,prisma",
+  "ignore": ["dist/**", "node_modules/**"]
+}

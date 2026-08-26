@@ -1,36 +1,27 @@
 import React from "react";
+
 const PropertyCardSkeleton = () => {
   return (
-    <div className="relative rounded-lg p-4 shadow-md w-full overflow-hidden animate-pulse bg-white">
-      {/* Image Placeholder */}
-      <div className="w-full h-40 bg-gray-300 rounded-md mb-2" />
-
-      {/* Title */}
-      <div className="w-3/4 h-4 bg-gray-300 rounded mb-2" />
-
-      {/* Rental Type */}
-      <div className="w-1/2 h-3 bg-gray-200 rounded mb-2" />
-
-      {/* Address */}
-      <div className="w-full h-3 bg-gray-200 rounded mb-4" />
-
-      {/* Price placeholders */}
-      <div className="flex justify-between items-end space-x-4">
-        <div className="w-1/3 h-4 bg-gray-300 rounded" />
-        <div className="w-1/3 h-4 bg-gray-300 rounded" />
+    <div className="animate-pulse rounded-[20px] border border-cream-border bg-white p-2.5">
+      <div className="h-[170px] w-full rounded-[14px] bg-cream-border-soft" />
+      <div className="px-2 pb-1 pt-3.5">
+        <div className="mb-2 h-3 w-1/2 rounded bg-cream-border-soft" />
+        <div className="mb-3 h-5 w-3/4 rounded bg-cream-border-soft" />
+        <div className="mb-3 flex gap-1.5">
+          <div className="h-5 w-14 rounded-full bg-cream-border-soft" />
+          <div className="h-5 w-16 rounded-full bg-cream-border-soft" />
+        </div>
+        <div className="border-t border-cream-border-soft pt-3">
+          <div className="h-6 w-1/2 rounded bg-cream-border-soft" />
+        </div>
       </div>
     </div>
   );
 };
-export const PropertyDisplaySkeleton: React.FC<{ count?: number }> = ({
-  count = 4,
-}) => {
+
+export const PropertyDisplaySkeleton: React.FC<{ count?: number }> = ({ count = 8 }) => {
   return (
-    <div
-      className="grid grid-cols-1 gap-4 px-8
-        md:grid-cols-2 md:mt-7 
-        lg:grid-cols-4 xl:grid-cols-4"
-    >
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {Array.from({ length: count }).map((_, index) => (
         <PropertyCardSkeleton key={index} />
       ))}

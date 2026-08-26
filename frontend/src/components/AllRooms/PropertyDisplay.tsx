@@ -1,10 +1,12 @@
 import React from "react";
-import { HeartIcon } from "@heroicons/react/24/outline";
-import { HeartIcon as HeartSolidIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router-dom";
+import { CheckIcon, HeartFillIcon, HeartIcon, MapPinIcon } from "../Home/icons";
+
 interface Property {
   id: string;
   rentalType: string;
+  propertyType?: string;
+  bedrooms?: number;
   title: string;
   pricePerNight?: number;
   pricePerMonth?: number;
@@ -35,24 +37,17 @@ export const PropertyDisplay: React.FC<PropertyDisplayProps> = ({
   loadingSavedProperties,
 }) => {
   return (
-    <div>
-      <div
-        className="grid grid-cols-1 gap-4 px-8
-           md:grid md:gap-4 md:px-8 md:grid-cols-2 md:mt-7 
-          lg:mt-0  lg:grid-cols-4  xl:grid-cols-4
-           "
-      >
-        {properties.map((property) => (
-          <PropertyCard
-            key={property.id}
-            property={property}
-            onSave={onSave}
-            isSaved={savedPropertyIds.includes(property.id)}
-            saveError={savingError[property.id]}
-            loadingSavedProperties={loadingSavedProperties}
-          />
-        ))}
-      </div>
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {properties.map((property) => (
+        <PropertyCard
+          key={property.id}
+          property={property}
+          onSave={onSave}
+          isSaved={savedPropertyIds.includes(property.id)}
+          saveError={savingError[property.id]}
+          loadingSavedProperties={loadingSavedProperties}
+        />
+      ))}
     </div>
   );
 };
@@ -62,9 +57,16 @@ interface PropertyCardProps {
   onSave: (propertyId: string) => Promise<void>;
   isSaved: boolean;
   saveError: string | null;
-
   loadingSavedProperties: boolean;
 }
+
+const RENTAL_LABEL: Record<string, string> = {
+  "short-term": "Nightly",
+  "long-term": "Monthly",
+  both: "Nightly & Monthly",
+};
+
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 const PropertyCard = ({
   property,
@@ -78,152 +80,98 @@ const PropertyCard = ({
     navigate(`/property/room-detail/${property.id}`);
   };
 
-  const formatRentalType = (type: string): string => {
-    switch (type) {
-      case "short-term":
-        return "Short-Term Stay";
-      case "long-term":
-        return "Long-Term Rental";
-      case "both":
-        return "Short & Long-Term";
-      default:
-        return type;
+  const formatLocation = (): string => {
+    if (!property.city) return "Location available";
+    if (property.landmark && property.city) {
+      return `Near ${property.landmark}, ${property.city}`;
     }
+    return property.city;
   };
-const formatLocation = (): string => {
-  if (!property.city) return "Location available";
-  
-  if (property.landmark && property.city) {
-    return `Near ${property.landmark}, ${property.city}`;
-  }
-  
-  return property.city;
-};
 
+  // The design shows a single price line per card. For "both" properties the
+  // nightly rate is the entry price; the chip still advertises both options.
+  const showNightly = property.pricePerNight != null && property.rentalType !== "long-term";
+  const primaryPrice = showNightly ? property.pricePerNight : property.pricePerMonth;
+  const primaryUnit = showNightly ? "/night" : "/month";
 
   return (
     <div
-      className="relative rounded-lg p-4 shadow-md text-left w-full transition-all duration-300 ease-out overflow-hidden hover:shadow-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-300"
+      className="group flex h-full cursor-pointer flex-col rounded-[20px] border border-cream-border bg-white p-2.5 shadow-[0_1px_3px_rgba(28,25,23,0.04)] transition-all duration-[350ms] hover:-translate-y-1 hover:border-amber/25 hover:shadow-[0_16px_40px_rgba(28,25,23,0.1)] focus:outline-none"
       onClick={handleCardClick}
       role="button"
       tabIndex={0}
     >
-      <div className="pt-1 pb-3 overflow-hidden rounded-md">
-        {property.images &&
-        property.images.length > 0 &&
-        property.images[0].url ? (
-          <img
-            src={property.images[0].url}
-            alt={property.title}
-            className="w-full h-40 object-cover rounded-md mb-2"
-          />
+      {/* Image */}
+      <div className="relative h-[170px] shrink-0 overflow-hidden rounded-[14px] bg-cream-border-soft">
+        {property.images && property.images.length > 0 && property.images[0].url ? (
+          <img src={property.images[0].url} alt={property.title} className="h-full w-full object-cover" />
         ) : (
-          <div className="w-full h-45 bg-gray-200 rounded-md mb-2 flex items-center justify-center">
+          <div className="flex h-full w-full items-center justify-center font-sans text-sm text-taupe-light">
             No Image
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-ink/20 to-transparent to-50%" />
+
+        {/* Heart / save */}
+        <button
+          className="absolute right-2.5 top-2.5 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-none bg-white/90 backdrop-blur transition-all hover:scale-110 hover:bg-white disabled:cursor-not-allowed"
+          onClick={async (e) => {
+            e.stopPropagation();
+            try {
+              await onSave(property.id);
+            } catch (error) {
+              console.error("Save failed:", error);
+            }
+          }}
+          disabled={loadingSavedProperties || !!saveError}
+        >
+          {isSaved ? <HeartFillIcon size={16} className="text-red-500" /> : <HeartIcon size={16} className="text-ink" />}
+        </button>
+
+        {/* Type badge */}
+        {property.propertyType && (
+          <div className="absolute left-2.5 top-2.5 rounded-full bg-ink/70 px-3 py-1 font-sans text-[11px] font-semibold text-white backdrop-blur">
+            {capitalize(property.propertyType)}
           </div>
         )}
       </div>
 
-      <div>
-      <button
-  className="mt-4 mr-4 cursor-pointer absolute top-2 right-2 bg-white rounded-full p-1 shadow-md focus:outline-none"
-  onClick={async (e) => { 
-    e.stopPropagation();
-    try {
-      await onSave(property.id);
-    } catch (error) {
-      console.error("Save failed:", error);
-    }
-  }}
-  disabled={loadingSavedProperties || !!saveError}
->
-  {isSaved ? (
-    <HeartSolidIcon className="h-4 w-4 text-red-500" />
-  ) : (
-    <HeartIcon className="h-4 w-4 text-gray-400" />
-  )}
-</button>
+      {saveError && <p className="mt-1 font-sans text-xs text-red-500">{saveError}</p>}
 
-  {saveError && <p className="text-red-500 text-xs mt-1">{saveError}</p>}
-</div>
-
-
-      <div className="pb-3">
-      <h3 
-  className="font-medium text-sm md:font-semibold md:text-base pb-2"
-  style={{
-    display: '-webkit-box',
-    WebkitLineClamp: 1,
-    WebkitBoxOrient: 'vertical',
-    overflow: 'hidden',
-    lineHeight: '1.5rem',
-    maxHeight: '1.5rem'
-  }}
->
-  {property.title}
-</h3>
-        <p className="text-[#2563EB] text-sm mb-1">
-          {formatRentalType(property.rentalType)}
-        </p>
-        <p className="text-[#4B5563] pt-1">{formatLocation()}</p>
-
-        <div className="pt-1 pb-4 md:pb-4">
-          {property.rentalType === "short-term" &&
-            property.pricePerNight !== null && (
-              <div className="flex items-center">
-                <div className="group relative">
-                  <p className="font-bold text-sm md:font-bold md:text-xl text-black">
-                    ₹{property.pricePerNight}
-                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
-                  </p>
-                </div>
-                <p className="text-[#4B5563] font-normal md:font-semibold ml-2">
-                  /night
-                </p>
-              </div>
-            )}
-          {property.rentalType === "long-term" &&
-            property.pricePerMonth !== null && (
-              <div className="flex items-end">
-                <div className="group relative">
-                  <p className="font-bold text-sm md:font-bold md:text-xl text-black">
-                    ₹{property.pricePerMonth}
-                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
-                  </p>
-                </div>
-                <p className="text-[#4B5563] font-normal md:font-semibold ml-2">
-                  /month
-                </p>
-              </div>
-            )}
-          {property.rentalType === "both" &&
-            property.pricePerMonth !== null &&
-            property.pricePerNight !== null && (
-              <div className="grid md:flex justify-between items-center">
-                <div className="flex items-end">
-                  <div className="group relative">
-                    <p className="font-bold text-sm md:font-bold md:text-xl text-black">
-                      ₹{property.pricePerNight}
-                      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
-                    </p>
-                  </div>
-                  <p className="text-[#4B5563] font-normal md:font-semibold ml-2">
-                    /night
-                  </p>
-                </div>
-                <div className="flex items-end">
-                  <div className="group relative">
-                    <p className="font-bold text-sm md:font-bold md:text-xl text-black">
-                      ₹{property.pricePerMonth}
-                      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
-                    </p>
-                  </div>
-                  <p className="text-[#4B5563] font-normal md:font-semibold ml-2">
-                    /month
-                  </p>
-                </div>
-              </div>
-            )}{" "}
+      {/* Body */}
+      <div className="flex flex-1 flex-col px-2 pb-1 pt-3.5">
+        <div className="mb-1.5 flex items-center gap-1.5">
+          <MapPinIcon size={12} className="shrink-0 text-taupe-light" />
+          <span className="overflow-hidden text-ellipsis whitespace-nowrap font-sans text-xs text-taupe-light">
+            {formatLocation()}
+          </span>
+        </div>
+        <h3 className="mb-2 overflow-hidden text-ellipsis whitespace-nowrap font-serif text-lg font-semibold text-ink">
+          {property.title}
+        </h3>
+        <div className="mb-3 flex flex-wrap gap-1.5">
+          {property.bedrooms != null && (
+            <span className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-cream px-2.5 py-[3px] font-sans text-[11px] font-semibold text-taupe">
+              {property.bedrooms} {property.bedrooms === 1 ? "Bed" : "Beds"}
+            </span>
+          )}
+          <span className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-amber/8 px-2.5 py-[3px] font-sans text-[11px] font-semibold text-amber">
+            {RENTAL_LABEL[property.rentalType] || property.rentalType}
+          </span>
+        </div>
+        {/* mt-auto pins this row to the card bottom so price + Verified line up
+            across every card in the row regardless of title/chip wrapping. */}
+        <div className="mt-auto flex items-center justify-between gap-2 border-t border-cream-border-soft pt-3">
+          {primaryPrice != null && (
+            <span className="whitespace-nowrap">
+              <span className="font-serif text-[22px] font-semibold text-ink">₹{primaryPrice}</span>
+              <span className="ml-1 font-sans text-xs text-taupe-light">{primaryUnit}</span>
+            </span>
+          )}
+          <span className="flex shrink-0 items-center gap-1 rounded-full bg-verified/8 px-2.5 py-1 font-sans text-[11px] font-semibold text-verified">
+            <CheckIcon size={10} strokeWidth={2.5} />
+            Verified
+          </span>
         </div>
       </div>
     </div>

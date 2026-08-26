@@ -1,60 +1,91 @@
-import WorkStep1 from "../../assets/Work1.jpg"
-import WorkStep2 from "../../assets/Work2.jpg"
-import WorkStep3 from "../../assets/Work3.jpg"
+import WorkStep1 from "../../assets/Work1.jpg";
+import WorkStep2 from "../../assets/Work2.jpg";
+import WorkStep3 from "../../assets/Work3.jpg";
+import { Reveal } from "./Reveal";
+import { SectionHeader } from "./SectionHeader";
+import { KeyIcon, SearchIcon, ZapIcon } from "./icons";
+import type { ReactNode } from "react";
 
-interface PropertyCardProps{
-    image:string;
-    number:string;
-    label:string;
-    caption:string;
+interface Step {
+  number: string;
+  label: string;
+  caption: string;
+  image: string;
+  tilt: string;
+  icon: ReactNode;
 }
+
+const STEPS: Step[] = [
+  {
+    number: "01",
+    label: "Search & find",
+    caption: "Browse our curated selection of verified rooms, homes and studios.",
+    image: WorkStep1,
+    tilt: "-rotate-2",
+    icon: <SearchIcon size={16} />,
+  },
+  {
+    number: "02",
+    label: "Book instantly",
+    caption: "Lock in your dates with secure payment and instant confirmation.",
+    image: WorkStep2,
+    tilt: "rotate-2",
+    icon: <ZapIcon size={16} />,
+  },
+  {
+    number: "03",
+    label: "Move in & enjoy",
+    caption: "Collect your keys and settle into a comfortable, memorable stay.",
+    image: WorkStep3,
+    tilt: "-rotate-1",
+    icon: <KeyIcon size={16} />,
+  },
+];
+
 export const HowItWorks = () => {
-    return (
-      <div className="bg-white py-20">
-        <div className="flex justify-center items-center">
-          <h2 className="text-xl md:text-3xl font-medium md:font-bold text-center">
-            Book Your Stay in 3 Simple Steps
-          </h2>
-        </div>
-  
-        <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-8 md:gap-12 mx-auto px-4 max-w-[1200px]">
-          <PropertyCard 
-            image={WorkStep1}
-            number="01"
-            label="Search & Find"
-            caption="Browse through our curated selection of properties" 
+  return (
+    <section className="relative overflow-hidden py-20">
+      <div className="pointer-events-none absolute left-[-80px] top-[60px] h-[300px] w-[300px] rounded-full bg-[radial-gradient(circle,rgba(181,112,60,0.08),transparent_70%)]" />
+      <div className="pointer-events-none absolute bottom-10 right-[-80px] h-[300px] w-[300px] rounded-full bg-[radial-gradient(circle,rgba(232,193,122,0.1),transparent_70%)]" />
+
+      <div className="relative mx-auto max-w-6xl px-6">
+        <Reveal className="mb-14">
+          <SectionHeader
+            eyebrow="How it works"
+            heading="Three steps to your next stay"
+            description="From browsing to check-in, the whole journey takes just a few minutes."
           />
-          <PropertyCard 
-            image={WorkStep2}
-            number="02"
-            label="Book Instantly"
-            caption="Secure your stay with our instant booking system" 
-          />
-          <PropertyCard 
-            image={WorkStep3}
-            number="03"
-            label="Enjoy Your Stay"
-            caption="Experience a comfortable and memorable stay" 
-          />
+        </Reveal>
+
+        <div className="relative grid grid-cols-1 gap-12 sm:grid-cols-3 sm:gap-10">
+          {/* Connector line (desktop only) */}
+          <div className="pointer-events-none absolute left-[18%] right-[18%] top-[110px] z-0 hidden border-t-2 border-dashed border-amber/25 sm:block" />
+
+          {STEPS.map((step, i) => (
+            <Reveal key={step.number} delay={i * 0.1} className="relative z-[1] flex flex-col items-center text-center">
+              {/* Ghost number */}
+              <span className="pointer-events-none absolute -top-6 z-0 font-serif text-[100px] font-semibold leading-none text-gold/15">
+                {step.number}
+              </span>
+              {/* Image */}
+              <div
+                className={`relative z-[1] h-[200px] w-[200px] overflow-hidden rounded-[28px] border-[6px] border-white shadow-[0_12px_32px_rgba(28,25,23,0.1)] transition-transform duration-500 ${step.tilt}`}
+              >
+                <img src={step.image} alt={step.label} className="h-full w-full object-cover" />
+              </div>
+              {/* Step chip */}
+              <div className="relative z-[2] -mt-4 inline-flex items-center gap-1.5 rounded-full bg-ink px-[18px] py-2 font-sans text-xs font-bold text-gold shadow-[0_4px_12px_rgba(28,25,23,0.2)]">
+                {step.icon}
+                Step {step.number}
+              </div>
+              <h3 className="mb-2 mt-[18px] font-serif text-2xl font-semibold tracking-tight text-ink">
+                {step.label}
+              </h3>
+              <p className="m-0 max-w-[260px] font-sans text-sm leading-relaxed text-taupe">{step.caption}</p>
+            </Reveal>
+          ))}
         </div>
       </div>
-    )
-  }
-  
-  const PropertyCard = ({image, number, label, caption}: PropertyCardProps) => {
-    return (
-      <div className="px-4 py-6">
-      <div className="relative w-45 h-45 sm:w-45 sm:h-45 md:w-45 md:h-45 lg:w-60 lg:h-60 mx-auto rounded-full overflow-hidden">
-          <img src={image} alt="" className="w-full h-full object-cover"/>
-        </div>
-        
-        <div className="mt-6 text-center">
-          <div className="font-semibold text-blue-500">{number}</div>
-          <div className="font-bold text-lg mt-2">{label}</div>
-          <div className="text-gray-600 mt-2 text-sm md:text-base">
-            {caption}
-          </div>
-        </div>
-      </div>
-    )
-  }
+    </section>
+  );
+};

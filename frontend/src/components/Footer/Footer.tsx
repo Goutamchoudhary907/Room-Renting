@@ -2,57 +2,80 @@ import { useAuth } from "../../context/AuthContext";
 import { useLoading } from "../../context/LoadingContext";
 import FooterSkeleton from "./FooterSkeleton";
 
-export const Footer = () => {
-   const { isLoading } = useLoading();
-    const { isLoading: isAuthLoading } = useAuth();
+const HouseIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e8c17a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 10l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V10z"></path>
+    <path d="M9 21V12h6v11"></path>
+  </svg>
+);
 
-   if(isLoading || isAuthLoading){
-    return <FooterSkeleton/>
-   }
-    return (
-      <footer className="bg-white border-t mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid grid-cols-1 md:grid-cols-3 gap-8">
-          
-          <div>
-            <h2 className="text-2xl font-bold mb-4">Rentpy</h2>
-            <p className="text-sm text-gray-600 mb-2">Find your perfect stay — short or long term.</p>
-            <p className="text-sm text-gray-600">Email: <a href="mailto:goutamchoudhary907@gmail.com" className="text-blue-600 hover:underline">goutamchoudhary907@gmail.com</a></p>
-            <div className="flex space-x-4 mt-4">
-          
-              <a href="#" className="text-gray-500 hover:text-black"><i className="fab fa-instagram" /></a>
-              <a href="#" className="text-gray-500 hover:text-black"><i className="fab fa-linkedin" /></a>
-              <a href="#" className="text-gray-500 hover:text-black"><i className="fab fa-github" /></a>
+export const Footer = () => {
+  const { isLoading } = useLoading();
+  const { isLoading: isAuthLoading } = useAuth();
+
+  if (isLoading || isAuthLoading) {
+    return <FooterSkeleton />;
+  }
+
+  return (
+    <footer className="border-t border-cream-border bg-white px-6 pt-16 font-sans">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 md:grid-cols-[2fr_1fr_1fr] md:gap-12">
+        {/* Brand */}
+        <div>
+          <div className="mb-4 flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-ink">
+              <HouseIcon />
             </div>
+            <span className="font-serif text-xl font-bold text-ink">Rentpy</span>
           </div>
-  
-         
-          <div></div>
-  
-         
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <h4 className="text-sm font-semibold mb-2 text-gray-800">Quick Links</h4>
-              <ul className="text-sm text-gray-600 space-y-2">
-                <li><a href="/" className="hover:underline">Home</a></li>
-                <li><a href="/about" className="hover:underline">About Us</a></li>
-                <li><a href="/faq" className="hover:underline">FAQs</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold mb-2 text-gray-800">Support</h4>
-              <ul className="text-sm text-gray-600 space-y-2">
-                <li><a href="/contact" className="hover:underline">Contact Us</a></li>
-                <li><a href="/privacy-policy" className="hover:underline">Privacy Policy</a></li>
-                <li><a href="/terms-of-service" className="hover:underline">Terms of Service</a></li>
-              </ul>
-            </div>
+          <p className="mb-3 max-w-[300px] text-sm leading-relaxed text-taupe">
+            Find your perfect stay — short or long term.
+          </p>
+          <p className="text-[13px] text-taupe-light">
+            Email:{" "}
+            <a href="mailto:goutamchoudhary907@gmail.com" className="text-amber hover:text-amber-dark">
+              goutamchoudhary907@gmail.com
+            </a>
+          </p>
+        </div>
+
+        {/* Quick links */}
+        <div>
+          <h4 className="mb-4 text-xs font-bold uppercase tracking-[0.12em] text-ink">Quick Links</h4>
+          <div className="flex flex-col gap-2.5">
+            <a href="/" className="text-sm text-taupe no-underline transition-colors hover:text-amber">
+              Home
+            </a>
+            <a href="/about" className="text-sm text-taupe no-underline transition-colors hover:text-amber">
+              About Us
+            </a>
+            <a href="/property/all-rooms" className="text-sm text-taupe no-underline transition-colors hover:text-amber">
+              All Rooms
+            </a>
           </div>
         </div>
-  
-        <div className="border-t py-4 text-center text-sm text-gray-500">
-          © {new Date().getFullYear()} Rentpy. All rights reserved.
+
+        {/* Support */}
+        <div>
+          <h4 className="mb-4 text-xs font-bold uppercase tracking-[0.12em] text-ink">Support</h4>
+          <div className="flex flex-col gap-2.5">
+            <a href="/contact" className="text-sm text-taupe no-underline transition-colors hover:text-amber">
+              Contact Us
+            </a>
+            <a href="/privacy-policy" className="text-sm text-taupe no-underline transition-colors hover:text-amber">
+              Privacy Policy
+            </a>
+            <a href="/terms-of-service" className="text-sm text-taupe no-underline transition-colors hover:text-amber">
+              Terms of Service
+            </a>
+          </div>
         </div>
-      </footer>
-    );
-  };
-  
+      </div>
+
+      {/* Bottom bar */}
+      <div className="mx-auto mt-12 max-w-6xl border-t border-cream-border py-5 text-center">
+        <p className="text-[13px] text-taupe-light">© {new Date().getFullYear()} Rentpy. All rights reserved.</p>
+      </div>
+    </footer>
+  );
+};

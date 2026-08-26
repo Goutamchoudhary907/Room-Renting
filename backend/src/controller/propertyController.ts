@@ -820,7 +820,15 @@ try {
       id:parseInt(req.params.id)
     },
     include:{
-      images:true
+      images:true,
+      // Public host details only — never expose password/email/phone/googleId/reset.
+      host:{
+        select:{
+          id:true,
+          firstName:true,
+          createdAt:true
+        }
+      }
     }
   })
   if (!property)  {

@@ -26,7 +26,7 @@ const Notification: React.FC<NotificationProps> = ({ message, onClose }) => {
     }
 
     return (
-        <div className="fixed bottom-4 left-4 bg-green-500 text-white p-3 rounded-md shadow-lg z-50">
+        <div className="fixed bottom-6 left-6 z-50 rounded-2xl border border-cream-border bg-ink px-5 py-3 font-sans text-sm font-medium text-cream shadow-[0_12px_32px_rgba(28,25,23,0.25)]">
             {message}
         </div>
     );

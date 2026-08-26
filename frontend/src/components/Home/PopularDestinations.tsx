@@ -1,80 +1,76 @@
-import IndoreImage from "../../assets/IndoreImage.png"
-import PuneImage from "../../assets/PuneImage.png"
-import BangloreImage from "../../assets/BangloreImage.jpg"
-import DelhiImage from "../../assets/DelhiImage.png"
-import { useNavigate } from "react-router-dom"
+import IndoreImage from "../../assets/IndoreImage.png";
+import PuneImage from "../../assets/PuneImage.png";
+import BangloreImage from "../../assets/BangloreImage.jpg";
+import DelhiImage from "../../assets/DelhiImage.png";
+import { useNavigate } from "react-router-dom";
+import { Reveal } from "./Reveal";
+import { SectionHeader } from "./SectionHeader";
+import { ArrowUpRightIcon } from "./icons";
 
+interface Destination {
+  name: string;
+  location: string;
+  index: string;
+  image: string;
+  span: string;
+  fontSize: string;
+}
 
-export const PopularDestinations =() =>{
-   const navigate=useNavigate();
+const DESTINATIONS: Destination[] = [
+  { name: "Indore", location: "Indore", index: "01", image: IndoreImage, span: "md:col-span-2 md:row-span-2", fontSize: "text-4xl" },
+  { name: "Pune", location: "Pune", index: "02", image: PuneImage, span: "", fontSize: "text-[28px]" },
+  { name: "Bengaluru", location: "Bengaluru", index: "03", image: BangloreImage, span: "", fontSize: "text-[28px]" },
+  { name: "Delhi", location: "Delhi", index: "04", image: DelhiImage, span: "md:col-span-2", fontSize: "text-[28px]" },
+];
 
-   const handleLocationClick = (location: string) => {
+export const PopularDestinations = () => {
+  const navigate = useNavigate();
+
+  const handleLocationClick = (location: string) => {
     navigate(`/property/all-rooms?location=${encodeURIComponent(location)}`);
   };
 
-    return(
-        <div> 
-            <div className=" flex justify-center items-center font-medium text-xl mt-6 sm:mt-10 md:font-bold md:text-3xl md:mt-10
-            lg:font-bold lg:text-3xl lg:mt-20">
-                <h2>Popular Destinations</h2>
-            </div>
+  return (
+    <section className="bg-cream-alt py-20">
+      <div className="mx-auto max-w-6xl px-6">
+        <Reveal className="mb-12">
+          <SectionHeader
+            eyebrow="Top picks"
+            heading="Popular destinations"
+            description="Explore the cities our guests book the most — from business hubs to weekend escapes."
+          />
+        </Reveal>
 
-            <div className="grid grid-cols-2 gap-0 
-          sm:gap-4  px-0 sm:px-8
-          md:grid md:gap-4 md:px-8 md:grid-cols-2 md:mt-7 
-          lg:mt-0  lg:grid-cols-4  xl:grid-cols-4
-           ">
-            <PropertyCard image={IndoreImage}
-            name="Indore"
-            onClick={() => handleLocationClick("Indore")}
-            />
-
-          <PropertyCard image={PuneImage}
-            name="Pune"
-            onClick={() => handleLocationClick("Pune")}
-            />
-            
-            <PropertyCard image={BangloreImage}
-            name="Banglore"
-            onClick={() => handleLocationClick("Bengaluru")}
-            />
-            
-            <PropertyCard image={DelhiImage}
-            name="Delhi"
-            onClick={() => handleLocationClick("Delhi")}
-            />
-            </div>
+        <div className="grid auto-rows-[200px] grid-cols-1 gap-4 min-[480px]:grid-cols-2 md:grid-cols-4">
+          {DESTINATIONS.map((dest, i) => (
+            <Reveal key={dest.name} delay={i * 0.06} className={dest.span}>
+              <div
+                onClick={() => handleLocationClick(dest.location)}
+                className="group relative h-full cursor-pointer overflow-hidden rounded-3xl shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all duration-[400ms] hover:scale-[1.02] hover:shadow-[0_16px_40px_rgba(28,25,23,0.15)]"
+              >
+                <img src={dest.image} alt={dest.name} className="absolute inset-0 h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/10 via-60% to-transparent" />
+                {/* Ghost index */}
+                <span className="absolute right-5 top-3.5 font-serif text-5xl font-semibold text-white/15">
+                  {dest.index}
+                </span>
+                {/* Content */}
+                <div className="absolute inset-x-0 bottom-0 p-5">
+                  <div className="mb-1 font-sans text-[10px] font-bold uppercase tracking-[0.18em] text-gold">
+                    India
+                  </div>
+                  <div className="flex items-end justify-between gap-3">
+                    <h3 className={`m-0 font-serif font-semibold text-white ${dest.fontSize}`}>{dest.name}</h3>
+                    <div className="flex h-10 w-10 shrink-0 translate-y-2 items-center justify-center rounded-full bg-gradient-to-br from-amber to-[#d4944f] opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                      <ArrowUpRightIcon size={18} className="text-white" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          ))}
         </div>
-    )
-}
-
-interface PropertyCardProps{
-    name:string;
-    image:string;
-    onClick: () => void;
-}
-const PropertyCard = ({name,image,onClick  }: PropertyCardProps) => {
-     return(
-       <div className="mt-5  sm:mt-8 md:mt-0 lg:mt-15">
-         <div
-           onClick={onClick}
-         className="relative rounded-lg p-4 shadow-md text-left w-full transition-all duration-300 ease-out overflow-hidden
-        hover:shadow-lg hover:scale-[1.008] active:scale-100 focus:outline-none cursor-pointer">
-
-          <div className="relative pt-1 pb-3  overflow-hidden rounded-md cursor-pointer">
-            <img
-              src={image}
-              alt={name}
-              className="w-50 h-50 sm:w-full sm:h-60 md:h-70 lg:h-100 object-cover rounded-xl mb-2 brightness-75"
-            />
-          
-        <div className="absolute bottom-10 left-2 text-white font-serif font-semibold text-xl sm:font-bold sm:text-4xl">
-            {name}
-        </div>
-        </div>
-
-        </div>
-       </div>
-     )
-  };
-  
+      </div>
+    </section>
+  );
+};
