@@ -1,11 +1,18 @@
 import { ChangeEvent, useState } from 'react';
 import {useNavigate} from 'react-router-dom'
-import logo from "../../assets/Signup-image.png"
 import { SigninInput } from '../../../schema/src/authSchema.js';
 import axios from 'axios';
 import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
 import { SigninSkeleton } from '../skeletons/auth/SigninSkeleton';
+import {
+  AuthDivider,
+  AuthField,
+  AuthLayout,
+  AuthLegal,
+  AuthSubmitButton,
+} from '../../components/Auth/AuthLayout';
+import { EyeIcon, EyeOffIcon, LockIcon, LoginIcon, MailIcon } from '../../components/Home/icons';
 
 export const Signin =()=>{
    const { login,loginWithGoogle  } = useAuth();
@@ -19,11 +26,12 @@ export const Signin =()=>{
 
      const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
+    const [showPassword, setShowPassword] = useState(false);
 
     async function sendRequest(){
         setIsSubmitting(true);
         try {
-          await login(signinInputs.email, signinInputs.password); 
+          await login(signinInputs.email, signinInputs.password);
             const params = new URLSearchParams(window.location.search);
             const redirect = params.get("redirect") || "/";
             navigate(redirect);
@@ -46,7 +54,7 @@ export const Signin =()=>{
              setIsSubmitting(false);
           }
       }
-    
+
       const handleChange= (e: ChangeEvent<HTMLInputElement>)=>{
         setSigninInputs({
             ...signinInputs,
@@ -59,139 +67,116 @@ export const Signin =()=>{
       }
       const params = new URLSearchParams(window.location.search);
       const redirect = params.get("redirect") || "/";
+
     return (
-      <div className="min-h-screen flex justify-center items-start pt-4 md:pt-18 bg-gray-200 p-4"> 
-     <div className="w-[900px] lg:w-full lg:max-w-[900px] h-[500px] lg:h-auto lg:min-h-[500px] flex rounded-lg bg-white lg:flex-row flex-col max-lg:h-full max-lg:w-full max-lg:rounded-none ">
- <div className="w-[40%] lg:flex justify-center items-center hidden max-lg:hidden">
-      <img  className="max-w-full object-contain"  src={logo} alt="" />
-  </div>
-  <div className="w-[60%] lg:w-[60%] flex justify-center lg:py-0 py-8 max-lg:w-full max-lg:px-4 max-lg:py-6">
-  <div className="w-[350px] mx-auto lg:mt-10 mt-0 max-lg:w-full max-lg:max-w-[350px]">
-  <div className='flex justify-center items-center text-[12px] text-[#101011] w-full lg:ml-35 max-lg:flex-wrap max-lg:text-center max-lg:gap-1'>
-  <div> Don't have an account ?</div>
-  
-<button onClick={() => navigate(`/auth/signup?redirect=${redirect}`)} className='text-red-400 cursor-pointer'>
-  Sign up
-</button>
-    </div>
-    <div className="flex flex-col ">
-      <div className="text-[25px] text-[#636AE8] font-bold mt-5 lg:mt-0 lg:text-left text-center">
-        Sign in
-    </div>
-    <div className="mt-3 flex flex-col space-y-1 items-center">
-              <GoogleLogin
-                    onSuccess={async (credentialResponse) => {
-                     if (credentialResponse.credential) {
-                       try {
-                        await loginWithGoogle(credentialResponse.credential);
-                         const params = new URLSearchParams(window.location.search);
-                         const redirect = params.get("redirect") || "/";
-                         navigate(redirect);
-                       } catch (err) {
-                         console.error("Backend login error:", err);
-                       }
-                     } else {
-                       console.error("No credential received");
-                     }
-                   }}
-                   onError={() => {
-                     console.log("Google Login Failed");
-                   }} 
-                  />
-            </div>
-
-            <div className="relative mt-4 flex items-center justify-center max-lg:mt-6">
-            <div className="border-t w-1/2 border-gray-300"></div>
-              <span className="bg-white px-4 text-gray-500 text-xs md:text-[11px]">OR</span>
-              <div className="border-t w-1/2 border-gray-300"></div>
-              </div>
-    
-            <div className="w-full mt-4">
-            <InputField label="Email" id="email" placeholder="example.email@gmail.com"
-             onChange={handleChange}
-             errorMessage={errors.email}
-             />
-            </div>
-            
-            <div className="w-full mt-4">
-            <InputField label="Password" id="password" placeholder="Enter at least 8+ characters"
-             onChange={handleChange}
-             errorMessage={errors.password}
-             />
-            </div>
-            {errors.general && <p className="text-red-500 text-sm mt-2">{errors.general}</p>}
-           
-            <div className="flex flex-row items-center justify-between mt-4">
-            <div className="flex items-center mb-2 sm:mb-0">
-              <input type="checkbox"  id="myCheckBox" className="mr-2 cursor-pointer"/>
-              <label htmlFor="myCheckBox" className="text-xs md:text-[12px] text-[#171a1f] cursor-pointer">
-                  Remember me
-              </label>
-              </div>
-
-              
-              <button onClick={() => navigate("/auth/forgot-password")} className='text-xs md:text-[13px] text-[#636AE8] cursor-pointer'>
-              Forgot Password?
-               </button>
-            </div>
-    
-          <button
-      onClick={sendRequest}
-      disabled={isSubmitting}
-      className={`bg-[#636ae8] hover:bg-[#000000] text-white font-bold py-2 px-4 rounded mt-4 w-full cursor-pointer transition-colors duration-300 max-lg:text-sm max-lg:py-2 ${
-        isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
-      }`}
-    >
-      {isSubmitting ? (
-        <span className="flex items-center justify-center">
-          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          Logging in...
-        </span>
-      ) : (
-        'Login'
-      )}
-    </button>
-
-    
-           </div>
-           </div>
-           </div>
-          </div>
-        </div>
-      )
-}
-
-interface InputFieldType{
-  label:string;
-  placeholder:string;
-  id:string;
-  className?:string;
-  onChange:(e:ChangeEvent<HTMLInputElement>)=> void;
-  errorMessage?:string;
-}
-
-function InputField ({label,placeholder, id, className,onChange, errorMessage}:InputFieldType){
-  return (
-    <div className="flex flex-col">
-     <label htmlFor={id} className="text-xs md:text-[13px] font-bold text-[#424854ff] mb-1">
-        {label}
-      </label>
-      <input
-  onChange={onChange}
-  type="text"
-  id={id}
-  placeholder={placeholder}
-className={`p-3 h-12 rounded-md text-sm md:text-[15px] bg-[#f6f6f8] placeholder-[#bcc1ca] ${className || ''} w-full max-w-[400px]`}
-/>
-
-      <span
-        className={`text-red-500 text-xs mt-1 ${errorMessage ? '' : 'error-hidden'}`}
+      <AuthLayout
+        panelTitle="Find your perfect stay"
+        panelText="500+ verified rooms across 4 cities, with transparent pricing and instant booking."
       >
-        {errorMessage}
-      </span>
-       </div>
-  )
+        {/* Header */}
+        <div className="mb-9">
+          <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-amber/15 bg-amber/8 px-3.5 py-1.5">
+            <LoginIcon className="text-amber" />
+            <span className="font-sans text-[11px] font-bold uppercase tracking-[0.14em] text-amber">
+              Welcome back
+            </span>
+          </div>
+          <h1 className="m-0 mb-2 font-serif text-4xl font-semibold leading-[1.1] tracking-tight text-ink">
+            Sign in to your account
+          </h1>
+          <p className="m-0 font-sans text-sm text-taupe">
+            Don't have an account?{' '}
+            <button
+              onClick={() => navigate(`/auth/signup?redirect=${redirect}`)}
+              className="cursor-pointer border-none bg-transparent p-0 font-sans text-sm font-semibold text-amber hover:text-amber-dark"
+            >
+              Create one
+            </button>
+          </p>
+        </div>
+
+        {/* Google sign-in (rendered by Google, so it keeps its own styling) */}
+        <div className="mb-7 flex justify-center">
+          <GoogleLogin
+            onSuccess={async (credentialResponse) => {
+              if (credentialResponse.credential) {
+                try {
+                  await loginWithGoogle(credentialResponse.credential);
+                  const params = new URLSearchParams(window.location.search);
+                  const redirect = params.get("redirect") || "/";
+                  navigate(redirect);
+                } catch (err) {
+                  console.error("Backend login error:", err);
+                }
+              } else {
+                console.error("No credential received");
+              }
+            }}
+            onError={() => {
+              console.log("Google Login Failed");
+            }}
+            width="400"
+          />
+        </div>
+
+        <AuthDivider label="or continue with email" />
+
+        {/* Form */}
+        <div className="mb-7 flex flex-col gap-5">
+          <AuthField
+            label="Email address"
+            id="email"
+            type="email"
+            placeholder="you@example.com"
+            icon={<MailIcon />}
+            onChange={handleChange}
+            errorMessage={errors.email}
+          />
+          <AuthField
+            label="Password"
+            id="password"
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Enter your password"
+            icon={<LockIcon />}
+            onChange={handleChange}
+            errorMessage={errors.password}
+            labelAction={
+              <button
+                onClick={() => navigate("/auth/forgot-password")}
+                className="cursor-pointer border-none bg-transparent p-0 font-sans text-xs font-semibold text-amber hover:text-amber-dark"
+              >
+                Forgot?
+              </button>
+            }
+            trailing={
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                className="flex cursor-pointer items-center border-none bg-transparent p-1 text-taupe-light hover:text-ink"
+              >
+                {showPassword ? <EyeOffIcon /> : <EyeIcon size={18} />}
+              </button>
+            }
+          />
+        </div>
+
+        {errors.general && (
+          <p className="m-0 mb-4 rounded-xl bg-red-50 px-3.5 py-3 font-sans text-[13px] text-red-600">
+            {errors.general}
+          </p>
+        )}
+
+        <AuthSubmitButton
+          onClick={sendRequest}
+          disabled={isSubmitting}
+          loading={isSubmitting}
+          loadingText="Logging in..."
+        >
+          Sign In
+        </AuthSubmitButton>
+
+        <AuthLegal prefix="By continuing you agree to our" />
+      </AuthLayout>
+      )
 }

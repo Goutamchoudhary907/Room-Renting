@@ -5,14 +5,14 @@ interface ErrorMessageProps {
   className?: string;
 }
 
-export const ErrorMessage: React.FC<ErrorMessageProps> = ({ 
-  message, 
-  className = "" 
+export const ErrorMessage: React.FC<ErrorMessageProps> = ({
+  message,
+  className = "",
 }) => (
-  <div className={`text-red-500 text-sm p-2 bg-red-50 rounded ${className}`}>
-    <p className="flex items-start">
+  <div className={`rounded-xl bg-red-50 px-3 py-2 font-sans text-[13px] text-red-600 ${className}`}>
+    <p className="m-0 flex items-start gap-1.5">
       <svg
-        className="w-4 h-4 mr-1 mt-0.5"
+        className="mt-0.5 h-4 w-4 shrink-0"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"

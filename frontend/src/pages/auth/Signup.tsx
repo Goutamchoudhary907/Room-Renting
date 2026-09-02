@@ -2,11 +2,26 @@ import { ChangeEvent, useEffect, useState } from 'react';
 import {useNavigate} from 'react-router-dom'
 import {SignupInput} from '../../../schema/src/authSchema.js'
 import axios from 'axios';
-import logo from "../../assets/Signup-image.png"
 import googleLogo from '../../assets/Google-logo (2).png'
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
 import { SigninSkeleton } from '../skeletons/auth/SigninSkeleton';
+import {
+  AuthDivider,
+  AuthField,
+  AuthLayout,
+  AuthLegal,
+  AuthSubmitButton,
+} from '../../components/Auth/AuthLayout';
+import {
+  EyeIcon,
+  EyeOffIcon,
+  LockIcon,
+  MailIcon,
+  PhoneIcon,
+  UserIcon,
+  UserPlusIcon,
+} from '../../components/Home/icons';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 export const Signup =() =>{
@@ -22,11 +37,12 @@ export const Signup =() =>{
  })
 
  const { signup } = useAuth();
- 
+
  const [errors, setErrors] = useState<{ [key: string]: string }>({});
    const { isLoading: isAuthLoading } = useAuth();
- const [isSubmitting, setIsSubmitting] = useState(false); 
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false); 
+ const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
  useEffect(() => {
 }, [errors]);
@@ -63,7 +79,7 @@ export const Signup =() =>{
     })
   };
 
-  
+
 const login = useGoogleLogin({
   onSuccess: async (tokenResponse) => {
      setIsGoogleLoading(true);
@@ -86,154 +102,145 @@ const login = useGoogleLogin({
 if (isAuthLoading) {
   return <SigninSkeleton />;
 }
+
   return (
-    <div className="min-h-screen flex justify-center items-start pt-4 md:pt-8 bg-gray-200 p-4"> 
-     <div className="w-[1000px] h-[600px] lg:w-full lg:max-w-[1000px] lg:h-auto lg:min-h-[600px] flex rounded-lg bg-white lg:flex-row flex-col max-lg:h-full max-lg:w-full max-lg:rounded-none ">
-    <div className="w-[40%] lg:flex justify-center items-center hidden max-lg:hidden">
-    <img  className="max-w-full object-contain"  src={logo} alt="" />
-</div>
-<div className="w-[60%] lg:w-[60%] flex justify-center lg:py-0 py-8 max-lg:w-full max-lg:px-4 max-lg:py-6">
-  <div className="w-[350px] mx-auto lg:mt-10 mt-0 max-lg:w-full max-lg:max-w-[350px]">
-  <div className='flex justify-center items-center text-[12px] text-[#101011] w-full lg:ml-35 max-lg:flex-wrap max-lg:text-center max-lg:gap-1'>
-       <div> Already have an account ?</div>
-           <button onClick={ () =>  navigate(`/auth/signin?redirect=${redirect}`)} className='text-red-400 cursor-pointer'>Log in</button>
-        </div>
-        <div className="flex flex-col ">
-        <div className="text-[25px] text-[#636AE8] font-bold mt-5 lg:mt-0 lg:text-left text-center">
-        Sign up
-        </div>
-        <div className="mt-3 flex flex-col space-y-1 items-center">
-      <button
-      onClick={() => login()}
-      disabled={isGoogleLoading}
-      className={`flex items-center justify-center border border-[#dadce0] rounded-md bg-white text-[#3c4043] hover:shadow-md w-[280px] lg:w-[320px] h-[40px] font-medium text-sm transition-all duration-200 ${
-        isGoogleLoading ? 'opacity-75 cursor-not-allowed' : ''
-      }`}
+    <AuthLayout
+      panelTitle="List, book and stay"
+      panelText="Join Rentpy to book verified rooms or earn by renting out your own space."
     >
-      {isGoogleLoading ? (
-        <span className="flex items-center justify-center">
-          <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-[#3c4043]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          Signing up...
-        </span>
-      ) : (
-        <>
-          <img src={googleLogo} alt="Google Logo" className="w-5 h-5 mr-3" />
-          <span>Sign up with Google</span>
-        </>
-      )}
-    </button>
-
+      {/* Header */}
+      <div className="mb-8">
+        <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-verified/15 bg-verified/8 px-3.5 py-1.5">
+          <UserPlusIcon className="text-verified" />
+          <span className="font-sans text-[11px] font-bold uppercase tracking-[0.14em] text-verified">
+            Create account
+          </span>
         </div>
-        <div className="relative mt-4 flex items-center justify-center max-lg:mt-6">
-            <div className="border-t w-1/2 border-gray-300"></div>
-              <span className="bg-white px-4 text-gray-500 text-xs md:text-[11px]">OR</span>
-              <div className="border-t w-1/2 border-gray-300"></div>
-              </div>
+        <h1 className="m-0 mb-2 font-serif text-4xl font-semibold leading-[1.1] tracking-tight text-ink">
+          Get started with Rentpy
+        </h1>
+        <p className="m-0 font-sans text-sm text-taupe">
+          Already have an account?{' '}
+          <button
+            onClick={() => navigate(`/auth/signin?redirect=${redirect}`)}
+            className="cursor-pointer border-none bg-transparent p-0 font-sans text-sm font-semibold text-amber hover:text-amber-dark"
+          >
+            Sign in
+          </button>
+        </p>
+      </div>
 
-        <div className="flex space-x-4 mt-4 ">
-          <InputField label="First Name" id="firstName" placeholder="Input first name"  className="w-[168px]"
-           onChange={handleChange} 
-           errorMessage={errors.firstName}
-           />
-          <InputField label="Last Name" id="lastName" placeholder="Input last name" className="w-[168px]"
-           onChange={handleChange}
-           errorMessage={errors.lastName}
-           />
+      {/* Google */}
+      <div className="mb-6">
+        <button
+          onClick={() => login()}
+          disabled={isGoogleLoading}
+          className={`flex w-full items-center justify-center gap-2.5 rounded-[14px] border border-cream-border bg-white px-5 py-[13px] font-sans text-[13px] font-semibold text-ink transition-all duration-[250ms] ${
+            isGoogleLoading
+              ? 'cursor-not-allowed opacity-75'
+              : 'cursor-pointer hover:border-amber hover:shadow-[0_4px_12px_rgba(181,112,60,0.1)]'
+          }`}
+        >
+          {isGoogleLoading ? (
+            <span className="flex items-center justify-center">
+              <svg className="-ml-1 mr-3 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Signing up...
+            </span>
+          ) : (
+            <>
+              <img src={googleLogo} alt="" className="h-[18px] w-[18px]" />
+              <span>Continue with Google</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      <AuthDivider label="or with email" />
+
+      {/* Form fields */}
+      <div className="mb-7 flex flex-col gap-[18px]">
+        <div className="flex flex-col gap-[18px] sm:flex-row sm:gap-3">
+          <div className="flex-1">
+            <AuthField
+              label="First name"
+              id="firstName"
+              placeholder="John"
+              icon={<UserIcon />}
+              onChange={handleChange}
+              errorMessage={errors.firstName}
+            />
+          </div>
+          <div className="flex-1">
+            <AuthField
+              label="Last name"
+              id="lastName"
+              placeholder="Doe"
+              onChange={handleChange}
+              errorMessage={errors.lastName}
+            />
+          </div>
         </div>
 
-        <div className="w-full mt-4">
-        <InputField label="Email" id="email" placeholder="example.email@gmail.com"
-         onChange={handleChange}
-         errorMessage={errors.email}
-         />
-        </div>
-        
-        <div className="w-full mt-4">
-        <InputField label="Password" id="password" placeholder="Enter at least 8+ characters"
-         onChange={handleChange}
-         errorMessage={errors.password}
-         />
-        </div>
+        <AuthField
+          label="Email address"
+          id="email"
+          type="email"
+          placeholder="you@example.com"
+          icon={<MailIcon />}
+          onChange={handleChange}
+          errorMessage={errors.email}
+        />
 
-        <div className="w-full mt-4">
-        <InputField 
-          label="Phone Number" 
-          id="phoneNumber" 
-          placeholder="+91 1234567890"
+        <AuthField
+          label="Phone number"
+          id="phoneNumber"
+          type="tel"
+          placeholder="+91 98765 43210"
+          icon={<PhoneIcon />}
           onChange={handleChange}
           errorMessage={errors.phoneNumber}
         />
+
+        <AuthField
+          label="Password"
+          id="password"
+          type={showPassword ? 'text' : 'password'}
+          placeholder="Enter at least 8+ characters"
+          icon={<LockIcon />}
+          onChange={handleChange}
+          errorMessage={errors.password}
+          trailing={
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              className="flex cursor-pointer items-center border-none bg-transparent p-1 text-taupe-light hover:text-ink"
+            >
+              {showPassword ? <EyeOffIcon /> : <EyeIcon size={18} />}
+            </button>
+          }
+        />
       </div>
 
-        {errors.general && <p className="text-red-500">{errors.general}</p>}
-       
-        <div className="flex items-center mt-4">
-          <input type="checkbox"  id="myCheckBox" className="mr-2"/>
-          <label htmlFor="myCheckBox" className="text-[12px] text-[#171a1f]">
-          By signing up, I agree with the Terms of Use & Privacy Policy
-          </label>
-        </div>
-
-        <div>
-          <button
-      onClick={sendRequest}
-      disabled={isSubmitting}
-      className={`bg-[#636ae8] hover:bg-[#000000] text-white font-bold py-2 mb-2 px-4 rounded mt-4 w-full cursor-pointer transition-colors duration-300 max-lg:text-sm max-lg:py-2 ${
-        isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
-      }`}
-    >
-      {isSubmitting ? (
-        <span className="flex items-center justify-center">
-          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          Creating account...
-        </span>
-      ) : (
-        'Create an account'
+      {errors.general && (
+        <p className="m-0 mb-4 rounded-xl bg-red-50 px-3.5 py-3 font-sans text-[13px] text-red-600">
+          {errors.general}
+        </p>
       )}
-    </button>
 
-        </div>
+      <AuthSubmitButton
+        onClick={sendRequest}
+        disabled={isSubmitting}
+        loading={isSubmitting}
+        loadingText="Creating account..."
+      >
+        Create Account
+      </AuthSubmitButton>
 
-       </div>
-       </div>
-       </div>
-      </div>
-    </div>
+      <AuthLegal prefix="By creating an account you agree to our" />
+    </AuthLayout>
   )
  }
- interface InputFieldType{
-  label:string;
-  placeholder:string;
-  id:string;
-  className?:string;
-  onChange:(e:ChangeEvent<HTMLInputElement>)=> void;
-  errorMessage?:string;
-  }
-
- function InputField ({label,placeholder, id, className,onChange, errorMessage}:InputFieldType){
-  return (
-    <div className="flex flex-col">
-      <label htmlFor={id} className="text-[13px] font-bold text-[#424854ff] mb-1">
-        {label}
-      </label>
-      <input 
-      onChange={onChange}
-      type="text"
-      id={id}
-      placeholder={placeholder}
-      className={`p-2 rounded-md text-xs md:text-[13.5px] bg-[#f6f6f8] placeholder-[#bcc1ca] ${className || ''} w-full max-lg:text-sm max-lg:p-2`}
-/>
-      <span
-        className={`text-red-500 text-xs mt-1 ${errorMessage ? '' : 'error-hidden'}`}
-      >
-        {errorMessage}
-      </span>
-       </div>
-  )
- } 

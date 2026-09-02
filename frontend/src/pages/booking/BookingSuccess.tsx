@@ -1,7 +1,7 @@
-import { CheckCircleIcon } from "@heroicons/react/24/outline";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import {useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { ArrowRightIcon, CheckIcon } from "../../components/Home/icons";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 interface BookingDetails{
@@ -23,15 +23,24 @@ interface BookingDetails{
     };
 }
 
+const DetailRow = ({ label, value }: { label: string; value: string }) => (
+  <div className="flex items-center justify-between gap-4">
+    <span className="font-sans text-[13px] text-taupe">{label}</span>
+    <span className="min-w-0 truncate text-right font-sans text-[13px] font-semibold text-ink">
+      {value}
+    </span>
+  </div>
+);
+
 export const BookingSuccess=() =>{
-    const { bookingId } = useParams(); 
+    const { bookingId } = useParams();
     const [searchParams] = useSearchParams();
     const paymentId = searchParams.get('payment_id');
     const navigate = useNavigate();
     const [bookingDetails, setBookingDetails] = useState<BookingDetails | null>(null);
     const [loading, setLoading] = useState(true)
 
-  
+
     useEffect(() => {
         const fetchBookingDetails = async () => {
           try {
@@ -40,7 +49,7 @@ export const BookingSuccess=() =>{
                 Authorization: `Bearer ${localStorage.getItem('token')}`
               }
             });
-            
+
             const booking = response.data.booking;
             setBookingDetails({
               id: booking.bookingId,
@@ -67,94 +76,92 @@ export const BookingSuccess=() =>{
             setLoading(false);
           }
         };
-    
+
         if (bookingId) {
           fetchBookingDetails();
         }
       }, [bookingId, paymentId, navigate]);
+
       if (loading) {
         return (
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="flex min-h-screen items-center justify-center bg-cream px-6">
+            <div className="h-12 w-12 animate-spin rounded-full border-2 border-cream-border border-t-amber" />
           </div>
         );
       }
 
+      const formatDate = (value: string) => new Date(value).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-            <div className="text-center mb-6">
-              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100">
-                <CheckCircleIcon className="h-10 w-10 text-green-600" />
+        <div className="flex min-h-screen items-center justify-center bg-cream px-6 py-12">
+          <div className="w-full max-w-[460px] rounded-3xl border border-cream-border bg-white p-8 shadow-[0_8px_32px_rgba(28,25,23,0.08)] sm:p-10">
+            <div className="text-center">
+              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-[20px] bg-verified/10">
+                <CheckIcon size={30} strokeWidth={2.5} className="text-verified" />
               </div>
-              <h1 className="mt-4 text-2xl font-bold text-gray-900">Booking Confirmed!</h1>
-              <p className="mt-2 text-gray-600">Your payment was successful and your booking is now confirmed.</p>
+              <h1 className="m-0 mb-2.5 font-serif text-3xl font-semibold tracking-tight text-ink">
+                Booking confirmed
+              </h1>
+              <p className="m-0 font-sans text-sm leading-relaxed text-taupe">
+                Your payment went through and your stay is locked in.
+              </p>
             </div>
-    
+
             {bookingDetails && (
-              <div className="border-t border-gray-200 pt-6">
-                <h2 className="text-lg font-medium text-gray-900">Booking Details</h2>
-                
-                <div className="mt-4 space-y-4">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Property:</span>
-                    <span className="font-medium">{bookingDetails.property.title}</span>
-                  </div>
-    
+              <div className="mt-7 rounded-2xl border border-cream-border bg-cream p-5">
+                <h2 className="m-0 mb-4 font-sans text-xs font-bold uppercase tracking-[0.08em] text-ink-soft">
+                  Booking details
+                </h2>
+
+                <div className="flex flex-col gap-3">
+                  <DetailRow label="Property" value={bookingDetails.property.title} />
+
                   {bookingDetails.dates.checkIn && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Check-in:</span>
-                      <span className="font-medium">
-                        {new Date(bookingDetails.dates.checkIn).toLocaleDateString()}
-                      </span>
-                    </div>
+                    <DetailRow label="Check-in" value={formatDate(bookingDetails.dates.checkIn)} />
                   )}
-    
+
                   {bookingDetails.dates.checkOut && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Check-out:</span>
-                      <span className="font-medium">
-                        {new Date(bookingDetails.dates.checkOut).toLocaleDateString()}
-                      </span>
-                    </div>
+                    <DetailRow label="Check-out" value={formatDate(bookingDetails.dates.checkOut)} />
                   )}
-    
+
                   {bookingDetails.dates.moveIn && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Move-in Date:</span>
-                      <span className="font-medium">
-                        {new Date(bookingDetails.dates.moveIn).toLocaleDateString()}
-                      </span>
-                    </div>
+                    <DetailRow label="Move-in date" value={formatDate(bookingDetails.dates.moveIn)} />
                   )}
-    
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Total Paid:</span>
-                    <span className="font-medium">
+
+                  {bookingDetails.dates.leaseDuration && (
+                    <DetailRow
+                      label="Lease duration"
+                      value={`${bookingDetails.dates.leaseDuration} ${bookingDetails.dates.leaseDuration === 1 ? 'month' : 'months'}`}
+                    />
+                  )}
+
+                  <div className="mt-1 flex items-center justify-between border-t border-cream-border pt-3">
+                    <span className="font-sans text-sm font-bold text-ink">Total paid</span>
+                    <span className="font-serif text-xl font-semibold text-ink">
                       ₹{bookingDetails.payment.amount.toLocaleString()}
                     </span>
                   </div>
-    
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Transaction ID:</span>
-                    <span className="font-medium text-sm">
-                      {bookingDetails.payment.transactionId}
-                    </span>
-                  </div>
+
+                  <DetailRow label="Transaction ID" value={bookingDetails.payment.transactionId} />
                 </div>
               </div>
             )}
-    
-            <div className="mt-8 flex flex-col space-y-4">
+
+            <div className="mt-7 flex flex-col gap-3">
               <button
                 onClick={() => navigate('/booking/my-bookings')}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg"
+                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[14px] border-none bg-ink py-3.5 font-sans text-sm font-semibold text-cream shadow-[0_4px_16px_rgba(28,25,23,0.15)] transition-colors hover:bg-amber"
               >
                 View My Bookings
+                <ArrowRightIcon />
               </button>
               <button
                 onClick={() => navigate('/')}
-                className="w-full bg-white hover:bg-gray-50 text-gray-700 py-2 px-4 rounded-lg border border-gray-300"
+                className="w-full cursor-pointer rounded-[14px] border-[1.5px] border-cream-border bg-white py-3.5 font-sans text-sm font-semibold text-ink transition-colors hover:bg-cream"
               >
                 Back to Home
               </button>

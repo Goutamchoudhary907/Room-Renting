@@ -37,7 +37,7 @@ export const PropertyDisplay: React.FC<PropertyDisplayProps> = ({
   loadingSavedProperties,
 }) => {
   return (
-    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {properties.map((property) => (
         <PropertyCard
           key={property.id}
@@ -88,11 +88,16 @@ const PropertyCard = ({
     return property.city;
   };
 
-  // The design shows a single price line per card. For "both" properties the
-  // nightly rate is the entry price; the chip still advertises both options.
-  const showNightly = property.pricePerNight != null && property.rentalType !== "long-term";
-  const primaryPrice = showNightly ? property.pricePerNight : property.pricePerMonth;
-  const primaryUnit = showNightly ? "/night" : "/month";
+  // Show every rate the property actually offers — "both" properties list the
+  // nightly and monthly price together rather than hiding one.
+  const prices: { amount: number; unit: string }[] = [];
+  if (property.pricePerNight != null && property.rentalType !== "long-term") {
+    prices.push({ amount: property.pricePerNight, unit: "/night" });
+  }
+  if (property.pricePerMonth != null && property.rentalType !== "short-term") {
+    prices.push({ amount: property.pricePerMonth, unit: "/month" });
+  }
+  const isDualPrice = prices.length > 1;
 
   return (
     <div
@@ -159,15 +164,25 @@ const PropertyCard = ({
             {RENTAL_LABEL[property.rentalType] || property.rentalType}
           </span>
         </div>
-        {/* mt-auto pins this row to the card bottom so price + Verified line up
-            across every card in the row regardless of title/chip wrapping. */}
-        <div className="mt-auto flex items-center justify-between gap-2 border-t border-cream-border-soft pt-3">
-          {primaryPrice != null && (
-            <span className="whitespace-nowrap">
-              <span className="font-serif text-[22px] font-semibold text-ink">₹{primaryPrice}</span>
-              <span className="ml-1 font-sans text-xs text-taupe-light">{primaryUnit}</span>
-            </span>
-          )}
+        {/* mt-auto pins this row to the card bottom and min-h keeps the divider
+            level whether the card shows one price or two. */}
+        <div className="mt-auto flex min-h-[58px] items-center justify-between gap-2 border-t border-cream-border-soft pt-3">
+          <div className="min-w-0">
+            {prices.map((p) => (
+              <div key={p.unit} className="whitespace-nowrap leading-tight">
+                <span
+                  className={`font-serif font-semibold text-ink ${isDualPrice ? "text-[18px]" : "text-[22px]"}`}
+                >
+                  ₹{p.amount}
+                </span>
+                <span
+                  className={`ml-1 font-sans text-taupe-light ${isDualPrice ? "text-[11px]" : "text-xs"}`}
+                >
+                  {p.unit}
+                </span>
+              </div>
+            ))}
+          </div>
           <span className="flex shrink-0 items-center gap-1 rounded-full bg-verified/8 px-2.5 py-1 font-sans text-[11px] font-semibold text-verified">
             <CheckIcon size={10} strokeWidth={2.5} />
             Verified

@@ -21,6 +21,11 @@
   --color-verified: #2d8a56;
 }
 
+.font-serif {
+  font-variant-numeric: lining-nums;
+  font-feature-settings: "lnum" 1;
+}
+
 /* ---------- Redesign keyframes ---------- */
 @keyframes rp-fade-up {
   from {

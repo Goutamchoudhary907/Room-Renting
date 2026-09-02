@@ -43,7 +43,7 @@ export const Recommendation = ({ recommendedProperties }: RecommendationProps) =
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {recommendedProperties.map((property, i) => (
-          <Reveal key={property.id} delay={Math.min(i, 3) * 0.05}>
+          <Reveal key={property.id} delay={Math.min(i, 3) * 0.05} className="h-full">
             <PropertyCard property={property} />
           </Reveal>
         ))}
@@ -68,13 +68,23 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
     navigate(`/property/room-detail/${property.id}`);
   };
 
+  // Show every rate the property offers, matching the All Rooms cards.
+  const prices: { amount: number; unit: string }[] = [];
+  if (property.pricePerNight != null && property.rentalType !== "long-term") {
+    prices.push({ amount: property.pricePerNight, unit: "/night" });
+  }
+  if (property.pricePerMonth != null && property.rentalType !== "short-term") {
+    prices.push({ amount: property.pricePerMonth, unit: "/month" });
+  }
+  const isDualPrice = prices.length > 1;
+
   return (
     <div
       onClick={handleCardClick}
-      className="group cursor-pointer rounded-[20px] border border-cream-border bg-white p-2.5 shadow-[0_1px_3px_rgba(28,25,23,0.04)] transition-all duration-[400ms] hover:-translate-y-1.5 hover:border-amber/30 hover:shadow-[0_20px_44px_rgba(28,25,23,0.12)]"
+      className="group flex h-full cursor-pointer flex-col rounded-[20px] border border-cream-border bg-white p-2.5 shadow-[0_1px_3px_rgba(28,25,23,0.04)] transition-all duration-[400ms] hover:-translate-y-1.5 hover:border-amber/30 hover:shadow-[0_20px_44px_rgba(28,25,23,0.12)]"
     >
       {/* Image */}
-      <div className="relative h-[180px] overflow-hidden rounded-[14px] bg-cream-border-soft">
+      <div className="relative h-[180px] shrink-0 overflow-hidden rounded-[14px] bg-cream-border-soft">
         {property.images && property.images.length > 0 && property.images[0].url ? (
           <img src={property.images[0].url} alt={property.title} className="h-full w-full object-cover" />
         ) : (
@@ -89,45 +99,35 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
       </div>
 
       {/* Body */}
-      <div className="px-2 pb-2 pt-3.5">
+      <div className="flex flex-1 flex-col px-2 pb-2 pt-3.5">
         <h3 className="mb-2 overflow-hidden text-ellipsis whitespace-nowrap font-serif text-[19px] font-semibold text-ink">
           {property.title}
         </h3>
         <div className="mb-3.5 flex flex-wrap gap-1.5">
-          <span className="inline-flex items-center rounded-full bg-cream px-2.5 py-1 font-sans text-[11px] font-semibold text-taupe">
+          <span className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-cream px-2.5 py-1 font-sans text-[11px] font-semibold text-taupe">
             {property.propertyType}
           </span>
-          <span className="inline-flex items-center rounded-full bg-amber/8 px-2.5 py-1 font-sans text-[11px] font-semibold text-amber">
+          <span className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-amber/8 px-2.5 py-1 font-sans text-[11px] font-semibold text-amber">
             {RENTAL_LABEL[property.rentalType] || property.rentalType}
           </span>
         </div>
-        <div className="border-t border-cream-border-soft pt-3">
-          {property.rentalType === "short-term" && property.pricePerNight != null && (
-            <span>
-              <span className="font-serif text-[22px] font-semibold text-ink">₹{property.pricePerNight}</span>
-              <span className="ml-1 font-sans text-xs text-taupe-light">/night</span>
-            </span>
-          )}
-
-          {property.rentalType === "long-term" && property.pricePerMonth != null && (
-            <span>
-              <span className="font-serif text-[22px] font-semibold text-ink">₹{property.pricePerMonth}</span>
-              <span className="ml-1 font-sans text-xs text-taupe-light">/month</span>
-            </span>
-          )}
-
-          {property.rentalType === "both" && property.pricePerMonth != null && property.pricePerNight != null && (
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <span>
-                <span className="font-serif text-[22px] font-semibold text-ink">₹{property.pricePerNight}</span>
-                <span className="ml-1 font-sans text-xs text-taupe-light">/night</span>
-              </span>
-              <span>
-                <span className="font-serif text-[22px] font-semibold text-ink">₹{property.pricePerMonth}</span>
-                <span className="ml-1 font-sans text-xs text-taupe-light">/month</span>
-              </span>
-            </div>
-          )}
+        <div className="mt-auto flex min-h-[52px] items-center border-t border-cream-border-soft pt-3">
+          <div className="min-w-0">
+            {prices.map((p) => (
+              <div key={p.unit} className="whitespace-nowrap leading-tight">
+                <span
+                  className={`font-serif font-semibold text-ink ${isDualPrice ? "text-[18px]" : "text-[22px]"}`}
+                >
+                  ₹{p.amount}
+                </span>
+                <span
+                  className={`ml-1 font-sans text-taupe-light ${isDualPrice ? "text-[11px]" : "text-xs"}`}
+                >
+                  {p.unit}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
