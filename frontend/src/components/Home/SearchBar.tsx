@@ -6,7 +6,7 @@ import { SearchBarSkeleton } from "../HomeSkeleton/SearchBarSkeleton";
 import { CalendarIcon, CheckIcon, ClockIcon, ShieldIcon } from "./icons";
 import SearchBarImage from "../../assets/Home.jpg";
 import SearchBarImageLogged from "../../assets/Home.jpg";
-import SearchBarSubImage from "../../assets/Home_subImage.jpg";
+import SearchBarSubImage from "../../assets/Home_Subimage.jpg";
 
 export const SearchBar = () => {
   const { user, isLoading } = useAuth();
