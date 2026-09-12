@@ -1,7 +1,7 @@
-import IndoreImage from "../../assets/IndoreImage.png";
-import PuneImage from "../../assets/PuneImage.png";
-import BangloreImage from "../../assets/BangloreImage.jpg";
-import DelhiImage from "../../assets/DelhiImage.png";
+import IndoreImage from "../../assets/Indore.jpg";
+import PuneImage from "../../assets/Pune.avif";
+import BangloreImage from "../../assets/Bengaluru.jpg";
+import DelhiImage from "../../assets/Delhi.jpg";
 import { useNavigate } from "react-router-dom";
 import { Reveal } from "./Reveal";
 import { SectionHeader } from "./SectionHeader";

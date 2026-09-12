@@ -4,23 +4,6 @@ import { useState } from "react";
 import NavbarSkeleton from "./NavbarSkeleton";
 import { useLoading } from "../../context/LoadingContext";
 
-const HouseIcon = ({ className }: { className?: string }) => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="#e8c17a"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M3 10l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V10z"></path>
-    <path d="M9 21V12h6v11"></path>
-  </svg>
-);
-
 const MenuIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1c1917" strokeWidth="2" strokeLinecap="round">
     <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -58,9 +41,7 @@ export const Navbar = () => {
     <nav className="sticky top-0 z-[100] flex h-16 items-center justify-between border-b border-cream-border bg-cream/92 px-4 font-sans backdrop-blur-md sm:px-6">
       {/* Logo */}
       <Link to="/" className="flex items-center gap-2.5 no-underline">
-        <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-ink">
-          <HouseIcon />
-        </div>
+        <img src="/logo.svg" alt="Rentpy" className="h-9 w-9 rounded-[10px]" />
         <span className="font-serif text-[22px] font-bold tracking-tight text-ink">Rentpy</span>
       </Link>
 

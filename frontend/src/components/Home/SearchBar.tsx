@@ -4,11 +4,18 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { SearchBarSkeleton } from "../HomeSkeleton/SearchBarSkeleton";
 import { CalendarIcon, CheckIcon, ClockIcon, ShieldIcon } from "./icons";
+import SearchBarImage from "../../assets/Home.jpg";
+import SearchBarImageLogged from "../../assets/Home.jpg";
+import SearchBarSubImage from "../../assets/Home_subImage.jpg";
 
 export const SearchBar = () => {
   const { user, isLoading } = useAuth();
   const isLoggedIn = !!user;
   const [rentalType, setRentalType] = useState<string | null>(null);
+
+  const backgroundImage = isLoggedIn
+  ? `url(${SearchBarImageLogged})`
+  : `url(${SearchBarImage})`;
 
   const navigate = useNavigate();
   const handleSearch = (
@@ -170,18 +177,14 @@ export const SearchBar = () => {
           <div className="absolute -right-3 -top-3 bottom-6 left-6 rotate-3 rounded-[40px] bg-gradient-to-br from-amber/15 to-gold/10" />
           {/* Main image placeholder */}
           <div
-            className="absolute inset-y-2.5 left-2.5 right-0 -rotate-1 overflow-hidden rounded-[32px] border-[6px] border-white shadow-[0_24px_48px_rgba(28,25,23,0.12)]"
+            className="absolute inset-y-2.5 left-2.5 right-0 -rotate-1 rounded-[32px] border-[6px] border-white shadow-[0_24px_48px_rgba(28,25,23,0.12)]"
             style={{
-              background:
-                "repeating-linear-gradient(45deg, #f0ebe4, #f0ebe4 10px, #e8e3dc 10px, #e8e3dc 20px)",
+              backgroundImage: backgroundImage,
+              backgroundSize:"cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
             }}
           >
-            <div className="absolute inset-0 flex items-center justify-center bg-cream/40">
-              <span className="rounded-lg border border-dashed border-[#ccc] bg-white/90 px-4 py-2 font-mono text-[13px] text-taupe-light">
-                hero photo · beautiful stay
-              </span>
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-ink/30 to-transparent to-50%" />
           </div>
 
           {/* Floating mini card */}
@@ -189,13 +192,12 @@ export const SearchBar = () => {
             <div
               className="h-[72px] overflow-hidden rounded-xl"
               style={{
-                background:
-                  "repeating-linear-gradient(45deg, #f0ebe4, #f0ebe4 8px, #e8e3dc 8px, #e8e3dc 16px)",
+                backgroundImage: `url(${SearchBarSubImage})`,
+                backgroundSize:"cover",
+                backgroundPosition:"center",
+                backgroundRepeat:"no-repeat"
               }}
             >
-              <div className="flex h-full items-center justify-center">
-                <span className="font-mono text-[10px] text-taupe-light">room photo</span>
-              </div>
             </div>
             <div className="px-1 pb-0.5 pt-1.5">
               <div className="overflow-hidden text-ellipsis whitespace-nowrap font-sans text-xs font-bold text-ink">

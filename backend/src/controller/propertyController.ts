@@ -369,23 +369,8 @@ if (excludeHostId) {
           bookings: {
             some: {
               paymentStatus: 'SUCCESSFUL',
-              OR: [
-                {
-                  checkinDate: { lt: endDate },
-                  checkoutDate: { gt: startDate }
-                },
-                {
-                  moveInDate: { lt: endDate },
-                  OR: [
-                    { leaseDuration: null },
-                    {
-                      leaseDuration: {
-                        gte: calculateMonthDifference(new Date(moveInDate as string), endDate)
-                      }
-                    }
-                  ]
-                }
-              ]
+              checkinDate: { lt: endDate },
+              checkoutDate: { gt: startDate }
             }
           }
         }
