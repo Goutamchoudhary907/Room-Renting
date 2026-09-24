@@ -34,52 +34,38 @@ export const RoomFilterBar: React.FC<RoomFilterBarProps> = ({
     setBedrooms(currentFilters.bedrooms || "");
   }, [currentFilters]);
 
-  // Filters apply live as you interact (the design has no separate "Apply" button) —
-  // every handler below builds the next full filter snapshot and emits it immediately.
-  type Snapshot = {
-    minPrice: string;
-    maxPrice: string;
-    amenities: string[];
-    propertyType: string;
-    rentalType: string;
-    bedrooms: string;
-  };
-  const emit = (patch: Partial<Snapshot>) => {
-    const next: Snapshot = {
-      minPrice,
-      maxPrice,
-      amenities: selectedAmenities,
-      propertyType,
-      rentalType,
-      bedrooms,
-      ...patch,
-    };
+  // Toggle-style filters (property type, bedrooms, rental type, amenities)
+  // apply immediately on click. Price range still needs the Apply Filters
+  // button since it's free-text input (applying on every keystroke would
+  // spam requests) — that button also works as a manual re-apply for everything.
+  const applyFilters = (overrides: Partial<Filters> = {}) => {
     onFilterChange({
-      minPrice: next.minPrice || undefined,
-      maxPrice: next.maxPrice || undefined,
-      amenities: next.amenities.length > 0 ? next.amenities : undefined,
-      propertyType: next.propertyType || undefined,
-      rentalType: next.rentalType || undefined,
-      bedrooms: next.bedrooms || undefined,
+      minPrice: minPrice || undefined,
+      maxPrice: maxPrice || undefined,
+      amenities: selectedAmenities.length > 0 ? selectedAmenities : undefined,
+      propertyType: propertyType || undefined,
+      rentalType: rentalType || undefined,
+      bedrooms: bedrooms || undefined,
+      ...overrides,
     });
   };
 
   const togglePropertyType = (value: string) => {
     const next = propertyType === value ? "" : value;
     setPropertyType(next);
-    emit({ propertyType: next });
+    applyFilters({ propertyType: next || undefined });
   };
 
   const toggleBedrooms = (value: string) => {
     const next = bedrooms === value ? "" : value;
     setBedrooms(next);
-    emit({ bedrooms: next });
+    applyFilters({ bedrooms: next || undefined });
   };
 
   const toggleRentalType = (value: string) => {
     const next = rentalType === value ? "" : value;
     setRentalType(next);
-    emit({ rentalType: next });
+    applyFilters({ rentalType: next || undefined });
   };
 
   const toggleAmenity = (value: string) => {
@@ -87,11 +73,13 @@ export const RoomFilterBar: React.FC<RoomFilterBarProps> = ({
       ? selectedAmenities.filter((a) => a !== value)
       : [...selectedAmenities, value];
     setSelectedAmenities(next);
-    emit({ amenities: next });
+    applyFilters({ amenities: next.length > 0 ? next : undefined });
   };
 
-  const commitMinPrice = () => emit({ minPrice });
-  const commitMaxPrice = () => emit({ maxPrice });
+  const handleApplyFilters = () => {
+    applyFilters();
+    setIsMobileFiltersOpen(false);
+  };
 
   const handleClearFilters = () => {
     setMinPrice("");
@@ -162,8 +150,6 @@ export const RoomFilterBar: React.FC<RoomFilterBarProps> = ({
               inputMode="numeric"
               value={minPrice}
               onChange={(e) => setMinPrice(e.target.value)}
-              onBlur={commitMinPrice}
-              onKeyDown={(e) => e.key === "Enter" && commitMinPrice()}
               placeholder="Min"
               className="w-full min-w-0 border-none bg-transparent p-0 font-sans text-[13px] text-ink focus:outline-none focus:ring-0"
             />
@@ -176,8 +162,6 @@ export const RoomFilterBar: React.FC<RoomFilterBarProps> = ({
               inputMode="numeric"
               value={maxPrice}
               onChange={(e) => setMaxPrice(e.target.value)}
-              onBlur={commitMaxPrice}
-              onKeyDown={(e) => e.key === "Enter" && commitMaxPrice()}
               placeholder="Max"
               className="w-full min-w-0 border-none bg-transparent p-0 font-sans text-[13px] text-ink focus:outline-none focus:ring-0"
             />
@@ -274,6 +258,12 @@ export const RoomFilterBar: React.FC<RoomFilterBarProps> = ({
       <div className="hidden lg:sticky lg:top-[88px] lg:block lg:w-[260px] lg:shrink-0">
         <div className="rounded-[20px] border border-cream-border bg-white p-6 shadow-[0_1px_3px_rgba(28,25,23,0.04)]">
           {content}
+          <button
+            onClick={handleApplyFilters}
+            className="mt-6 w-full cursor-pointer rounded-xl border-none bg-ink py-3 font-sans text-sm font-semibold text-gold transition-colors hover:bg-amber"
+          >
+            Apply Filters
+          </button>
         </div>
       </div>
 
@@ -314,7 +304,7 @@ export const RoomFilterBar: React.FC<RoomFilterBarProps> = ({
               Clear all
             </button>
             <button
-              onClick={() => setIsMobileFiltersOpen(false)}
+              onClick={handleApplyFilters}
               className="flex-1 cursor-pointer rounded-xl border-none bg-ink py-3 font-sans text-sm font-semibold text-cream"
             >
               Show results

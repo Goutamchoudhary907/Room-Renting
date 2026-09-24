@@ -52,6 +52,10 @@ export const SearchFields = ({ onSearch, initialLocation, initialCheckin, initia
             placeholderText="Check-in"
             minDate={new Date()}
             dateFormat="MMM d"
+            selectsStart
+            startDate={checkinDate}
+            endDate={null}
+            aria-label="Select check in date"
             className="w-full min-w-0 cursor-pointer border-none bg-transparent p-0 font-sans text-sm text-ink placeholder-taupe-light focus:outline-none focus:ring-0"
           />
         </div>
@@ -67,6 +71,10 @@ export const SearchFields = ({ onSearch, initialLocation, initialCheckin, initia
             placeholderText="Check-out"
             minDate={checkinDate || new Date()}
             dateFormat="MMM d"
+            selectsEnd
+            startDate={null}
+            endDate={checkoutDate}
+            aria-label="Select check out date"
             className="w-full min-w-0 cursor-pointer border-none bg-transparent p-0 font-sans text-sm text-ink placeholder-taupe-light focus:outline-none focus:ring-0"
           />
         </div>

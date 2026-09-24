@@ -107,7 +107,7 @@ return(
         </p>
       )}
 
-      <AuthSubmitButton onClick={sendRequest} loadingText="Sending...">
+      <AuthSubmitButton onClick={sendRequest} disabled={isLoading} loading={isLoading} loadingText="Sending...">
         <>
           Send Reset Link
           <ArrowRightIcon />

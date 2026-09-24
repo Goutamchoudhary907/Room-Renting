@@ -70,8 +70,15 @@ export const AllRooms = () => {
     });
   };
 
+  // Sync only the URL-tracked fields from searchParams (e.g. a new Home-page
+  // search navigating into this page). Merges into prev instead of replacing
+  // filters wholesale — updateFilters only ever writes location/checkin/
+  // checkout/rentalType to the URL, so a full replace here was wiping out
+  // sidebar-only filters (price/bedrooms/amenities/propertyType) the instant
+  // they were applied, since setSearchParams triggers this same effect.
   useEffect(() => {
-    const newFilters: Filters = {
+    setFilters((prev) => ({
+      ...prev,
       location: searchParams.get("location") || undefined,
       checkin: searchParams.get("checkin")
         ? new Date(searchParams.get("checkin")!)
@@ -80,8 +87,7 @@ export const AllRooms = () => {
         ? new Date(searchParams.get("checkout")!)
         : null,
       rentalType: searchParams.get("rentalType") || undefined,
-    };
-    setFilters(newFilters);
+    }));
   }, [searchParams]);
 
   const {
@@ -126,7 +132,7 @@ const pagination = paginatedResponse?.pagination;
 
 // Update totalPages when pagination changes
 useEffect(() => {
-  if (pagination?.totalPages) {
+  if (pagination?.totalPages != null) {
     setTotalPages(pagination.totalPages);
   }
 }, [pagination]);

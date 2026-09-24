@@ -261,13 +261,12 @@ export async function getFilteredProperties(req:Request, res:Response):Promise<v
     const limit = parseInt(req.query.limit as string) || 20;  // default 20
     const skip = (page - 1) * limit;
 
-  const {rentalType,bedrooms,minPrice, maxPrice, address,amenities,checkin, checkout,moveInDate, leaseDuration, excludeHostId} = req.query;
+  const {rentalType,bedrooms,minPrice, maxPrice, address,amenities,checkin, checkout,moveInDate, leaseDuration, excludeHostId, propertyType} = req.query;
 const where: any = {
   AND: [],
 };
 
-console.log("excludeHostId from query:", excludeHostId);
-if (excludeHostId) {
+if (excludeHostId && !isNaN(Number(excludeHostId))) {
   where.AND.push({
     hostId: { not: Number(excludeHostId) }
   });
@@ -276,6 +275,12 @@ if (excludeHostId) {
     if (rentalType) {
       where.AND.push({
         rentalType: rentalType as string
+      });
+    }
+
+    if (propertyType) {
+      where.AND.push({
+        propertyType: propertyType as string
       });
     }
 

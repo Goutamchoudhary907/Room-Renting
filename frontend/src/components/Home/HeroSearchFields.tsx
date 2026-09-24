@@ -68,6 +68,10 @@ export const HeroSearchFields = ({
               placeholderText="Add date"
               minDate={new Date()}
               dateFormat="MMM d"
+              selectsStart
+              startDate={checkinDate}
+              endDate={null}
+              aria-label="Select check in date"
               className="w-full cursor-pointer border-none bg-transparent p-0 font-sans text-sm text-ink placeholder-taupe-light focus:outline-none focus:ring-0"
             />
           </div>
@@ -88,6 +92,10 @@ export const HeroSearchFields = ({
               placeholderText="Add date"
               minDate={checkinDate || new Date()}
               dateFormat="MMM d"
+              selectsEnd
+              startDate={null}
+              endDate={checkoutDate}
+              aria-label="Select check out date"
               className="w-full cursor-pointer border-none bg-transparent p-0 font-sans text-sm text-ink placeholder-taupe-light focus:outline-none focus:ring-0"
             />
           </div>

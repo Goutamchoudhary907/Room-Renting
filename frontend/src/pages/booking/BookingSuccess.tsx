@@ -132,7 +132,7 @@ export const BookingSuccess=() =>{
                     <DetailRow label="Move-in date" value={formatDate(bookingDetails.dates.moveIn)} />
                   )}
 
-                  {bookingDetails.dates.leaseDuration && (
+                  {bookingDetails.dates.leaseDuration != null && (
                     <DetailRow
                       label="Lease duration"
                       value={`${bookingDetails.dates.leaseDuration} ${bookingDetails.dates.leaseDuration === 1 ? 'month' : 'months'}`}

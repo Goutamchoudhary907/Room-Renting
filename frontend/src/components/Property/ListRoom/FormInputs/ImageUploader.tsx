@@ -32,7 +32,7 @@ export const ImageUploader = ({
         >
           Photos
         </label>
-        <span className="font-sans text-xs text-taupe-light">{images.length}/10</span>
+        <span className="font-sans text-xs text-taupe-light">{imagePreviews.length}/10</span>
       </div>
 
       <div className="group relative cursor-pointer rounded-[18px] border-2 border-dashed border-[#d4cfc8] bg-cream p-6 text-center transition-all hover:border-amber hover:bg-amber/3">
