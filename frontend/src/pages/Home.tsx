@@ -3,6 +3,7 @@ import { ListingAndSearchCard } from "../components/Home/ListingAndSearchCard"
 import { PopularDestinations } from "../components/Home/PopularDestinations"
 import { Recommendation } from "../components/Home/Recommendation"
 import { SearchBar } from "../components/Home/SearchBar"
+import { TickerBand } from "../components/Home/TickerBand"
 import { WhyUs } from "../components/Home/WhyUs"
 import { HomeSkeleton } from "./skeletons/HomeSkeleton";
 import axios from "axios";
@@ -94,13 +95,14 @@ export const Home= () =>{
 
 
    return(
-    <div className="bg-[#F9FAFB]">
+    <div className="bg-cream">
    {isLoading ? (
         <HomeSkeleton />
       ) : (
         <>
           <SearchBar />
-          {user?.id && upcomingBookings.length > 0 && <UpcomingStays bookings={upcomingBookings} />}
+          <TickerBand />
+          {user?.id && (upcomingBookings?.length ?? 0) > 0 && <UpcomingStays bookings={upcomingBookings} />}
         <Recommendation recommendedProperties={recommendedProperties || []} />
           <WhyUs />
           <PopularDestinations />

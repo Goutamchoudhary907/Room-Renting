@@ -13,32 +13,36 @@ export const RentalTypeInput: React.FC<PropertyTypeInputProps> = ({
     <div className={className}>
       <label
         htmlFor={id}
-        className="block font-semibold text-sm text-[#374151] mb-1 pb-4"
+        className="mb-3 block font-sans text-xs font-bold uppercase tracking-[0.08em] text-ink-soft"
       >
         {label}
       </label>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {options.map((option) => (
           <div
             key={option.value}
             onClick={() => onChange(option.value)}
-            className={`cursor-pointer pl-5 pt-4 border rounded-lg h-28 transition-colors duration-200 ${
+            className={`cursor-pointer rounded-[14px] border-[1.5px] p-4 transition-all duration-200 ${
               value === option.value
-                ? "bg-gray-200 border-none shadow-sm"
-                : "border-gray-300 hover:bg-gray-100"
+                ? "border-ink bg-ink"
+                : "border-cream-border bg-white hover:border-amber/40 hover:bg-amber/4"
             }`}
           >
-            <div className="items-center">
-              {option.imageSrc && (
-                <img
-                  src={option.imageSrc}
-                  alt={option.label}
-                  className="mr-2 w-6 h-6 mb-1"
-                />
-              )}
-              <span className="">{option.label}</span>
-            </div>
+            {option.imageSrc && (
+              <img
+                src={option.imageSrc}
+                alt=""
+                className={`mb-2 h-6 w-6 ${value === option.value ? "brightness-0 invert" : ""}`}
+              />
+            )}
+            <span
+              className={`font-sans text-[13px] font-semibold ${
+                value === option.value ? "text-gold" : "text-taupe"
+              }`}
+            >
+              {option.label}
+            </span>
           </div>
         ))}
       </div>

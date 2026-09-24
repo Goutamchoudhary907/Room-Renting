@@ -1,72 +1,102 @@
 import { useNavigate } from "react-router-dom";
+import { Reveal } from "./Reveal";
+import { SectionHeader } from "./SectionHeader";
+import { ArrowRightIcon, HouseIcon, SearchIcon } from "./icons";
 
 export const ListingAndSearchCard = () => {
   const navigate = useNavigate();
+
   return (
-    <div className="bg-white grid grid-cols-1 gap-5 px-8 justify-items-center
-      sm:grid-cols-1 sm:gap-5 sm:px-8 sm:justify-items-start
-      md:grid-cols-2 md:gap-5 md:px-8 md:justify-items-center
-      lg:grid-cols-2 lg:gap-5 lg:pl-8 lg:justify-items-start
-      xl:grid-cols-2 xl:gap-8 xl:px-8 xl:justify-items-center
-      2xl:grid-cols-2 2xl:gap-8 2xl:px-16 2xl:justify-center  
-    ">
-      <ActionCard
-        bgColor="bg-[#2563EB]"
-        title="List Your Room"
-        description="Become a host and earn money by renting out your space"
-        buttonText="Start Listing"
-        buttonTextColor="text-[#2563EB]"
-        onClick={() => {
-          navigate("/property/create");
-        }}
-      />
-      
-      <ActionCard
-        bgColor="bg-[#0891B2]"
-        title="Find Your Room"
-        description="Browse thousands of verified rooms and find your perfect match"
-        buttonText="Start Searching"
-        buttonTextColor="text-[#0891B2]"
-        onClick={() => {
-          navigate("/property/all-rooms");
-        }}
-      />
-    </div>
+    <section className="mx-auto max-w-6xl px-6 pb-20">
+      <div className="relative overflow-hidden rounded-[36px] bg-ink px-6 py-16 sm:px-12">
+        {/* Glows */}
+        <div className="pointer-events-none absolute -left-16 -top-20 h-[300px] w-[300px] rounded-full bg-amber/20 blur-[80px]" />
+        <div className="pointer-events-none absolute -bottom-20 -right-16 h-[300px] w-[300px] rounded-full bg-gold/12 blur-[80px]" />
+        {/* Dot texture */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-15"
+          style={{
+            backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.2) 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+            maskImage: "radial-gradient(ellipse 65% 65% at 50% 50%, black, transparent)",
+            WebkitMaskImage: "radial-gradient(ellipse 65% 65% at 50% 50%, black, transparent)",
+          }}
+        />
+
+        <Reveal className="relative z-[1] mb-12">
+          <SectionHeader
+            tone="dark"
+            eyebrow="Get started"
+            heading={
+              <>
+                Ready to make your <em className="font-medium italic text-gold">next move</em>?
+              </>
+            }
+            description="Whether you have a room to share or a stay to find — it starts here."
+          />
+        </Reveal>
+
+        <div className="relative z-[1] mx-auto grid max-w-[720px] grid-cols-1 gap-5 sm:grid-cols-2">
+          <Reveal delay={0.05}>
+            <ActionCard
+              icon={<HouseIcon />}
+              iconBg="bg-amber/10"
+              iconColor="text-amber"
+              title="List your room"
+              description="Become a host and earn money by renting out your space."
+              buttonText="Start listing"
+              onClick={() => navigate("/property/create")}
+              variant="solid"
+            />
+          </Reveal>
+          <Reveal delay={0.1}>
+            <ActionCard
+              icon={<SearchIcon size={24} />}
+              iconBg="bg-[rgba(59,130,246,0.1)]"
+              iconColor="text-[#3b82f6]"
+              title="Find your room"
+              description="Browse thousands of verified rooms and find your perfect match."
+              buttonText="Start searching"
+              onClick={() => navigate("/property/all-rooms")}
+              variant="outline"
+            />
+          </Reveal>
+        </div>
+      </div>
+    </section>
   );
 };
 
 interface ActionCardProps {
-  bgColor: string;
+  icon: React.ReactNode;
+  iconBg: string;
+  iconColor: string;
   title: string;
   description: string;
   buttonText: string;
-  buttonTextColor: string;
   onClick: () => void;
+  variant: "solid" | "outline";
 }
 
-const ActionCard = ({ bgColor, title, description, buttonText, buttonTextColor, onClick }: ActionCardProps) => {
+const ActionCard = ({ icon, iconBg, iconColor, title, description, buttonText, onClick, variant }: ActionCardProps) => {
   return (
-    <div className={`${bgColor} text-white flex flex-col justify-center items-center text-center rounded-2xl
-      w-80 h-50 p-4 
-      sm:w-155 sm:h-50 sm:p-4 
-      md:w-88 md:h-50 md:p-2 
-      lg:w-115 lg:h-50 lg:p-4 
-      xl:w-170 xl:h-50 xl:p-4 
-      2xl:max-w-2xl 2xl:p-6
-    `}>
-      <div className="font-bold text-xl mb-2">
-        {title}
+    <div className="h-full rounded-3xl bg-cream p-8 transition-all duration-[350ms]">
+      <div className={`mb-[18px] flex h-13 w-13 items-center justify-center rounded-2xl ${iconBg} ${iconColor}`}>
+        {icon}
       </div>
-      <div className="mb-4">
-        {description}
-      </div>
-      <div>
-        <button className={`bg-white ${buttonTextColor} px-4 py-2 rounded-md font-medium cursor-pointer`} 
-          onClick={onClick}
-        >
-          {buttonText}
-        </button>
-      </div>
+      <h3 className="mb-2 font-serif text-2xl font-semibold text-ink">{title}</h3>
+      <p className="mb-5 font-sans text-sm leading-relaxed text-taupe">{description}</p>
+      <button
+        onClick={onClick}
+        className={`group flex cursor-pointer items-center gap-2 rounded-full border-none px-6 py-3 font-sans text-[13px] font-semibold transition-all hover:gap-3 ${
+          variant === "solid"
+            ? "bg-ink text-cream shadow-[0_4px_16px_rgba(28,25,23,0.2)]"
+            : "bg-transparent text-ink shadow-[inset_0_0_0_1.5px_#e8e4de]"
+        }`}
+      >
+        {buttonText}
+        <ArrowRightIcon />
+      </button>
     </div>
   );
 };

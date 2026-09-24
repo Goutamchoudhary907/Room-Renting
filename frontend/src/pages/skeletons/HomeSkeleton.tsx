@@ -6,7 +6,7 @@ import { HowItWorksSkeleton } from "../../components/HomeSkeleton/HowItWorksSkel
 import { ListingAndSearchCardSkeleton } from "../../components/HomeSkeleton/ListingAndSearchCardSkeleton";
 
 export const HomeSkeleton = () => (
-  <div className="bg-[#F9FAFB]">
+  <div className="bg-cream">
     <SearchBarSkeleton />
     <RecommendationSkeleton />
     <WhyUsSkeleton />

@@ -12,43 +12,38 @@ export const AmenitiesInput = ({
       onChange([...value, optionValue]);
     }
   };
-  
-  return (
-    <div>
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 p-2">
-      {options.map((option) => (
-        <label
-          key={option.value}
-          className="cursor-pointer border rounded-lg flex md:items-center items-start gap-2 md:gap-3 p-2 md:pl-3 h-auto md:h-12 text-sm font-semibold border-gray-300"
-        >
-          <input
-            type="checkbox"
-            value={option.value}
-            checked={value.includes(option.value)}
-            onChange={() => handleCheckBoxChange(option.value)}
-            className="opacity-0 absolute"
-          />
-          {/* Checkbox visual */}
-          <span className="w-5 h-5 border border-gray-300 rounded-sm flex items-center justify-center shrink-0 mt-1 md:mt-0">
-            {value.includes(option.value) && (
-              <span className="w-3 h-3 bg-blue-500 rounded-sm" />
-            )}
-          </span>
 
-          {/* Image + Text */}
-          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-left">
+  return (
+    <div className="flex flex-wrap gap-2">
+      {options.map((option) => {
+        const isSelected = value.includes(option.value);
+        return (
+          <label
+            key={option.value}
+            className={`flex cursor-pointer items-center gap-2 rounded-full border-[1.5px] px-4 py-2.5 font-sans text-[13px] font-medium transition-all ${
+              isSelected
+                ? "border-ink bg-ink text-gold"
+                : "border-cream-border bg-white text-taupe hover:border-amber hover:bg-amber/4 hover:text-amber"
+            }`}
+          >
+            <input
+              type="checkbox"
+              value={option.value}
+              checked={isSelected}
+              onChange={() => handleCheckBoxChange(option.value)}
+              className="sr-only"
+            />
             {option.imageSrc && (
               <img
                 src={option.imageSrc}
-                alt={option.label}
-                className="w-5 h-5 shrink-0"
+                alt=""
+                className={`h-4 w-4 shrink-0 ${isSelected ? "brightness-0 invert" : ""}`}
               />
             )}
-            <span className="break-words leading-snug">{option.label}</span>
-          </div>
-        </label>
-      ))}
+            <span className="whitespace-nowrap">{option.label}</span>
+          </label>
+        );
+      })}
     </div>
-  </div>
-);
+  );
 };

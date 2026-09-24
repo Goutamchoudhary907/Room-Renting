@@ -1,3 +1,6 @@
+import { Reveal } from "./Reveal";
+import { SectionHeader } from "./SectionHeader";
+
 export interface UpcomingBooking {
   id: string;
   property: {
@@ -17,32 +20,36 @@ interface UpcomingStaysProps {
 }
 
 export const UpcomingStays = ({ bookings }: UpcomingStaysProps) => {
-
-
   const getNextBookingDate = (booking: UpcomingBooking) => {
     return booking.checkinDate || booking.moveInDate || "";
   };
-  return (
-    <div className="bg-[#ffffff00]">
-      <div className="flex justify-center items-center font-medium text-xl mt-10 md:font-bold md:text-3xl md:mt-10 lg:font-bold lg:text-3xl lg:mt-20">
-        <h2>Your Upcoming Stays</h2>
-      </div>
 
-      <div className="mt-15 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-1 lg:grid-cols-3 gap-6 mr-7">
-        {bookings.map((booking) => (
-          <PropertyCard 
-            key={booking.id}
-            property={{
-              id: booking.property.id,
-              title: booking.property.title,
-              images: booking.property.images,
-              bookingStatus: booking.status,
-              nextBookingDate: getNextBookingDate(booking)
-            }}
-          />
+  return (
+    <section className="mx-auto max-w-6xl px-6 pt-14">
+      <Reveal className="mb-10">
+        <SectionHeader
+          align="left"
+          eyebrow="Coming up"
+          heading="Your upcoming stays"
+        />
+      </Reveal>
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {bookings.map((booking, i) => (
+          <Reveal key={booking.id} delay={Math.min(i, 3) * 0.05}>
+            <PropertyCard
+              property={{
+                id: booking.property.id,
+                title: booking.property.title,
+                images: booking.property.images,
+                bookingStatus: booking.status,
+                nextBookingDate: getNextBookingDate(booking),
+              }}
+            />
+          </Reveal>
         ))}
       </div>
-    </div>
+    </section>
   );
 };
 
@@ -58,56 +65,51 @@ interface PropertyCardProps {
   property: Property;
 }
 
+const STATUS_STYLE: Record<Property["bookingStatus"], string> = {
+  BOOKED: "bg-verified/10 text-verified",
+  PENDING: "bg-gold/20 text-[#a08620]",
+  CANCELLED: "bg-red-100 text-red-700",
+};
+
 const PropertyCard = ({ property }: PropertyCardProps) => {
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Not specified";
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
   };
 
-  const getStatusStyle = () => {
-    switch (property.bookingStatus) {
-      case 'BOOKED':
-        return 'bg-green-100 text-green-800';
-      case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'CANCELLED':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   return (
-    <div className="rounded-lg shadow-md overflow-hidden ml-8 mb-8">
-      <div className="pt-1 pb-3">
-        <img 
-          src={property.images[0]?.url} 
-          alt={property.title} 
-          className="w-full h-48 object-cover"
+    <div className="overflow-hidden rounded-[20px] border border-cream-border bg-white p-2.5 shadow-[0_1px_3px_rgba(28,25,23,0.04)] transition-all duration-[400ms] hover:-translate-y-1.5 hover:shadow-[0_20px_44px_rgba(28,25,23,0.12)]">
+      <div className="relative h-[180px] overflow-hidden rounded-[14px] bg-cream-border-soft">
+        <img
+          src={property.images[0]?.url}
+          alt={property.title}
+          className="h-full w-full object-cover"
         />
       </div>
-      
-      <div className="p-4">
-        <div className="flex justify-between items-center mb-3">
-          <h3 className="font-semibold text-lg whitespace-nowrap overflow-hidden text-ellipsis ">{property.title}</h3>
-          <div className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusStyle()}`}>
+
+      <div className="px-2 pb-2 pt-3.5">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h3 className="overflow-hidden text-ellipsis whitespace-nowrap font-serif text-[19px] font-semibold text-ink">
+            {property.title}
+          </h3>
+          <span className={`shrink-0 rounded-full px-3 py-1 font-sans text-[11px] font-bold ${STATUS_STYLE[property.bookingStatus]}`}>
             {property.bookingStatus}
-          </div>
+          </span>
         </div>
 
-        <div className="mb-4">
-          <p className="text-sm text-gray-500">Check-in Date</p>
-          <p className="font-medium">{formatDate(property.nextBookingDate)}</p>
+        <div className="mb-4 border-t border-cream-border-soft pt-3">
+          <p className="m-0 font-sans text-xs text-taupe-light">Check-in Date</p>
+          <p className="m-0 mt-0.5 font-sans text-sm font-semibold text-ink">{formatDate(property.nextBookingDate)}</p>
         </div>
 
-        <button 
+        <button
           onClick={() => window.location.href = `/property/room-detail/${property.id}`}
-          className="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          className="w-full cursor-pointer rounded-full border-none bg-ink py-2.5 font-sans text-sm font-semibold text-cream transition-colors hover:bg-amber"
         >
           View Details
         </button>

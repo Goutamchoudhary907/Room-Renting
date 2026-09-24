@@ -1,13 +1,9 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
-import HomeIcon from "../../assets/Home_icon.png";
 import axios from "axios";
 import { propertySchema } from "../../../schema/src/propertySchema.js";
-import LocationIcon from "../../assets/LocationIcon.png";
-import RoomIcon from "../../assets/RoomSpecificationIcon.png";
-import AmenitiesIcon from "../../assets/AmenitiesIcon.png";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 import { useNavigate } from "react-router-dom";
-import { ChildrenProps, RoomFormData } from "../../components/Property/ListRoom/types.js";
+import { RoomFormData } from "../../components/Property/ListRoom/types.js";
 import {
   amenityOptions,
   bathroomOptions,
@@ -27,6 +23,15 @@ import ListRoomSkeleton from "../skeletons/property/ListRoomSkeleton.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
 import useMap from "../../hooks/useMap.js";
+import { FormSection, SectionNav } from "../../components/Property/ListRoom/FormSection.js";
+import {
+  ArrowRightIcon,
+  BedIcon,
+  HouseIcon,
+  MapPinIcon,
+  TagIcon,
+  ZapIcon,
+} from "../../components/Home/icons.js";
 
 interface ListRoomProps{
   isEditMode?:boolean;
@@ -52,42 +57,6 @@ interface AddressComponents {
   landmark: string,
   locality: string
 }
-
-const RoomDetailsSection = ({ children }: ChildrenProps) => (
-  <div className="mb-6 bg-white p-6 rounded-2xl shadow-md w-full">
-    {children}
-  </div>
-);
-
-const RentalAndPropertySection = ({ children }: ChildrenProps) => (
-  <div className="mb-6 bg-white p-6 rounded-2xl shadow-md w-full">
-    {children}
-  </div>
-);
-
-const RoomSpecificationsSection = ({ children }: ChildrenProps) => (
-  <div className="mb-6 bg-white p-6 rounded-2xl shadow-md w-full">
-    {children}
-  </div>
-);
-
-const AmenitiesSection = ({ children }: ChildrenProps) => (
-  <div className="mb-6 bg-white p-6 rounded-2xl shadow-md w-full">
-    {children}
-  </div>
-);
-
-const RentPricingSection = ({ children }: ChildrenProps) => (
-  <div className="mb-6 bg-white p-6 rounded-2xl shadow-md w-full">
-    {children}
-  </div>
-);
-
-const AddressSection = ({ children }: ChildrenProps) => (
-  <div className="mb-6 bg-white p-6 rounded-2xl shadow-md w-full">
-    {children}
-  </div>
-);
 
 const libraries: ("places" | "geometry")[] = ['places'];
 const MAP_CONTAINER_STYLE = { width: '100%', height: '400px' };
@@ -690,34 +659,44 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
   }
 
   return (
-    <div className="flex justify-center items-center bg-[#E6E6E6]">
-      <div className="h-full pt-4 lg:pt-20 p-4 lg:p-15 w-full lg:w-auto">
-        <div className="lg:w-full">
-          <h2 className="text-[#111827] font-bold text-xl lg:text-2xl">
-            {isEditMode ? 'Edit Your Room' : "List Your Room"}
-          </h2>
-          <p className="text-base lg:text-[17px] text-[#4B5563] mt-1">
-            {isEditMode ? 'Update the details of your listing' : 'Fill in the details to create your listing'}
-          </p>
-        </div>
-        
-        <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200 text-sm lg:text-base">
-          <h3 className="font-semibold text-blue-800 mb-2">Upload Requirements:</h3>
-          <ul className="list-disc pl-5 text-blue-700">
-            <li>Maximum 10 images per property</li>
-            <li>Each image must be under 5MB</li>
-            <li>Only JPG/PNG image formats accepted</li>
-          </ul>
-        </div>
+    <div className="min-h-screen bg-cream">
+      <div className="mx-auto flex max-w-[1000px] items-start gap-12 px-6 pb-20 pt-8">
+        <SectionNav />
 
-        <div className="h-full flex flex-col items-start w-full pt-4 mt-4 lg:mt-6 rounded-2xl">
-          {/* Room Details Section */}
-          <RoomDetailsSection>
-            <div className="flex items-center">
-              <img className="mr-1 w-5 h-5 lg:w-6 lg:h-6" src={HomeIcon} alt="Home Icon" />
-              <h3 className="font-semibold text-lg lg:text-xl">Room Details</h3>
+        <div className="min-w-0 flex-1">
+          <div className="mb-8">
+            <div className="mb-2 flex items-center gap-2">
+              <div className="h-0.5 w-5 bg-amber" />
+              <span className="font-sans text-[11px] font-bold uppercase tracking-[0.18em] text-amber">
+                {isEditMode ? 'Edit listing' : 'New listing'}
+              </span>
             </div>
-            <div className="mt-3 lg:mt-4">
+            <h1 className="m-0 mb-2 font-serif text-[clamp(28px,4vw,40px)] font-semibold tracking-tight text-ink">
+              {isEditMode ? 'Edit Your Room' : 'List Your Room'}
+            </h1>
+            <p className="m-0 font-sans text-sm text-taupe">
+              {isEditMode
+                ? 'Update the details of your listing.'
+                : 'Tell us about your property — the basics help guests find the right match.'}
+            </p>
+          </div>
+
+          <div className="mb-5 rounded-2xl border border-cream-border bg-white p-5">
+            <h3 className="m-0 mb-2 font-sans text-xs font-bold uppercase tracking-[0.08em] text-ink-soft">
+              Upload requirements
+            </h3>
+            <ul className="m-0 list-disc pl-5 font-sans text-[13px] leading-relaxed text-taupe">
+              <li>Maximum 10 images per property</li>
+              <li>Each image must be under 5MB</li>
+              <li>Only JPG/PNG image formats accepted</li>
+            </ul>
+          </div>
+
+          <div className="w-full">
+          {/* Room Details Section */}
+          <FormSection id="details" title="Room Details" icon={<HouseIcon size={18} />}>
+            <div className="flex flex-col gap-5">
+            <div>
               <PropertyInputField
                 label="Room Title"
                 type="text"
@@ -725,7 +704,6 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
                 id="title"
                 name="title"
                 value={RoomFormData.title}
-                className="mt-1 lg:mt-2"
                 onChange={handleChange}
                 inputProps={{ 'data-error': fieldErrors.title ? 'true' : undefined } as any}
               />
@@ -734,7 +712,7 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
               )}
             </div>
 
-            <div className="mt-3 lg:mt-4">
+            <div>
               <PropertyInputField
                 label="Description"
                 type="textarea"
@@ -742,7 +720,6 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
                 id="description"
                 name="description"
                 value={RoomFormData.description}
-                className="mt-1 lg:mt-2"
                 onChange={handleChange}
                 inputProps={{ 'data-error': fieldErrors.description ? 'true' : undefined } as any}
               />
@@ -751,7 +728,7 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
               )}
             </div>
 
-            <div className="mt-3 lg:mt-4">
+            <div>
               <ImageUploader
                 images={images}
                 imagePreviews={[...existingImages, ...imagePreviews]}
@@ -766,16 +743,13 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
                </>
              )}
             </div>
-          </RoomDetailsSection>
+            </div>
+          </FormSection>
 
           {/* Rental and Property Section */}
-          <RentalAndPropertySection>
-  <div className="flex items-center mb-3 lg:mb-4 w-full">
-    <img className="mr-1 w-5 h-5 lg:w-6 lg:h-6" src={LocationIcon} alt="Location Icon" />
-    <h3 className="font-semibold text-lg lg:text-xl">Rental and Property Type</h3>
-  </div>
+          <FormSection id="rental" title="Rental and Property Type" icon={<TagIcon size={18} />}>
 
-  <h2 className="mt-3 lg:mt-5 font-semibold text-[#374151]">Rental Type</h2>
+  <h2 className="mb-3 font-sans text-xs font-bold uppercase tracking-[0.08em] text-ink-soft">Rental Type</h2>
 
   <div className="flex flex-col lg:flex-row gap-3 lg:gap-6 mt-2">
     {rentalTypes.map((type) => (
@@ -795,9 +769,9 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
             readOnly
             data-error={fieldErrors.rentalType ? 'true' : undefined}
           />
-          <span className="rounded-full w-4 h-4 border-2 border-blue-500 inline-flex items-center justify-center mr-2">
+          <span className="rounded-full w-4 h-4 border-2 border-amber inline-flex items-center justify-center mr-2">
             {isChecked === type.value && (
-              <span className="rounded-full w-2 h-2 bg-blue-500"></span>
+              <span className="rounded-full w-2 h-2 bg-amber"></span>
             )}
           </span>
           <span className="font-normal text-sm lg:text-base">{type.label}</span>
@@ -822,15 +796,11 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
       <ErrorMessage message={fieldErrors.propertyType[0]} className="mt-2" />
     )}
   </div>
-</RentalAndPropertySection>
+</FormSection>
 
 
           {/* Room Specifications Section */}
-          <RoomSpecificationsSection>
-            <div className="flex items-center mb-3 lg:mb-4 w-full">
-              <img className="mr-1 w-5 h-5 lg:w-6 lg:h-6" src={RoomIcon} alt="Room Icon" />
-              <h3 className="font-semibold text-lg lg:text-xl">Room Specification</h3>
-            </div>
+          <FormSection id="specification" title="Room Specification" icon={<BedIcon size={18} />}>
             
             <div className="flex flex-col lg:flex-row gap-3 lg:gap-4 mt-3 lg:mt-4 w-full">
               <div className="w-full lg:w-1/2">
@@ -887,14 +857,10 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
                 />
               </div>
             </div>
-          </RoomSpecificationsSection>
+          </FormSection>
 
           {/* Amenities Section */}
-          <AmenitiesSection>
-            <div className="flex items-center mb-3 lg:mb-4 w-full">
-              <img className="mr-1 w-5 h-5 lg:w-6 lg:h-6" src={AmenitiesIcon} alt="Amenities Icon" />
-              <h3 className="font-semibold text-lg lg:text-xl">Amenities</h3>
-            </div>
+          <FormSection id="amenities" title="Amenities" icon={<ZapIcon size={18} />}>
             
             <AmenitiesInput
               id="amenities"
@@ -913,14 +879,10 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
                 <ErrorMessage message={fieldErrors.amenities[0]} className="mt-2" />
               </>
             )}
-          </AmenitiesSection>
+          </FormSection>
 
           {/* Rent Pricing Section */}
-          <RentPricingSection>
-            <div className="flex items-center mb-3 lg:mb-4 w-full">
-              <img className="mr-1 w-5 h-5 lg:w-6 lg:h-6" src={AmenitiesIcon} alt="Pricing Icon" />
-              <h3 className="font-semibold text-lg lg:text-xl">Pricing</h3>
-            </div>
+          <FormSection id="pricing" title="Pricing" icon={<TagIcon size={18} />}>
             
             <div className="flex flex-col lg:flex-row gap-4 lg:gap-15 mt-2">
               {(RoomFormData.rentalType === "short-term" || RoomFormData.rentalType === "both") && (
@@ -970,26 +932,22 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
                 </div>
               )}
             </div>
-          </RentPricingSection>
+          </FormSection>
 
           {/* Address Section */}
-          <AddressSection>
-  <div className="flex items-center mb-3 lg:mb-4 w-full">
-    <img className="mr-1 w-5 h-5 lg:w-6 lg:h-6" src={LocationIcon} alt="Location Icon" />
-    <h3 className="font-semibold text-lg lg:text-xl">Location Details</h3>
-  </div>
+          <FormSection id="location" title="Location Details" icon={<MapPinIcon size={18} />}>
 
   {isLoaded ? (
     <>
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="mb-2 block font-sans text-xs font-bold uppercase tracking-[0.08em] text-ink-soft">
           Search Address (Start typing to see suggestions)
         </label>
 
         <input
           type="text"
           placeholder="Search property address"
-          className="w-full p-3 border rounded-lg mb-4"
+          className="w-full rounded-[14px] border-[1.5px] border-cream-border bg-cream px-4 py-3 font-sans text-sm text-ink placeholder-taupe-light transition-colors focus:border-amber focus:outline-none mb-4"
           value={searchInput}
           onChange={async (e) => {
             const input = e.target.value;
@@ -1006,10 +964,10 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
             {suggestions.map((prediction) => (
               <div
                 key={prediction.place_id}
-                className="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                className="px-4 py-3 hover:bg-cream cursor-pointer border-b border-cream-border-soft last:border-b-0"
                 onClick={() => handlePlaceSelect(prediction)}
               >
-                <div className="font-medium text-gray-800">
+                <div className="font-sans text-sm font-medium text-ink">
                   {prediction.description}
                 </div>
               </div>
@@ -1020,24 +978,24 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="mb-2 block font-sans text-xs font-bold uppercase tracking-[0.08em] text-ink-soft">
             Country/region
           </label>
           <input
             type="text"
-            className="w-full p-3 border rounded-lg"
+            className="w-full rounded-[14px] border-[1.5px] border-cream-border bg-cream px-4 py-3 font-sans text-sm text-ink placeholder-taupe-light transition-colors focus:border-amber focus:outline-none"
             value="India"
             readOnly
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="mb-2 block font-sans text-xs font-bold uppercase tracking-[0.08em] text-ink-soft">
             Flat, house no., building, etc.
           </label>
           <input
             type="text"
-            className="w-full p-3 border rounded-lg"
+            className="w-full rounded-[14px] border-[1.5px] border-cream-border bg-cream px-4 py-3 font-sans text-sm text-ink placeholder-taupe-light transition-colors focus:border-amber focus:outline-none"
             value={RoomFormData.address.flatOrHouse}
             onChange={(e) => setRoomFormData(prev => ({
               ...prev,
@@ -1057,12 +1015,12 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
 
       <div className="grid grid-cols-1 gap-4 mb-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="mb-2 block font-sans text-xs font-bold uppercase tracking-[0.08em] text-ink-soft">
             Street address
           </label>
           <input
             type="text"
-            className="w-full p-3 border rounded-lg"
+            className="w-full rounded-[14px] border-[1.5px] border-cream-border bg-cream px-4 py-3 font-sans text-sm text-ink placeholder-taupe-light transition-colors focus:border-amber focus:outline-none"
             value={RoomFormData.address.street}
             onChange={(e) => setRoomFormData(prev => ({
               ...prev,
@@ -1080,12 +1038,12 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="mb-2 block font-sans text-xs font-bold uppercase tracking-[0.08em] text-ink-soft">
             Nearby landmark (optional)
           </label>
           <input
             type="text"
-            className="w-full p-3 border rounded-lg"
+            className="w-full rounded-[14px] border-[1.5px] border-cream-border bg-cream px-4 py-3 font-sans text-sm text-ink placeholder-taupe-light transition-colors focus:border-amber focus:outline-none"
             value={RoomFormData.address.landmark}
             onChange={(e) => setRoomFormData(prev => ({
               ...prev,
@@ -1105,12 +1063,12 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="mb-2 block font-sans text-xs font-bold uppercase tracking-[0.08em] text-ink-soft">
             District/locality
           </label>
           <input
             type="text"
-            className="w-full p-3 border rounded-lg"
+            className="w-full rounded-[14px] border-[1.5px] border-cream-border bg-cream px-4 py-3 font-sans text-sm text-ink placeholder-taupe-light transition-colors focus:border-amber focus:outline-none"
             value={RoomFormData.address.locality}
             onChange={(e) => setRoomFormData(prev => ({
               ...prev,
@@ -1128,12 +1086,12 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="mb-2 block font-sans text-xs font-bold uppercase tracking-[0.08em] text-ink-soft">
             City/town
           </label>
           <input
             type="text"
-            className="w-full p-3 border rounded-lg"
+            className="w-full rounded-[14px] border-[1.5px] border-cream-border bg-cream px-4 py-3 font-sans text-sm text-ink placeholder-taupe-light transition-colors focus:border-amber focus:outline-none"
             value={RoomFormData.address.city}
             onChange={(e) => setRoomFormData(prev => ({
               ...prev,
@@ -1151,12 +1109,12 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="mb-2 block font-sans text-xs font-bold uppercase tracking-[0.08em] text-ink-soft">
             State/UT
           </label>
           <input
             type="text"
-            className="w-full p-3 border rounded-lg"
+            className="w-full rounded-[14px] border-[1.5px] border-cream-border bg-cream px-4 py-3 font-sans text-sm text-ink placeholder-taupe-light transition-colors focus:border-amber focus:outline-none"
             value={RoomFormData.address.state}
             onChange={(e) => setRoomFormData(prev => ({
               ...prev,
@@ -1176,12 +1134,12 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="mb-2 block font-sans text-xs font-bold uppercase tracking-[0.08em] text-ink-soft">
             PIN code
           </label>
           <input
             type="text"
-            className="w-full p-3 border rounded-lg"
+            className="w-full rounded-[14px] border-[1.5px] border-cream-border bg-cream px-4 py-3 font-sans text-sm text-ink placeholder-taupe-light transition-colors focus:border-amber focus:outline-none"
             value={RoomFormData.address.postalCode}
             onChange={(e) => setRoomFormData(prev => ({
               ...prev,
@@ -1200,10 +1158,10 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
         </div>
       </div>
       <div className="mb-4">
-  <label className="block font-medium text-gray-700 mb-1">Full Address</label>
+  <label className="mb-2 block font-sans text-xs font-bold uppercase tracking-[0.08em] text-ink-soft">Full Address</label>
   <input
     type="text"
-    className="w-full p-3 border rounded-lg bg-gray-100"
+    className="w-full rounded-[14px] border-[1.5px] border-cream-border bg-cream-border-soft px-4 py-3.5 font-sans text-sm text-taupe"
     value={RoomFormData.formattedAddress || ''}
     readOnly
     placeholder="Full formatted address will appear here"
@@ -1271,19 +1229,19 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
       </div>
     </>
   ) : (
-    <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
-      <p>Loading map...</p>
+    <div className="h-96 rounded-2xl bg-cream-border-soft flex items-center justify-center">
+      <p className="font-sans text-sm text-taupe">Loading map...</p>
     </div>
   )}
-   </AddressSection>
+   </FormSection>
 
 
           {generalErrors.length > 0 && (
-            <div className="mb-4 lg:mb-6 p-3 lg:p-4 bg-red-50 border-l-4 border-red-500">
-              <h3 className="font-semibold text-red-800 mb-1 lg:mb-2 text-sm lg:text-base">
+            <div className="mb-5 rounded-2xl bg-red-50 p-4">
+              <h3 className="m-0 mb-1.5 font-sans text-sm font-semibold text-red-700">
                 Please correct these issues:
               </h3>
-              <ul className="list-disc pl-4 lg:pl-5 text-red-700 text-xs lg:text-sm">
+              <ul className="m-0 list-disc pl-5 font-sans text-[13px] leading-relaxed text-red-600">
                 {generalErrors.map((error, index) => (
                   <li key={index}>{error}</li>
                 ))}
@@ -1291,24 +1249,34 @@ const handleMapClick = async (e: google.maps.MapMouseEvent) => {
             </div>
           )}
 
-       <button
-         onClick={handleSubmit}
-         type={isEditMode ? "button" : "submit"}
-         disabled={isSubmitting}
-         className="mt-3 lg:mt-4 px-4 py-2 text-white bg-[#2563EB] rounded-lg text-sm lg:text-base font-medium cursor-pointer w-full lg:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
-       >
-         {isSubmitting ? (
-           <span className="flex items-center justify-center">
-             <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-             </svg>
-             {isEditMode ? 'Saving...' : 'Creating...'}
-           </span>
-         ) : (
-           isEditMode ? 'Save Changes' : 'Submit'
-         )}
-       </button>
+          <div className="flex justify-end">
+            <button
+              onClick={handleSubmit}
+              type={isEditMode ? "button" : "submit"}
+              disabled={isSubmitting}
+              className={`flex w-full items-center justify-center gap-2 rounded-[14px] border-none px-8 py-3.5 font-sans text-sm font-semibold transition-all sm:w-auto ${
+                isSubmitting
+                  ? 'cursor-not-allowed bg-cream-border text-taupe-light'
+                  : 'cursor-pointer bg-ink text-cream shadow-[0_4px_16px_rgba(28,25,23,0.15)] hover:bg-amber'
+              }`}
+            >
+              {isSubmitting ? (
+                <>
+                  <svg className="-ml-1 mr-1 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {isEditMode ? 'Saving...' : 'Creating...'}
+                </>
+              ) : (
+                <>
+                  {isEditMode ? 'Save Changes' : 'Create Listing'}
+                  <ArrowRightIcon />
+                </>
+              )}
+            </button>
+          </div>
+        </div>
         </div>
       </div>
     </div>

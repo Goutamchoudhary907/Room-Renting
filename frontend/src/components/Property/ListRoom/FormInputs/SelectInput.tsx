@@ -1,4 +1,5 @@
 import React, { ChangeEvent } from "react";
+import { ErrorMessage } from "./ErrorMessage";
 
 interface SelectInputType {
   label: string;
@@ -31,19 +32,21 @@ export function SelectInput({
       target: { name, value: parsedValue },
     } as ChangeEvent<HTMLSelectElement>);
   };
-  
+
   return (
     <div>
       <label
         htmlFor={id}
-        className="block font-semibold text-sm text-[#374151] mb-1"
+        className="mb-2 block font-sans text-xs font-bold uppercase tracking-[0.08em] text-ink-soft"
       >
         {label}
       </label>
       <select
         id={id}
         name={name}
-        className={`w-full border ${error ? "border-red-500" : "border-[#ccced3]"} rounded p-2 focus:outline-none`}
+        className={`w-full cursor-pointer rounded-[14px] border-[1.5px] bg-cream px-4 py-3.5 font-sans text-sm text-ink transition-colors focus:border-amber focus:outline-none ${
+          error ? "border-red-400" : "border-cream-border"
+        }`}
         value={value}
         onChange={handleSelectChange}
         {...inputProps}
@@ -54,26 +57,7 @@ export function SelectInput({
           </option>
         ))}
       </select>
-      {error && (
-        <div className="text-red-500 text-sm mt-1 p-2 bg-red-50 rounded">
-          <p className="flex items-start">
-            <svg
-              className="w-4 h-4 mr-1 mt-0.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            {error}
-          </p>
-        </div>
-      )}
+      {error && <ErrorMessage message={error} className="mt-1.5" />}
     </div>
   );
 }
